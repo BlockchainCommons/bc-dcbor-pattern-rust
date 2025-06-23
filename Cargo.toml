@@ -1,0 +1,40 @@
+[package]
+name = "dcbor-pattern"
+version = "0.1.0"
+edition = "2024"
+description = "Pattern matcher for dCBOR"
+authors = ["Blockchain Commons"]
+repository = "https://github.com/BlockchainCommons/bc-dcbor-pattern-rust"
+readme = "README.md"
+license = "BSD-2-Clause-Patent"
+documentation = "https://docs.rs/bc-dcbor-pattern"
+keywords = [
+    "encoding",
+    "cbor",
+    "binary",
+    "format",
+    "serialization",
+] # Up to five
+categories = [
+    "data-structures",
+    "encoding",
+] # https://crates.io/category_slugs
+
+[dependencies]
+known-values = "^0.6.0"
+dcbor = { version = "^0.21.0", features = ["anyhow", "multithreaded"] }
+dcbor-parse = "^0.2.1"
+bc-components = "^0.23.0"
+bc-ur = "^0.11.0"
+
+regex = "^1.11.1"
+hex = "^0.4.3"
+thiserror = "^1.0.48"
+logos = "0.15.0"
+
+[dev-dependencies]
+hex-literal = "^0.4.1"
+indoc = "^2.0.0"
+bc-rand = "^0.4.0"
+anyhow = "^1.0.0"
+bc-tags = "0.3.0"
