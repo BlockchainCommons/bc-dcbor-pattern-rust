@@ -1,11 +1,9 @@
 use dcbor::prelude::*;
-use dcbor_pattern::{Matcher, Pattern};
 use dcbor_parse::parse_dcbor_item;
+use dcbor_pattern::{Matcher, Pattern};
 
 /// Helper function to parse CBOR diagnostic notation into CBOR objects
-fn cbor(s: &str) -> CBOR {
-    parse_dcbor_item(s).unwrap()
-}
+fn cbor(s: &str) -> CBOR { parse_dcbor_item(s).unwrap() }
 
 #[test]
 fn test_any_pattern() {
@@ -229,7 +227,7 @@ fn test_capture_pattern_complex() {
         Pattern::and(vec![
             Pattern::number_greater_than(5),
             Pattern::number_less_than(10),
-        ])
+        ]),
     );
 
     // Should match numbers in range 5 < x < 10
@@ -254,7 +252,7 @@ fn test_nested_capture_patterns() {
         Pattern::or(vec![
             Pattern::capture("inner1", Pattern::number(42)),
             Pattern::capture("inner2", Pattern::text("hello")),
-        ])
+        ]),
     );
 
     // Should match either captured pattern
@@ -278,7 +276,10 @@ fn test_capture_pattern_name_access() {
     let pattern = Pattern::capture("test_name", inner_pattern.clone());
 
     // Test that we can access the capture pattern internals
-    if let dcbor_pattern::Pattern::Meta(dcbor_pattern::MetaPattern::Capture(capture)) = &pattern {
+    if let dcbor_pattern::Pattern::Meta(dcbor_pattern::MetaPattern::Capture(
+        capture,
+    )) = &pattern
+    {
         assert_eq!(capture.name(), "test_name");
         assert_eq!(capture.pattern(), &inner_pattern);
     } else {
@@ -293,9 +294,115 @@ fn test_capture_pattern_is_complex() {
     assert!(!simple.is_complex());
 
     // Complex capture should be complex if inner pattern is complex
-    let complex = Pattern::capture("complex", Pattern::and(vec![
-        Pattern::number(1),
-        Pattern::number(2),
-    ]));
+    let complex = Pattern::capture(
+        "complex",
+        Pattern::and(vec![Pattern::number(1), Pattern::number(2)]),
+    );
     assert!(complex.is_complex());
+}
+
+#[test]
+fn test_repeat_pattern_basic() {
+    use dcbor_pattern::{Quantifier, Reluctance};
+
+    // Test exact match (default quantifier)
+    let pattern = Pattern::group(Pattern::number(42));
+
+    assert!(pattern.matches(&cbor("42")));
+    assert!(!pattern.matches(&cbor("41")));
+    assert!(!pattern.matches(&cbor(r#""hello""#)));
+
+    // Display should show pattern with {1} quantifier
+    assert_eq!(pattern.to_string(), "(NUMBER(42)){1}");
+}
+
+#[test]
+fn test_repeat_pattern_with_quantifier() {
+    use dcbor_pattern::{Quantifier, Reluctance};
+
+    // Test optional pattern (0 or 1 match)
+    let optional_pattern = Pattern::repeat(
+        Pattern::number(42),
+        Quantifier::new(0..=1, Reluctance::Greedy),
+    );
+
+    // Should match the number or succeed without it
+    assert!(optional_pattern.matches(&cbor("42")));
+
+    // Display should show pattern with ? quantifier
+    assert_eq!(optional_pattern.to_string(), "(NUMBER(42))?");
+}
+
+#[test]
+fn test_repeat_pattern_zero_or_more() {
+    use dcbor_pattern::{Quantifier, Reluctance};
+
+    // Test zero or more pattern
+    let star_pattern = Pattern::repeat(
+        Pattern::number(42),
+        Quantifier::new(0.., Reluctance::Greedy),
+    );
+
+    // Should always succeed (since 0 matches are allowed)
+    assert!(star_pattern.matches(&cbor("42")));
+    assert!(star_pattern.matches(&cbor("41"))); // Succeeds with 0 matches
+
+    // Display should show pattern with * quantifier
+    assert_eq!(star_pattern.to_string(), "(NUMBER(42))*");
+}
+
+#[test]
+fn test_repeat_pattern_one_or_more() {
+    use dcbor_pattern::{Quantifier, Reluctance};
+
+    // Test one or more pattern
+    let plus_pattern = Pattern::repeat(
+        Pattern::number(42),
+        Quantifier::new(1.., Reluctance::Greedy),
+    );
+
+    // Should match the number but not other values
+    assert!(plus_pattern.matches(&cbor("42")));
+    assert!(!plus_pattern.matches(&cbor("41")));
+
+    // Display should show pattern with + quantifier
+    assert_eq!(plus_pattern.to_string(), "(NUMBER(42))+");
+}
+
+#[test]
+fn test_repeat_pattern_exact_count() {
+    use dcbor_pattern::{Quantifier, Reluctance};
+
+    // Test exact count pattern
+    let exact_pattern = Pattern::repeat(
+        Pattern::number(42),
+        Quantifier::new(3..=3, Reluctance::Greedy),
+    );
+
+    // For single values, this should fail if count > 1
+    assert!(!exact_pattern.matches(&cbor("42")));
+
+    // Display should show pattern with {3} quantifier
+    assert_eq!(exact_pattern.to_string(), "(NUMBER(42)){3}");
+}
+
+#[test]
+fn test_repeat_pattern_display_with_reluctance() {
+    use dcbor_pattern::{Quantifier, Reluctance};
+
+    // Test lazy quantifier
+    let lazy_pattern = Pattern::repeat(
+        Pattern::text("test"),
+        Quantifier::new(0..=1, Reluctance::Lazy),
+    );
+
+    assert_eq!(lazy_pattern.to_string(), r#"(TEXT("test"))??"#);
+
+    // Test possessive quantifier
+    let possessive_pattern = Pattern::repeat(
+        Pattern::text("test"),
+        Quantifier::new(1.., Reluctance::Possessive),
+    );
+
+    assert_eq!(possessive_pattern.to_string(), r#"(TEXT("test"))++"#);
 }

@@ -183,6 +183,16 @@ impl Pattern {
         Pattern::Meta(MetaPattern::Capture(crate::pattern::meta::CapturePattern::new(name, pattern)))
     }
 
+    /// Creates a pattern that matches with repetition using a quantifier.
+    pub fn repeat(pattern: Pattern, quantifier: crate::Quantifier) -> Self {
+        Pattern::Meta(MetaPattern::Repeat(crate::pattern::meta::RepeatPattern::repeat(pattern, quantifier)))
+    }
+
+    /// Creates a pattern that wraps another pattern (matches exactly once).
+    pub fn group(pattern: Pattern) -> Self {
+        Pattern::Meta(MetaPattern::Repeat(crate::pattern::meta::RepeatPattern::new(pattern)))
+    }
+
     /// Parses a pattern from a string.
     ///
     /// This implementation currently supports boolean, date, number, and null patterns.
