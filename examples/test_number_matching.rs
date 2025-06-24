@@ -9,7 +9,7 @@ fn main() {
         5.0_f64.to_cbor(),
         42.0_f64.to_cbor(),
         (-10.0_f64).to_cbor(),
-        std::f64::consts::PI.to_cbor(),
+        3.2222.to_cbor(),
         f64::NAN.to_cbor(),
         100.0_f64.to_cbor(),
     ];

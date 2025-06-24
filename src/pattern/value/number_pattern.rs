@@ -272,7 +272,7 @@ mod tests {
     #[test]
     fn test_number_pattern_matching() {
         let int_cbor = 42.to_cbor();
-        let float_cbor = std::f64::consts::PI.to_cbor();
+        let float_cbor = 3.2222.to_cbor();
         let negative_cbor = (-10).to_cbor();
         let nan_cbor = f64::NAN.to_cbor();
         let text_cbor = "not a number".to_cbor();
@@ -344,7 +344,7 @@ mod tests {
     #[test]
     fn test_number_conversion() {
         let int_cbor = 42.to_cbor();
-        let float_cbor = std::f64::consts::PI.to_cbor();
+        let float_cbor = 3.2222.to_cbor();
         let negative_cbor = (-10).to_cbor();
         let text_cbor = "not a number".to_cbor();
 
@@ -352,7 +352,7 @@ mod tests {
         assert_eq!(f64::try_from_cbor(&int_cbor).ok(), Some(42.0));
         assert_eq!(
             f64::try_from_cbor(&float_cbor).ok(),
-            Some(std::f64::consts::PI)
+            Some(3.2222)
         );
         assert_eq!(f64::try_from_cbor(&negative_cbor).ok(), Some(-10.0));
         assert_eq!(f64::try_from_cbor(&text_cbor).ok(), None);

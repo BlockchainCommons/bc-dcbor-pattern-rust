@@ -135,8 +135,8 @@ mod tests {
         let pattern = test_parse("NUMBER(42)").unwrap();
         assert_eq!(pattern.to_string(), "NUMBER(42)");
 
-        let pattern = test_parse("NUMBER(3.14)").unwrap();
-        assert_eq!(pattern.to_string(), "NUMBER(3.14)");
+        let pattern = test_parse("NUMBER(3.2222)").unwrap();
+        assert_eq!(pattern.to_string(), "NUMBER(3.2222)");
 
         let pattern = test_parse("NUMBER(-10)").unwrap();
         assert_eq!(pattern.to_string(), "NUMBER(-10)");
@@ -194,9 +194,9 @@ mod tests {
             Err(e) => panic!("Failed to parse NUMBER(1e10): {:?}", e),
         }
 
-        match test_parse("NUMBER(3.14e-2)") {
-            Ok(pattern) => assert_eq!(pattern.to_string(), "NUMBER(0.0314)"),
-            Err(e) => panic!("Failed to parse NUMBER(3.14e-2): {:?}", e),
+        match test_parse("NUMBER(3.2222e-2)") {
+            Ok(pattern) => assert_eq!(pattern.to_string(), "NUMBER(0.032222)"),
+            Err(e) => panic!("Failed to parse NUMBER(3.2222e-2): {:?}", e),
         }
     }
 }

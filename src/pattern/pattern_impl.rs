@@ -96,6 +96,21 @@ impl Pattern {
         Pattern::Value(ValuePattern::Text(crate::pattern::value::TextPattern::regex(regex)))
     }
 
+    /// Creates a pattern that matches any byte string value.
+    pub fn any_byte_string() -> Self {
+        Pattern::Value(ValuePattern::ByteString(crate::pattern::value::ByteStringPattern::any()))
+    }
+
+    /// Creates a pattern that matches a specific byte string value.
+    pub fn byte_string(value: impl AsRef<[u8]>) -> Self {
+        Pattern::Value(ValuePattern::ByteString(crate::pattern::value::ByteStringPattern::value(value)))
+    }
+
+    /// Creates a pattern that matches byte strings using a binary regex.
+    pub fn byte_string_regex(regex: regex::bytes::Regex) -> Self {
+        Pattern::Value(ValuePattern::ByteString(crate::pattern::value::ByteStringPattern::regex(regex)))
+    }
+
     /// Parses a pattern from a string.
     ///
     /// This implementation currently supports boolean and number patterns.
