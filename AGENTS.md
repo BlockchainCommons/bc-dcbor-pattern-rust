@@ -114,7 +114,7 @@ Comparison: `bc-envelope-pattern::pattern::leaf` has 13 pattern types vs our 8
 - [x] `value_pattern.rs` - Top-level value pattern enum
 
 **Stub implementations (need full implementation):**
-- [ ] `digest_pattern.rs` - Cryptographic digest patterns
+- [ ] `digest_pattern.rs` - Cryptographic digest patterns (`Digest` is implemented in `bc-components`)
 - [ ] `known_value_pattern.rs` - Known value patterns
 
 **Missing value patterns (present in bc-envelope-pattern):**
