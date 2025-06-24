@@ -2,6 +2,12 @@ use dcbor::prelude::*;
 use dcbor_pattern::{
     ArrayPattern, MapPattern, Matcher, Pattern, TaggedPattern,
 };
+use dcbor_parse::parse_dcbor_item;
+
+/// Helper function to parse CBOR diagnostic notation into CBOR objects
+fn cbor(s: &str) -> CBOR {
+    parse_dcbor_item(s).unwrap()
+}
 
 /// Test that ArrayPattern::Any matches any array
 #[test]
@@ -9,19 +15,19 @@ fn test_array_pattern_any() {
     let pattern = ArrayPattern::any();
 
     // Should match empty array
-    let empty_array: CBOR = Vec::<CBOR>::new().into();
+    let empty_array = cbor("[]");
     let paths = pattern.paths(&empty_array);
     assert_eq!(paths.len(), 1);
     assert_eq!(paths[0], vec![empty_array.clone()]);
 
     // Should match non-empty array
-    let array: CBOR = vec![1.to_cbor(), 2.to_cbor(), 3.to_cbor()].into();
+    let array = cbor("[1, 2, 3]");
     let paths = pattern.paths(&array);
     assert_eq!(paths.len(), 1);
     assert_eq!(paths[0], vec![array.clone()]);
 
     // Should not match non-array
-    let not_array: CBOR = "not an array".into();
+    let not_array = cbor(r#""not an array""#);
     let paths = pattern.paths(&not_array);
     assert_eq!(paths.len(), 0);
 }
@@ -32,17 +38,17 @@ fn test_array_pattern_with_length() {
     let pattern = ArrayPattern::with_length(2);
 
     // Should match array with length 2
-    let array: CBOR = vec![1.to_cbor(), 2.to_cbor()].into();
+    let array = cbor("[1, 2]");
     let paths = pattern.paths(&array);
     assert_eq!(paths.len(), 1);
 
     // Should not match array with different length
-    let wrong_length: CBOR = vec![1.to_cbor(), 2.to_cbor(), 3.to_cbor()].into();
+    let wrong_length = cbor("[1, 2, 3]");
     let paths = pattern.paths(&wrong_length);
     assert_eq!(paths.len(), 0);
 
     // Should not match non-array
-    let not_array: CBOR = "not an array".into();
+    let not_array = cbor(r#""not an array""#);
     let paths = pattern.paths(&not_array);
     assert_eq!(paths.len(), 0);
 }
@@ -55,12 +61,12 @@ fn test_array_pattern_with_elements() {
     let pattern = ArrayPattern::with_elements(number_pattern);
 
     // Should match array containing 42
-    let array: CBOR = vec![1.to_cbor(), 42.to_cbor(), 3.to_cbor()].into();
+    let array = cbor("[1, 42, 3]");
     let paths = pattern.paths(&array);
     assert_eq!(paths.len(), 1);
 
     // Should not match array without 42
-    let no_match: CBOR = vec![1.to_cbor(), 2.to_cbor(), 3.to_cbor()].into();
+    let no_match = cbor("[1, 2, 3]");
     let paths = pattern.paths(&no_match);
     assert_eq!(paths.len(), 0);
 }
@@ -71,19 +77,17 @@ fn test_map_pattern_any() {
     let pattern = MapPattern::any();
 
     // Should match empty map
-    let empty_map: CBOR = Map::new().into();
+    let empty_map = cbor("{}");
     let paths = pattern.paths(&empty_map);
     assert_eq!(paths.len(), 1);
 
     // Should match non-empty map
-    let mut map = Map::new();
-    map.insert("key", "value");
-    let cbor_map: CBOR = map.into();
+    let cbor_map = cbor(r#"{"key": "value"}"#);
     let paths = pattern.paths(&cbor_map);
     assert_eq!(paths.len(), 1);
 
     // Should not match non-map
-    let not_map: CBOR = "not a map".into();
+    let not_map = cbor(r#""not a map""#);
     let paths = pattern.paths(&not_map);
     assert_eq!(paths.len(), 0);
 }
@@ -95,17 +99,12 @@ fn test_map_pattern_with_key() {
     let pattern = MapPattern::with_key(text_pattern);
 
     // Should match map with target key
-    let mut map = Map::new();
-    map.insert("target_key", "value");
-    map.insert("other_key", "other_value");
-    let cbor_map: CBOR = map.into();
+    let cbor_map = cbor(r#"{"target_key": "value", "other_key": "other_value"}"#);
     let paths = pattern.paths(&cbor_map);
     assert_eq!(paths.len(), 1);
 
     // Should not match map without target key
-    let mut no_match_map = Map::new();
-    no_match_map.insert("wrong_key", "value");
-    let no_match: CBOR = no_match_map.into();
+    let no_match = cbor(r#"{"wrong_key": "value"}"#);
     let paths = pattern.paths(&no_match);
     assert_eq!(paths.len(), 0);
 }
@@ -117,17 +116,12 @@ fn test_map_pattern_with_value() {
     let pattern = MapPattern::with_value(text_pattern);
 
     // Should match map with target value
-    let mut map = Map::new();
-    map.insert("key", "target_value");
-    map.insert("other_key", "other_value");
-    let cbor_map: CBOR = map.into();
+    let cbor_map = cbor(r#"{"key": "target_value", "other_key": "other_value"}"#);
     let paths = pattern.paths(&cbor_map);
     assert_eq!(paths.len(), 1);
 
     // Should not match map without target value
-    let mut no_match_map = Map::new();
-    no_match_map.insert("key", "wrong_value");
-    let no_match: CBOR = no_match_map.into();
+    let no_match = cbor(r#"{"key": "wrong_value"}"#);
     let paths = pattern.paths(&no_match);
     assert_eq!(paths.len(), 0);
 }
@@ -138,13 +132,12 @@ fn test_tagged_pattern_any() {
     let pattern = TaggedPattern::any();
 
     // Should match any tagged value
-    let tag = Tag::new(1234, "test_tag");
-    let tagged: CBOR = CBORCase::Tagged(tag, "content".into()).into();
+    let tagged = cbor(r#"1234("content")"#);
     let paths = pattern.paths(&tagged);
     assert_eq!(paths.len(), 1);
 
     // Should not match non-tagged value
-    let not_tagged: CBOR = "not tagged".into();
+    let not_tagged = cbor(r#""not tagged""#);
     let paths = pattern.paths(&not_tagged);
     assert_eq!(paths.len(), 0);
 }
@@ -156,19 +149,17 @@ fn test_tagged_pattern_with_tag() {
     let pattern = TaggedPattern::with_tag(target_tag.clone());
 
     // Should match tagged value with correct tag
-    let tagged: CBOR = CBORCase::Tagged(target_tag, "content".into()).into();
+    let tagged = cbor(r#"1234("content")"#);
     let paths = pattern.paths(&tagged);
     assert_eq!(paths.len(), 1);
 
     // Should not match tagged value with different tag
-    let wrong_tag = Tag::new(5678, "wrong_tag");
-    let wrong_tagged: CBOR =
-        CBORCase::Tagged(wrong_tag, "content".into()).into();
+    let wrong_tagged = cbor(r#"5678("content")"#);
     let paths = pattern.paths(&wrong_tagged);
     assert_eq!(paths.len(), 0);
 
     // Should not match non-tagged value
-    let not_tagged: CBOR = "not tagged".into();
+    let not_tagged = cbor(r#""not tagged""#);
     let paths = pattern.paths(&not_tagged);
     assert_eq!(paths.len(), 0);
 }
@@ -180,15 +171,12 @@ fn test_tagged_pattern_with_content() {
     let pattern = TaggedPattern::with_content(text_pattern);
 
     // Should match tagged value with matching content
-    let tag = Tag::new(1234, "test_tag");
-    let tagged: CBOR = CBORCase::Tagged(tag, "target_content".into()).into();
+    let tagged = cbor(r#"1234("target_content")"#);
     let paths = pattern.paths(&tagged);
     assert_eq!(paths.len(), 1);
 
     // Should not match tagged value with different content
-    let tag2 = Tag::new(1234, "test_tag");
-    let wrong_content: CBOR =
-        CBORCase::Tagged(tag2, "wrong_content".into()).into();
+    let wrong_content = cbor(r#"1234("wrong_content")"#);
     let paths = pattern.paths(&wrong_content);
     assert_eq!(paths.len(), 0);
 }

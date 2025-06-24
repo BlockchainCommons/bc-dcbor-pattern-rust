@@ -1,12 +1,16 @@
-use dcbor::{prelude::*, Date};
+use dcbor::{Date, prelude::*};
+use dcbor_parse::parse_dcbor_item;
 use dcbor_pattern::{Matcher, Pattern};
+
+/// Helper function to parse CBOR diagnostic notation into CBOR objects
+fn cbor(s: &str) -> CBOR { parse_dcbor_item(s).unwrap() }
 
 #[test]
 fn test_bool_pattern_any() {
     let pattern = Pattern::any_bool();
 
     // Should match true
-    let true_cbor = true.to_cbor();
+    let true_cbor = cbor("true");
     assert!(pattern.matches(&true_cbor));
     let paths = pattern.paths(&true_cbor);
     assert_eq!(paths.len(), 1);
@@ -14,7 +18,7 @@ fn test_bool_pattern_any() {
     assert_eq!(paths[0][0], true_cbor);
 
     // Should match false
-    let false_cbor = false.to_cbor();
+    let false_cbor = cbor("false");
     assert!(pattern.matches(&false_cbor));
     let paths = pattern.paths(&false_cbor);
     assert_eq!(paths.len(), 1);
@@ -22,7 +26,7 @@ fn test_bool_pattern_any() {
     assert_eq!(paths[0][0], false_cbor);
 
     // Should not match non-boolean
-    let number_cbor = 42.to_cbor();
+    let number_cbor = cbor("42");
     assert!(!pattern.matches(&number_cbor));
     let paths = pattern.paths(&number_cbor);
     assert_eq!(paths.len(), 0);
@@ -33,9 +37,9 @@ fn test_bool_pattern_specific() {
     let true_pattern = Pattern::bool(true);
     let false_pattern = Pattern::bool(false);
 
-    let true_cbor = true.to_cbor();
-    let false_cbor = false.to_cbor();
-    let number_cbor = 42.to_cbor();
+    let true_cbor = cbor("true");
+    let false_cbor = cbor("false");
+    let number_cbor = cbor("42");
 
     // true pattern tests
     assert!(true_pattern.matches(&true_cbor));
@@ -60,14 +64,14 @@ fn test_text_pattern_any() {
     let pattern = Pattern::any_text();
 
     // Should match any text
-    let hello_cbor = "Hello".to_cbor();
+    let hello_cbor = cbor(r#""Hello""#);
     assert!(pattern.matches(&hello_cbor));
     let paths = pattern.paths(&hello_cbor);
     assert_eq!(paths.len(), 1);
     assert_eq!(paths[0].len(), 1);
     assert_eq!(paths[0][0], hello_cbor);
 
-    let empty_cbor = "".to_cbor();
+    let empty_cbor = cbor(r#""""#);
     assert!(pattern.matches(&empty_cbor));
     let paths = pattern.paths(&empty_cbor);
     assert_eq!(paths.len(), 1);
@@ -75,7 +79,7 @@ fn test_text_pattern_any() {
     assert_eq!(paths[0][0], empty_cbor);
 
     // Should not match non-text
-    let number_cbor = 42.to_cbor();
+    let number_cbor = cbor("42");
     assert!(!pattern.matches(&number_cbor));
     let paths = pattern.paths(&number_cbor);
     assert_eq!(paths.len(), 0);
@@ -86,9 +90,9 @@ fn test_text_pattern_specific() {
     let hello_pattern = Pattern::text("Hello");
     let world_pattern = Pattern::text("World");
 
-    let hello_cbor = "Hello".to_cbor();
-    let world_cbor = "World".to_cbor();
-    let number_cbor = 42.to_cbor();
+    let hello_cbor = cbor(r#""Hello""#);
+    let world_cbor = cbor(r#""World""#);
+    let number_cbor = cbor("42");
 
     // hello pattern tests
     assert!(hello_pattern.matches(&hello_cbor));
@@ -106,10 +110,10 @@ fn test_text_pattern_regex() {
     let digits_regex = regex::Regex::new(r"^\d+$").unwrap();
     let digits_pattern = Pattern::text_regex(digits_regex);
 
-    let digits_cbor = "12345".to_cbor();
-    let letters_cbor = "Hello".to_cbor();
-    let mixed_cbor = "Hello123".to_cbor();
-    let number_cbor = 42.to_cbor();
+    let digits_cbor = cbor(r#""12345""#);
+    let letters_cbor = cbor(r#""Hello""#);
+    let mixed_cbor = cbor(r#""Hello123""#);
+    let number_cbor = cbor("42");
 
     // Should match pure digits
     assert!(digits_pattern.matches(&digits_cbor));
@@ -139,7 +143,7 @@ fn test_number_pattern_any() {
     let pattern = Pattern::any_number();
 
     // Should match integers
-    let int_cbor = 42.to_cbor();
+    let int_cbor = cbor("42");
     assert!(pattern.matches(&int_cbor));
     let paths = pattern.paths(&int_cbor);
     assert_eq!(paths.len(), 1);
@@ -147,15 +151,15 @@ fn test_number_pattern_any() {
     assert_eq!(paths[0][0], int_cbor);
 
     // Should match floats
-    let float_cbor = 3.2222.to_cbor();
+    let float_cbor = cbor("3.2222");
     assert!(pattern.matches(&float_cbor));
 
     // Should match negative numbers
-    let neg_cbor = (-5).to_cbor();
+    let neg_cbor = cbor("-5");
     assert!(pattern.matches(&neg_cbor));
 
     // Should not match non-numbers
-    let text_cbor = "42".to_cbor();
+    let text_cbor = cbor(r#""42""#);
     assert!(!pattern.matches(&text_cbor));
     let paths = pattern.paths(&text_cbor);
     assert_eq!(paths.len(), 0);
@@ -166,10 +170,10 @@ fn test_number_pattern_specific() {
     let int_pattern = Pattern::number(42);
     let float_pattern = Pattern::number(3.2222);
 
-    let int_cbor = 42.to_cbor();
-    let float_cbor = 3.2222.to_cbor();
-    let different_int_cbor = 24.to_cbor();
-    let text_cbor = "42".to_cbor();
+    let int_cbor = cbor("42");
+    let float_cbor = cbor("3.2222");
+    let different_int_cbor = cbor("24");
+    let text_cbor = cbor(r#""42""#);
 
     // int pattern tests
     assert!(int_pattern.matches(&int_cbor));
@@ -187,12 +191,12 @@ fn test_number_pattern_specific() {
 fn test_number_pattern_range() {
     let range_pattern = Pattern::number_range(10..=20);
 
-    let in_range_cbor = 15.to_cbor();
-    let boundary_low_cbor = 10.to_cbor();
-    let boundary_high_cbor = 20.to_cbor();
-    let below_range_cbor = 5.to_cbor();
-    let above_range_cbor = 25.to_cbor();
-    let text_cbor = "15".to_cbor();
+    let in_range_cbor = cbor("15");
+    let boundary_low_cbor = cbor("10");
+    let boundary_high_cbor = cbor("20");
+    let below_range_cbor = cbor("5");
+    let above_range_cbor = cbor("25");
+    let text_cbor = cbor(r#""15""#);
 
     // Should match numbers in range
     assert!(range_pattern.matches(&in_range_cbor));
@@ -212,9 +216,9 @@ fn test_number_pattern_comparisons() {
     let lt_pattern = Pattern::number_less_than(10);
     let lte_pattern = Pattern::number_less_than_or_equal(10);
 
-    let equal_cbor = 10.to_cbor();
-    let greater_cbor = 15.to_cbor();
-    let lesser_cbor = 5.to_cbor();
+    let equal_cbor = cbor("10");
+    let greater_cbor = cbor("15");
+    let lesser_cbor = cbor("5");
 
     // Greater than tests
     assert!(!gt_pattern.matches(&equal_cbor));
@@ -241,9 +245,9 @@ fn test_number_pattern_comparisons() {
 fn test_number_pattern_nan() {
     let nan_pattern = Pattern::number_nan();
 
-    let nan_cbor = f64::NAN.to_cbor();
-    let number_cbor = 42.to_cbor();
-    let text_cbor = "NaN".to_cbor();
+    let nan_cbor = cbor("NaN");
+    let number_cbor = cbor("42");
+    let text_cbor = cbor(r#""NaN""#);
 
     // Should match NaN
     assert!(nan_pattern.matches(&nan_cbor));
@@ -280,16 +284,14 @@ fn test_byte_string_pattern_any() {
     let pattern = Pattern::any_byte_string();
 
     // Should match any byte string
-    let binary_data = vec![0x01, 0x02, 0x03, 0x04];
-    let cbor_bytes = CBOR::to_byte_string(binary_data);
+    let cbor_bytes = cbor("h'01020304'");
     assert!(pattern.matches(&cbor_bytes));
     let paths = pattern.paths(&cbor_bytes);
     assert_eq!(paths.len(), 1);
     assert_eq!(paths[0].len(), 1);
     assert_eq!(paths[0][0], cbor_bytes);
 
-    let empty_bytes = vec![];
-    let empty_cbor = CBOR::to_byte_string(empty_bytes);
+    let empty_cbor = cbor("h''");
     assert!(pattern.matches(&empty_cbor));
     let paths = pattern.paths(&empty_cbor);
     assert_eq!(paths.len(), 1);
@@ -297,7 +299,7 @@ fn test_byte_string_pattern_any() {
     assert_eq!(paths[0][0], empty_cbor);
 
     // Should not match non-byte-string
-    let text_cbor = "hello".to_cbor();
+    let text_cbor = cbor(r#""hello""#);
     assert!(!pattern.matches(&text_cbor));
     let paths = pattern.paths(&text_cbor);
     assert_eq!(paths.len(), 0);
@@ -305,13 +307,12 @@ fn test_byte_string_pattern_any() {
 
 #[test]
 fn test_byte_string_pattern_specific() {
-    let binary_data = vec![0x01, 0x02, 0x03, 0x04];
-    let exact_pattern = Pattern::byte_string(&binary_data);
+    let exact_pattern = Pattern::byte_string(vec![0x01, 0x02, 0x03, 0x04]);
     let different_pattern = Pattern::byte_string(vec![0x05, 0x06]);
 
-    let cbor_bytes = CBOR::to_byte_string(binary_data.clone());
-    let different_cbor = CBOR::to_byte_string(vec![0x05, 0x06]);
-    let text_cbor = "hello".to_cbor();
+    let cbor_bytes = cbor("h'01020304'");
+    let different_cbor = cbor("h'0506'");
+    let text_cbor = cbor(r#""hello""#);
 
     // exact pattern tests
     assert!(exact_pattern.matches(&cbor_bytes));
@@ -330,13 +331,10 @@ fn test_byte_string_pattern_regex() {
     let digits_regex = regex::bytes::Regex::new(r"^\d+$").unwrap();
     let digits_pattern = Pattern::byte_string_regex(digits_regex);
 
-    let digits_bytes = b"12345";
-    let digits_cbor = CBOR::to_byte_string(digits_bytes);
-    let letters_bytes = b"Hello";
-    let letters_cbor = CBOR::to_byte_string(letters_bytes);
-    let mixed_bytes = b"Hello123";
-    let mixed_cbor = CBOR::to_byte_string(mixed_bytes);
-    let text_cbor = "12345".to_cbor();
+    let digits_cbor = cbor("h'3132333435'"); // "12345" in hex
+    let letters_cbor = cbor("h'48656c6c6f'"); // "Hello" in hex
+    let mixed_cbor = cbor("h'48656c6c6f313233'"); // "Hello123" in hex
+    let text_cbor = cbor(r#""12345""#);
 
     // Should match byte strings with digits
     assert!(digits_pattern.matches(&digits_cbor));
@@ -356,12 +354,12 @@ fn test_byte_string_pattern_binary_data() {
     let pattern = Pattern::any_byte_string();
 
     // Test with actual binary data (not text)
-    let binary_data = vec![0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD];
-    let binary_cbor = CBOR::to_byte_string(binary_data.clone());
+    let binary_cbor = cbor("h'00010203fffefd'");
 
     assert!(pattern.matches(&binary_cbor));
 
-    let exact_pattern = Pattern::byte_string(binary_data.clone());
+    let exact_pattern =
+        Pattern::byte_string(vec![0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD]);
     assert!(exact_pattern.matches(&binary_cbor));
 
     let different_pattern = Pattern::byte_string(vec![0x00, 0x01, 0x02]);
@@ -407,12 +405,12 @@ fn test_date_pattern_any() {
     assert_eq!(paths[0][0], date_cbor);
 
     // Should not match non-date
-    let text_cbor = "2023-12-25".to_cbor();
+    let text_cbor = cbor(r#""2023-12-25""#);
     assert!(!pattern.matches(&text_cbor));
     let paths = pattern.paths(&text_cbor);
     assert_eq!(paths.len(), 0);
 
-    let number_cbor = 1703462400.to_cbor(); // Unix timestamp for 2023-12-25
+    let number_cbor = cbor("1703462400"); // Unix timestamp for 2023-12-25
     assert!(!pattern.matches(&number_cbor));
 }
 
@@ -431,7 +429,7 @@ fn test_date_pattern_specific() {
     assert!(!pattern.matches(&other_date_cbor));
 
     // Should not match non-date
-    let text_cbor = "2023-12-25".to_cbor();
+    let text_cbor = cbor(r#""2023-12-25""#);
     assert!(!pattern.matches(&text_cbor));
 }
 
@@ -574,7 +572,10 @@ fn test_date_pattern_display() {
     assert_eq!(Pattern::any_date().to_string(), "DATE");
 
     let date = Date::from_ymd(2023, 12, 25);
-    assert_eq!(Pattern::date(date.clone()).to_string(), format!("DATE({})", date));
+    assert_eq!(
+        Pattern::date(date.clone()).to_string(),
+        format!("DATE({})", date)
+    );
 
     let start_date = Date::from_ymd(2023, 12, 20);
     let end_date = Date::from_ymd(2023, 12, 30);
@@ -599,10 +600,7 @@ fn test_date_pattern_display() {
     );
 
     let regex = regex::Regex::new(r"^2023-").unwrap();
-    assert_eq!(
-        Pattern::date_regex(regex).to_string(),
-        "DATE(/^2023-/)"
-    );
+    assert_eq!(Pattern::date_regex(regex).to_string(), "DATE(/^2023-/)");
 }
 
 #[test]
@@ -610,7 +608,7 @@ fn test_null_pattern() {
     let pattern = Pattern::null();
 
     // Should match null
-    let null_cbor = dcbor::CBOR::null();
+    let null_cbor = cbor("null");
     assert!(pattern.matches(&null_cbor));
     let paths = pattern.paths(&null_cbor);
     assert_eq!(paths.len(), 1);
@@ -618,27 +616,27 @@ fn test_null_pattern() {
     assert_eq!(paths[0][0], null_cbor);
 
     // Should not match non-null values
-    let true_cbor = true.to_cbor();
+    let true_cbor = cbor("true");
     assert!(!pattern.matches(&true_cbor));
     let paths = pattern.paths(&true_cbor);
     assert_eq!(paths.len(), 0);
 
-    let false_cbor = false.to_cbor();
+    let false_cbor = cbor("false");
     assert!(!pattern.matches(&false_cbor));
     let paths = pattern.paths(&false_cbor);
     assert_eq!(paths.len(), 0);
 
-    let number_cbor = 42.to_cbor();
+    let number_cbor = cbor("42");
     assert!(!pattern.matches(&number_cbor));
     let paths = pattern.paths(&number_cbor);
     assert_eq!(paths.len(), 0);
 
-    let text_cbor = "hello".to_cbor();
+    let text_cbor = cbor(r#""hello""#);
     assert!(!pattern.matches(&text_cbor));
     let paths = pattern.paths(&text_cbor);
     assert_eq!(paths.len(), 0);
 
-    let array_cbor = vec![1, 2, 3].to_cbor();
+    let array_cbor = cbor("[1, 2, 3]");
     assert!(!pattern.matches(&array_cbor));
     let paths = pattern.paths(&array_cbor);
     assert_eq!(paths.len(), 0);

@@ -1,4 +1,10 @@
 use dcbor_pattern::Pattern;
+use dcbor_parse::parse_dcbor_item;
+
+/// Helper function to parse CBOR diagnostic notation into CBOR objects
+fn cbor(s: &str) -> dcbor::CBOR {
+    parse_dcbor_item(s).unwrap()
+}
 
 #[test]
 fn parse_bool_any() {
