@@ -18,36 +18,41 @@ You will only be making changes to the `dcbor-pattern` crate, but it is importan
 
 ## Architectural Notes
 
-### Important Differences between `dcbor-pattern` and `bc-envelope-pattern`
+### Key Differences from `bc-envelope-pattern`
 
-- This crate is focused on deterministic CBOR (dCBOR) patterns, while `bc-envelope-pattern` is focused on Gordian Envelope patterns.
-- `bc-envelope-pattern` will eventually depend on `dcbor-pattern` for its LEAF pattern matching.
-- This crate, `dcbor-pattern`, will not depend on `bc-envelope-pattern` as it is focused on the lower-level dCBOR patterns. It should never refer to Gordian Envelope concepts like subjects, assertions, or predicates.
-- Some concepts mentioned in `bc-envelope-pattern` are properly concepts of dCBOR, such as dates, known values, and the like. These concepts will be implemented in this crate, `dcbor-pattern`.
-- The concept of `Path` in this crate is analogous to the `Path` in `bc-envelope-pattern`, but each path element is a `CBOR` object, not an `Envelope`.
-- `CBOR` objects, like `Envelope` objects, are trees. But the branching points of `CBOR` are its compound structures like arrays and maps, not assertions and wrapped envelopes.
-- Both crates have analogous modules, such as `quantifier`.
-- Both crates have analogous folder hierarchy, such as `pattern` and `parser`.
-- A main difference is that `dcbor-pattern` refers to `value` patterns intead of `leaf` patterns. `value` patterns are atomic `CBOR` values, while `leaf` patterns in `bc-envelope-pattern` are *any* CBOR value, including compound structures like arrays and maps.
+This crate is focused on deterministic CBOR (dCBOR) patterns, while `bc-envelope-pattern` is focused on Gordian Envelope patterns. Understanding these differences is crucial for implementation:
 
-### Key Differences from bc-envelope-pattern
+**1. Dependency Relationship:**
+- `bc-envelope-pattern` will eventually depend on `dcbor-pattern` for its LEAF pattern matching
+- This crate will **never** depend on `bc-envelope-pattern` as it focuses on lower-level dCBOR patterns
+- This crate should **never** refer to Gordian Envelope concepts (subjects, assertions, predicates)
 
-1. **Pattern Organization**:
-   - `dcbor-pattern` separates atomic values (`pattern::value`) from compound structures (`pattern::structure`)
-   - `bc-envelope-pattern` groups all CBOR values under `pattern::leaf` regardless of complexity
+**2. Pattern Organization:**
+- `dcbor-pattern` separates atomic values (`pattern::value`) from compound structures (`pattern::structure`)
+- `bc-envelope-pattern` groups all CBOR values under `pattern::leaf` regardless of complexity
+- `value` patterns in this crate are atomic `CBOR` values only
+- `leaf` patterns in `bc-envelope-pattern` include *any* CBOR value, including compound structures
 
-2. **VM Requirements**:
-   - Our VM needs to handle dCBOR tree traversal (arrays, maps, tagged values)
-   - `bc-envelope-pattern` VM handles Envelope tree traversal (subjects, assertions, predicates)
+**3. Tree Navigation:**
+- Our `Path` uses `Vec<CBOR>` elements for dCBOR tree navigation
+- `bc-envelope-pattern` uses `Vec<Envelope>` for Envelope tree navigation
+- CBOR tree branching points: arrays, maps, tagged values
+- Envelope tree branching points: assertions, wrapped envelopes
 
-3. **Path Representation**:
-   - Our `Path` uses `Vec<CBOR>` elements for dCBOR tree navigation
-   - `bc-envelope-pattern` uses `Vec<Envelope>` for Envelope tree navigation
+**4. VM Implementation:**
+- Our VM handles dCBOR tree traversal (ArrayElement, MapKey, MapValue, TaggedContent)
+- `bc-envelope-pattern` VM handles Envelope tree traversal (Subject, Assertion, Predicate, Object, Wrapped)
 
-4. **Missing Core Infrastructure**:
-   - No main pattern parsing entry point (`parse_pattern.rs`)
-   - VM is completely empty (critical blocker)
-   - Meta patterns are just stubs
+**5. Shared Concepts:**
+- Some concepts in `bc-envelope-pattern` are properly dCBOR concepts (dates, known values, etc.)
+- These will be implemented in this crate, not inherited from `bc-envelope-pattern`
+- Both crates have analogous modules (`quantifier`) and folder hierarchy (`pattern`, `parse`)
+
+**6. Current Status Differences:**
+- ✅ Our VM is now fully implemented
+- ✅ Our value patterns have working `compile()` methods
+- 🔨 We still need main pattern parsing entry point (`parse_pattern.rs`)
+- 🔨 Meta patterns need full implementation
 
 ### Update Instructions for Contributors
 
@@ -68,6 +73,18 @@ You will only be making changes to the `dcbor-pattern` crate, but it is importan
 2. Main pattern parser blocks high-level pattern usage
 3. Meta patterns are needed for complex pattern composition
 4. Structure patterns are needed for compound dCBOR data
+
+## Current Tasks
+
+Every task for now will require you to compare the analogous implementation in `bc-envelope-pattern` and adapt it to the `dcbor-pattern` crate.
+
+For a given task pattern, you will need to:
+
+- Look at the `bc-envelope-pattern` crate's analogous module for inspiration.
+- Implement the `pattern` module in `dcbor-pattern`, ensuring that it can handle the specific requirements of dCBOR patterns.
+- Implement the `parser` module in `dcbor-pattern` to parse text syntax patterns into patterns.
+- Implement unit tests for the patterns, ensuring that they cover all edge cases and conform to the dCBOR and pattern expression syntax specifications.
+- Implement integration tests in the `tests` directory to ensure that the patterns work correctly with the dCBOR values.
 
 ## Implementation Status
 
@@ -209,17 +226,3 @@ Comparison: `bc-envelope-pattern::pattern::meta` has 11 meta patterns vs our 8
 
 **Completed Major Milestone:**
 - ✅ **VM Implementation** - Fully functional pattern matching virtual machine
-
-## Current Tasks
-
-Every task for now will require you to compare the analogous implementation in `bc-envelope-pattern` and adapt it to the `dcbor-pattern` crate.
-
-At the moment we are working on building out the `pattern::value` module, including the programmatic API for composing patterns and the VM for matching patterns against dCBOR values.
-
-For a given `value` pattern, you will need to:
-
-- Look at the `bc-envelope-pattern` crate's `pattern::leaf` module for inspiration.
-- Implement the `pattern::value` module in `dcbor-pattern`, ensuring that it can handle the specific requirements of dCBOR patterns.
-- Implement the `parser` module to parse text syntax patterns into `value` patterns.
-- Implement unit tests for the `value` patterns, ensuring that they cover all edge cases and conform to the dCBOR specifications.
-- Implement integration tests in the `tests` directory to ensure that the `value` patterns work correctly with the dCBOR values.
