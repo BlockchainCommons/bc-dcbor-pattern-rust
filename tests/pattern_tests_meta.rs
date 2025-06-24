@@ -168,3 +168,134 @@ fn test_empty_or_pattern() {
     // Display should be empty string
     assert_eq!(pattern.to_string(), "");
 }
+
+#[test]
+fn test_capture_pattern_basic() {
+    let pattern = Pattern::capture("test", Pattern::number(42));
+
+    // Should match the same things as the inner pattern
+    assert!(pattern.matches(&cbor("42")));
+    assert!(!pattern.matches(&cbor("43")));
+    assert!(!pattern.matches(&cbor(r#""hello""#)));
+
+    // Display should show capture syntax
+    assert_eq!(pattern.to_string(), "@test(NUMBER(42))");
+}
+
+#[test]
+fn test_capture_pattern_text() {
+    let pattern = Pattern::capture("name", Pattern::text("hello"));
+
+    // Should match the same things as the inner pattern
+    assert!(pattern.matches(&cbor(r#""hello""#)));
+    assert!(!pattern.matches(&cbor(r#""world""#)));
+    assert!(!pattern.matches(&cbor("42")));
+
+    // Display should show capture syntax
+    assert_eq!(pattern.to_string(), r#"@name(TEXT("hello"))"#);
+}
+
+#[test]
+fn test_capture_pattern_any() {
+    let pattern = Pattern::capture("anything", Pattern::any());
+
+    // Should match anything since inner pattern is ANY
+    assert!(pattern.matches(&cbor("42")));
+    assert!(pattern.matches(&cbor(r#""hello""#)));
+    assert!(pattern.matches(&cbor("true")));
+    assert!(pattern.matches(&cbor("[1, 2, 3]")));
+
+    // Display should show capture syntax
+    assert_eq!(pattern.to_string(), "@anything(ANY)");
+}
+
+#[test]
+fn test_capture_pattern_none() {
+    let pattern = Pattern::capture("nothing", Pattern::none());
+
+    // Should never match since inner pattern is NONE
+    assert!(!pattern.matches(&cbor("42")));
+    assert!(!pattern.matches(&cbor(r#""hello""#)));
+    assert!(!pattern.matches(&cbor("true")));
+
+    // Display should show capture syntax
+    assert_eq!(pattern.to_string(), "@nothing(NONE)");
+}
+
+#[test]
+fn test_capture_pattern_complex() {
+    let pattern = Pattern::capture(
+        "range",
+        Pattern::and(vec![
+            Pattern::number_greater_than(5),
+            Pattern::number_less_than(10),
+        ])
+    );
+
+    // Should match numbers in range 5 < x < 10
+    assert!(pattern.matches(&cbor("7")));
+    assert!(pattern.matches(&cbor("6")));
+    assert!(pattern.matches(&cbor("9")));
+    assert!(!pattern.matches(&cbor("5")));
+    assert!(!pattern.matches(&cbor("10")));
+    assert!(!pattern.matches(&cbor("15")));
+
+    // Display should show capture syntax with complex inner pattern
+    let display = pattern.to_string();
+    assert!(display.starts_with("@range("));
+    assert!(display.contains("&"));
+    assert!(display.ends_with(")"));
+}
+
+#[test]
+fn test_nested_capture_patterns() {
+    let pattern = Pattern::capture(
+        "outer",
+        Pattern::or(vec![
+            Pattern::capture("inner1", Pattern::number(42)),
+            Pattern::capture("inner2", Pattern::text("hello")),
+        ])
+    );
+
+    // Should match either captured pattern
+    assert!(pattern.matches(&cbor("42")));
+    assert!(pattern.matches(&cbor(r#""hello""#)));
+    assert!(!pattern.matches(&cbor("43")));
+    assert!(!pattern.matches(&cbor(r#""world""#)));
+
+    // Display should show nested capture syntax
+    let display = pattern.to_string();
+    assert!(display.starts_with("@outer("));
+    assert!(display.contains("@inner1"));
+    assert!(display.contains("@inner2"));
+    assert!(display.contains("|"));
+    assert!(display.ends_with(")"));
+}
+
+#[test]
+fn test_capture_pattern_name_access() {
+    let inner_pattern = Pattern::number(42);
+    let pattern = Pattern::capture("test_name", inner_pattern.clone());
+
+    // Test that we can access the capture pattern internals
+    if let dcbor_pattern::Pattern::Meta(dcbor_pattern::MetaPattern::Capture(capture)) = &pattern {
+        assert_eq!(capture.name(), "test_name");
+        assert_eq!(capture.pattern(), &inner_pattern);
+    } else {
+        panic!("Expected capture pattern");
+    }
+}
+
+#[test]
+fn test_capture_pattern_is_complex() {
+    // Simple capture should not be complex if inner pattern isn't complex
+    let simple = Pattern::capture("simple", Pattern::number(42));
+    assert!(!simple.is_complex());
+
+    // Complex capture should be complex if inner pattern is complex
+    let complex = Pattern::capture("complex", Pattern::and(vec![
+        Pattern::number(1),
+        Pattern::number(2),
+    ]));
+    assert!(complex.is_complex());
+}

@@ -141,10 +141,10 @@ Comparison: `bc-envelope-pattern::pattern::meta` has 11 meta patterns vs our 8
 - [x] `and_pattern.rs` - Logical AND combinations (**FULLY IMPLEMENTED!**)
 - [x] `or_pattern.rs` - Logical OR combinations (**FULLY IMPLEMENTED!**)
 - [x] `not_pattern.rs` - Logical NOT patterns (**FULLY IMPLEMENTED!**)
+- [x] `capture_pattern.rs` - Pattern capture groups (**FULLY IMPLEMENTED!**)
 - [x] `meta_pattern.rs` - Top-level meta pattern enum (**FULLY IMPLEMENTED!**)
 
 **🔨 Stub implementations (need full implementation):**
-- [ ] `capture_pattern.rs` - Pattern capture groups
 - [ ] `repeat_pattern.rs` - Repetition patterns
 - [ ] `search_pattern.rs` - Search patterns
 
@@ -209,8 +209,8 @@ Comparison: `bc-envelope-pattern::pattern::meta` has 11 meta patterns vs our 8
 #### ✅ Working Tests
 - ✅ `parse_tests_value.rs` - **15 tests passing** (includes comprehensive date pattern parsing tests)
 - ✅ `pattern_tests_value.rs` - 42 tests passing
-- ✅ `pattern_tests_meta.rs` - **9 tests passing** (**NEW!**)
-- ✅ `pattern_tests_structure.rs` - **10 tests passing** (**NEW!**)
+- ✅ `pattern_tests_meta.rs` - **17 tests passing** (**7 NEW capture pattern tests!**)
+- ✅ `pattern_tests_structure.rs` - **10 tests passing**
 - ✅ `error_tests.rs` - 6 tests passing
 
 #### ❌ Missing/Empty Test Suites
@@ -231,5 +231,6 @@ Comparison: `bc-envelope-pattern::pattern::meta` has 11 meta patterns vs our 8
 **Completed Major Milestones:**
 - ✅ **VM Implementation** - Fully functional pattern matching virtual machine
 - ✅ **Core Meta Patterns** - AND, OR, NOT, ANY, NONE patterns fully implemented with tests!
+- ✅ **Capture Patterns** - Full capture group implementation with comprehensive tests!
 - ✅ **Structure Patterns** - CBOR array, map, and tagged value patterns fully implemented with tests!
 - ✅ **Date Pattern Parsing** - Full ISO-8601 date pattern parsing with dcbor-parse integration supporting all forms (single, range, regex)!

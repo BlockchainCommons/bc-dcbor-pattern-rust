@@ -178,6 +178,11 @@ impl Pattern {
         Pattern::Meta(MetaPattern::Not(crate::pattern::meta::NotPattern::new(pattern)))
     }
 
+    /// Creates a pattern that captures matches with the given name.
+    pub fn capture(name: impl AsRef<str>, pattern: Pattern) -> Self {
+        Pattern::Meta(MetaPattern::Capture(crate::pattern::meta::CapturePattern::new(name, pattern)))
+    }
+
     /// Parses a pattern from a string.
     ///
     /// This implementation currently supports boolean, date, number, and null patterns.
