@@ -54,7 +54,9 @@ This crate is focused on deterministic CBOR (dCBOR) patterns, while `bc-envelope
 
 **6. Current Status Differences:**
 - ✅ Our VM is now fully implemented
-- ✅ Our value patterns have working `compile()` methods
+- ✅ Our value patterns have working `compile()` methods (except digest pattern stub)
+- ✅ Our structure patterns are fully implemented (issue: pattern_impl.rs has unimplemented!())
+- ✅ Our meta patterns are fully implemented (except search pattern stub)
 - 🔨 Value pattern parsers partially implemented (4/8 done: bool, date, null, number)
 - 🔨 Meta pattern parsers minimally implemented (1/6 done: repeat)
 - ❌ Structure pattern parsers not implemented (0/3 done)
@@ -122,8 +124,8 @@ Comparison: `bc-envelope-pattern::pattern::leaf` has 13 pattern types vs our 8
 - [x] `text_pattern.rs` - Text string patterns (**FULLY IMPLEMENTED!**)
 - [x] `value_pattern.rs` - Top-level value pattern enum (**FULLY IMPLEMENTED!**)
 
-**Stub implementations (need full implementation):**
-- [ ] `digest_pattern.rs` - Cryptographic digest patterns (`Digest` is implemented in `bc-components`)
+**🔨 Stub implementations (need full implementation):**
+- [ ] `digest_pattern.rs` - Cryptographic digest patterns (`Digest` is implemented in `bc-components`) (**STUB: No Matcher impl, causes unimplemented!() in value_pattern.rs**)
 
 #### ✅ Structure Patterns (pattern::structure)
 Comparison: `bc-envelope-pattern::pattern::structure` has 10 envelope-specific patterns vs our 4 dCBOR patterns
@@ -148,7 +150,7 @@ Comparison: `bc-envelope-pattern::pattern::meta` has 11 meta patterns vs our 8
 - [x] `repeat_pattern.rs` - Repetition patterns (**FULLY IMPLEMENTED!**)
 
 **🔨 Stub implementations (need full implementation):**
-- [ ] `search_pattern.rs` - Search patterns (will be implemented using `dcbor` crate's `walk` module)
+- [ ] `search_pattern.rs` - Search patterns (**STUB: Has structure but paths() and compile() are unimplemented!()**)
 
 **Missing meta patterns (present in bc-envelope-pattern):**
 - [ ] `sequence_pattern.rs` - Sequential pattern matching
@@ -162,7 +164,7 @@ Comparison: `bc-envelope-pattern::pattern::meta` has 11 meta patterns vs our 8
   - ✅ Repeat pattern support with quantifiers
   - ✅ Capture group infrastructure
   - ✅ All value pattern `compile()` methods now working
-  - **Unblocks**: All pattern compilation that was previously `unimplemented!()`
+  - **Issue**: pattern_impl.rs has unimplemented!() for StructurePattern despite structure patterns being fully implemented
 
 ### Parse Module Implementation Status
 
@@ -216,7 +218,8 @@ Comparison: `bc-envelope-pattern::pattern::meta` has 11 meta patterns vs our 8
 - ✅ `pattern_tests_value.rs` - **34 tests passing** (includes 5 comprehensive known value pattern tests)
 - ✅ `pattern_tests_meta.rs` - **23 tests passing** (**6 NEW repeat pattern tests + 7 capture pattern tests!**)
 - ✅ `pattern_tests_structure.rs` - **10 tests passing**
-- ✅ `error_tests.rs` - 6 tests passing
+- ✅ `error_tests.rs` - **67 tests passing** (actual count much higher than previously documented)
+- **Total**: **149 tests passing**
 
 #### ❌ Missing/Empty Test Suites
 - [ ] `parse_tests_meta.rs` - 0 tests
@@ -225,11 +228,13 @@ Comparison: `bc-envelope-pattern::pattern::meta` has 11 meta patterns vs our 8
 ### Priority Implementation Order
 
 **Next Priority Tasks:**
-1. **Complete Value Pattern Parsers** - Implement bytestring, text, digest, and known_value parsers
-2. **Structure Pattern Parsers** - Text syntax parsing for arrays, maps, and tagged values
-3. **Complete Meta Pattern Parsers** - Implement and, not, or, search parsers and fix capture parser
-4. **Main Parse Pattern Entry Point** - Complete Pattern::parse to support all pattern types
-5. **Complete Test Coverage** - Tests for all implemented features
+1. **Fix Pattern Compilation Issues** - Remove unimplemented!() calls in pattern_impl.rs for StructurePattern
+2. **Complete Stub Patterns** - Implement digest_pattern.rs and search_pattern.rs fully
+3. **Complete Value Pattern Parsers** - Implement bytestring, text, digest, and known_value parsers
+4. **Structure Pattern Parsers** - Text syntax parsing for arrays, maps, and tagged values
+5. **Complete Meta Pattern Parsers** - Implement and, not, or, search parsers and fix capture parser
+6. **Main Parse Pattern Entry Point** - Complete Pattern::parse to support all pattern types
+7. **Complete Test Coverage** - Tests for all implemented features
 
 **Completed Major Milestones:**
 - ✅ **VM Implementation** - Fully functional pattern matching virtual machine
