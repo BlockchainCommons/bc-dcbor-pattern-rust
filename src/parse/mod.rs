@@ -1,7 +1,7 @@
 #![allow(dead_code, unused_imports, unused_variables)]
 
 mod token;
-mod value;
+pub mod value;
 mod structure;
 mod meta;
 

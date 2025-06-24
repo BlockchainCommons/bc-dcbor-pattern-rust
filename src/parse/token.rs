@@ -130,6 +130,11 @@ pub enum Token {
     )]
     UnsignedInteger(Result<usize>),
 
+    #[regex(r"-(?:[1-9]\d*|0)(?:\.\d+)?(?:[eE][+-]?\d+)?|(?:[1-9]\d*|0)(?:\.\d+(?:[eE][+-]?\d+)?|[eE][+-]?\d+)", priority = 3, callback = |lex|
+        lex.slice().parse::<f64>().map_err(|_| Error::InvalidNumberFormat(lex.span()))
+    )]
+    FloatNumber(Result<f64>),
+
     #[regex(r"@[a-zA-Z_][a-zA-Z0-9_]*", |lex|
         lex.slice()[1..].to_string()
     )]
@@ -335,7 +340,9 @@ mod tests {
     #[test]
     fn test_unsigned_integer() {
         let mut lexer = Token::lexer("42");
-        if let Some(Ok(Token::UnsignedInteger(Ok(42)))) = lexer.next() {
+        let token = lexer.next();
+        println!("Token for '42': {:?}", token);
+        if let Some(Ok(Token::UnsignedInteger(Ok(42)))) = token {
             // Successfully parsed integer
         } else {
             panic!("Failed to parse integer literal");

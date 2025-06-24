@@ -1,2 +1,360 @@
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct NumberPattern { }
+use std::ops::RangeInclusive;
+
+use dcbor::prelude::*;
+
+use crate::pattern::{Matcher, Path, Pattern, vm::Instr};
+
+/// Pattern for matching number values in dCBOR.
+#[derive(Debug, Clone)]
+pub enum NumberPattern {
+    /// Matches any number.
+    Any,
+    /// Matches the exact number.
+    Exact(f64),
+    /// Matches numbers within a range, inclusive (..=).
+    Range(RangeInclusive<f64>),
+    /// Matches numbers that are greater than the specified value.
+    GreaterThan(f64),
+    /// Matches numbers that are greater than or equal to the specified value.
+    GreaterThanOrEqual(f64),
+    /// Matches numbers that are less than the specified value.
+    LessThan(f64),
+    /// Matches numbers that are less than or equal to the specified value.
+    LessThanOrEqual(f64),
+    /// Matches numbers that are NaN (Not a Number).
+    NaN,
+}
+
+impl std::hash::Hash for NumberPattern {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        match self {
+            NumberPattern::Any => 0u8.hash(state),
+            NumberPattern::Exact(value) => {
+                1u8.hash(state);
+                value.to_bits().hash(state);
+            }
+            NumberPattern::Range(range) => {
+                2u8.hash(state);
+                range.start().to_bits().hash(state);
+                range.end().to_bits().hash(state);
+            }
+            NumberPattern::GreaterThan(value) => {
+                3u8.hash(state);
+                value.to_bits().hash(state);
+            }
+            NumberPattern::GreaterThanOrEqual(value) => {
+                4u8.hash(state);
+                value.to_bits().hash(state);
+            }
+            NumberPattern::LessThan(value) => {
+                5u8.hash(state);
+                value.to_bits().hash(state);
+            }
+            NumberPattern::LessThanOrEqual(value) => {
+                6u8.hash(state);
+                value.to_bits().hash(state);
+            }
+            NumberPattern::NaN => 7u8.hash(state),
+        }
+    }
+}
+
+impl PartialEq for NumberPattern {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (NumberPattern::Any, NumberPattern::Any) => true,
+            (NumberPattern::Exact(a), NumberPattern::Exact(b)) => a == b,
+            (NumberPattern::Range(a), NumberPattern::Range(b)) => a == b,
+            (NumberPattern::GreaterThan(a), NumberPattern::GreaterThan(b)) => {
+                a == b
+            }
+            (
+                NumberPattern::GreaterThanOrEqual(a),
+                NumberPattern::GreaterThanOrEqual(b),
+            ) => a == b,
+            (NumberPattern::LessThan(a), NumberPattern::LessThan(b)) => a == b,
+            (
+                NumberPattern::LessThanOrEqual(a),
+                NumberPattern::LessThanOrEqual(b),
+            ) => a == b,
+            (NumberPattern::NaN, NumberPattern::NaN) => true,
+            _ => false,
+        }
+    }
+}
+
+impl Eq for NumberPattern {}
+
+impl NumberPattern {
+    /// Creates a new `NumberPattern` that matches any number.
+    pub fn any() -> Self { NumberPattern::Any }
+
+    /// Creates a new `NumberPattern` that matches the exact number.
+    pub fn exact<T>(value: T) -> Self
+    where
+        T: Into<f64>,
+    {
+        NumberPattern::Exact(value.into())
+    }
+
+    /// Creates a new `NumberPattern` that matches numbers within the specified
+    /// range.
+    pub fn range<A>(range: RangeInclusive<A>) -> Self
+    where
+        A: Into<f64> + Copy,
+    {
+        let start = (*range.start()).into();
+        let end = (*range.end()).into();
+        NumberPattern::Range(RangeInclusive::new(start, end))
+    }
+
+    /// Creates a new `NumberPattern` that matches numbers greater than the
+    /// specified value.
+    pub fn greater_than<T>(value: T) -> Self
+    where
+        T: Into<f64>,
+    {
+        NumberPattern::GreaterThan(value.into())
+    }
+
+    /// Creates a new `NumberPattern` that matches numbers greater than or
+    /// equal to the specified value.
+    pub fn greater_than_or_equal<T>(value: T) -> Self
+    where
+        T: Into<f64>,
+    {
+        NumberPattern::GreaterThanOrEqual(value.into())
+    }
+
+    /// Creates a new `NumberPattern` that matches numbers less than the
+    /// specified value.
+    pub fn less_than<T>(value: T) -> Self
+    where
+        T: Into<f64>,
+    {
+        NumberPattern::LessThan(value.into())
+    }
+
+    /// Creates a new `NumberPattern` that matches numbers less than or equal
+    /// to the specified value.
+    pub fn less_than_or_equal<T>(value: T) -> Self
+    where
+        T: Into<f64>,
+    {
+        NumberPattern::LessThanOrEqual(value.into())
+    }
+
+    /// Creates a new `NumberPattern` that matches NaN values.
+    pub fn nan() -> Self { NumberPattern::NaN }
+}
+
+impl Matcher for NumberPattern {
+    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
+        let is_hit = match self {
+            NumberPattern::Any => cbor.is_number(),
+            NumberPattern::Exact(want) => {
+                if let Ok(value) = f64::try_from_cbor(cbor) {
+                    value == *want
+                } else {
+                    false
+                }
+            }
+            NumberPattern::Range(want) => {
+                if let Ok(value) = f64::try_from_cbor(cbor) {
+                    want.contains(&value)
+                } else {
+                    false
+                }
+            }
+            NumberPattern::GreaterThan(want) => {
+                if let Ok(value) = f64::try_from_cbor(cbor) {
+                    value > *want
+                } else {
+                    false
+                }
+            }
+            NumberPattern::GreaterThanOrEqual(want) => {
+                if let Ok(value) = f64::try_from_cbor(cbor) {
+                    value >= *want
+                } else {
+                    false
+                }
+            }
+            NumberPattern::LessThan(want) => {
+                if let Ok(value) = f64::try_from_cbor(cbor) {
+                    value < *want
+                } else {
+                    false
+                }
+            }
+            NumberPattern::LessThanOrEqual(want) => {
+                if let Ok(value) = f64::try_from_cbor(cbor) {
+                    value <= *want
+                } else {
+                    false
+                }
+            }
+            NumberPattern::NaN => {
+                if let Ok(value) = f64::try_from_cbor(cbor) {
+                    value.is_nan()
+                } else {
+                    false
+                }
+            }
+        };
+
+        if is_hit {
+            vec![vec![cbor.clone()]]
+        } else {
+            vec![]
+        }
+    }
+
+    fn compile(
+        &self,
+        _code: &mut Vec<Instr>,
+        _literals: &mut Vec<Pattern>,
+        _captures: &mut Vec<String>,
+    ) {
+        // TODO: Implement VM compilation when VM is ready
+        unimplemented!("NumberPattern::compile not yet implemented");
+    }
+}
+
+impl std::fmt::Display for NumberPattern {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            NumberPattern::Any => write!(f, "NUMBER"),
+            NumberPattern::Exact(value) => write!(f, "NUMBER({})", value),
+            NumberPattern::Range(range) => {
+                write!(f, "NUMBER({}...{})", range.start(), range.end())
+            }
+            NumberPattern::GreaterThan(value) => {
+                write!(f, "NUMBER(>{})", value)
+            }
+            NumberPattern::GreaterThanOrEqual(value) => {
+                write!(f, "NUMBER(>={})", value)
+            }
+            NumberPattern::LessThan(value) => write!(f, "NUMBER(<{})", value),
+            NumberPattern::LessThanOrEqual(value) => {
+                write!(f, "NUMBER(<={})", value)
+            }
+            NumberPattern::NaN => write!(f, "NUMBER(NaN)"),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_number_pattern_display() {
+        assert_eq!(NumberPattern::any().to_string(), "NUMBER");
+        assert_eq!(NumberPattern::exact(42.0).to_string(), "NUMBER(42)");
+        assert_eq!(
+            NumberPattern::range(1.0..=10.0).to_string(),
+            "NUMBER(1...10)"
+        );
+        assert_eq!(NumberPattern::greater_than(5.0).to_string(), "NUMBER(>5)");
+        assert_eq!(
+            NumberPattern::greater_than_or_equal(5.0).to_string(),
+            "NUMBER(>=5)"
+        );
+        assert_eq!(NumberPattern::less_than(5.0).to_string(), "NUMBER(<5)");
+        assert_eq!(
+            NumberPattern::less_than_or_equal(5.0).to_string(),
+            "NUMBER(<=5)"
+        );
+        assert_eq!(NumberPattern::nan().to_string(), "NUMBER(NaN)");
+    }
+
+    #[test]
+    fn test_number_pattern_matching() {
+        let int_cbor = 42.to_cbor();
+        let float_cbor = std::f64::consts::PI.to_cbor();
+        let negative_cbor = (-10).to_cbor();
+        let nan_cbor = f64::NAN.to_cbor();
+        let text_cbor = "not a number".to_cbor();
+
+        // Test Any pattern
+        let any_pattern = NumberPattern::any();
+        assert!(any_pattern.matches(&int_cbor));
+        assert!(any_pattern.matches(&float_cbor));
+        assert!(any_pattern.matches(&negative_cbor));
+        assert!(any_pattern.matches(&nan_cbor));
+        assert!(!any_pattern.matches(&text_cbor));
+
+        // Test exact patterns
+        let exact_pattern = NumberPattern::exact(42.0);
+        assert!(exact_pattern.matches(&int_cbor));
+        assert!(!exact_pattern.matches(&float_cbor));
+        assert!(!exact_pattern.matches(&text_cbor));
+
+        // Test range pattern
+        let range_pattern = NumberPattern::range(1.0..=50.0);
+        assert!(range_pattern.matches(&int_cbor));
+        assert!(range_pattern.matches(&float_cbor));
+        assert!(!range_pattern.matches(&negative_cbor));
+        assert!(!range_pattern.matches(&text_cbor));
+
+        // Test comparison patterns
+        let gt_pattern = NumberPattern::greater_than(10.0);
+        assert!(gt_pattern.matches(&int_cbor));
+        assert!(!gt_pattern.matches(&float_cbor));
+        assert!(!gt_pattern.matches(&negative_cbor));
+
+        let lt_pattern = NumberPattern::less_than(50.0);
+        assert!(lt_pattern.matches(&int_cbor));
+        assert!(lt_pattern.matches(&float_cbor));
+        assert!(lt_pattern.matches(&negative_cbor));
+
+        // Test NaN pattern
+        let nan_pattern = NumberPattern::nan();
+        assert!(!nan_pattern.matches(&int_cbor));
+        assert!(!nan_pattern.matches(&float_cbor));
+        assert!(nan_pattern.matches(&nan_cbor));
+        assert!(!nan_pattern.matches(&text_cbor));
+    }
+
+    #[test]
+    fn test_number_pattern_paths() {
+        let int_cbor = 42.to_cbor();
+        let text_cbor = "not a number".to_cbor();
+
+        let any_pattern = NumberPattern::any();
+        let int_paths = any_pattern.paths(&int_cbor);
+        assert_eq!(int_paths.len(), 1);
+        assert_eq!(int_paths[0].len(), 1);
+        assert_eq!(int_paths[0][0], int_cbor);
+
+        let text_paths = any_pattern.paths(&text_cbor);
+        assert_eq!(text_paths.len(), 0);
+
+        let exact_pattern = NumberPattern::exact(42.0);
+        let paths = exact_pattern.paths(&int_cbor);
+        assert_eq!(paths.len(), 1);
+        assert_eq!(paths[0].len(), 1);
+        assert_eq!(paths[0][0], int_cbor);
+
+        let no_match_paths = exact_pattern.paths(&text_cbor);
+        assert_eq!(no_match_paths.len(), 0);
+    }
+
+    #[test]
+    fn test_number_conversion() {
+        let int_cbor = 42.to_cbor();
+        let float_cbor = std::f64::consts::PI.to_cbor();
+        let negative_cbor = (-10).to_cbor();
+        let text_cbor = "not a number".to_cbor();
+
+        // Test direct conversion using try_from_cbor
+        assert_eq!(f64::try_from_cbor(&int_cbor).ok(), Some(42.0));
+        assert_eq!(
+            f64::try_from_cbor(&float_cbor).ok(),
+            Some(std::f64::consts::PI)
+        );
+        assert_eq!(f64::try_from_cbor(&negative_cbor).ok(), Some(-10.0));
+        assert_eq!(f64::try_from_cbor(&text_cbor).ok(), None);
+    }
+}
