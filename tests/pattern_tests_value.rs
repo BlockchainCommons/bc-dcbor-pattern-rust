@@ -291,6 +291,10 @@ fn test_byte_string_pattern_any() {
     let empty_bytes = vec![];
     let empty_cbor = CBOR::to_byte_string(empty_bytes);
     assert!(pattern.matches(&empty_cbor));
+    let paths = pattern.paths(&empty_cbor);
+    assert_eq!(paths.len(), 1);
+    assert_eq!(paths[0].len(), 1);
+    assert_eq!(paths[0][0], empty_cbor);
 
     // Should not match non-byte-string
     let text_cbor = "hello".to_cbor();
@@ -599,4 +603,48 @@ fn test_date_pattern_display() {
         Pattern::date_regex(regex).to_string(),
         "DATE(/^2023-/)"
     );
+}
+
+#[test]
+fn test_null_pattern() {
+    let pattern = Pattern::null();
+
+    // Should match null
+    let null_cbor = dcbor::CBOR::null();
+    assert!(pattern.matches(&null_cbor));
+    let paths = pattern.paths(&null_cbor);
+    assert_eq!(paths.len(), 1);
+    assert_eq!(paths[0].len(), 1);
+    assert_eq!(paths[0][0], null_cbor);
+
+    // Should not match non-null values
+    let true_cbor = true.to_cbor();
+    assert!(!pattern.matches(&true_cbor));
+    let paths = pattern.paths(&true_cbor);
+    assert_eq!(paths.len(), 0);
+
+    let false_cbor = false.to_cbor();
+    assert!(!pattern.matches(&false_cbor));
+    let paths = pattern.paths(&false_cbor);
+    assert_eq!(paths.len(), 0);
+
+    let number_cbor = 42.to_cbor();
+    assert!(!pattern.matches(&number_cbor));
+    let paths = pattern.paths(&number_cbor);
+    assert_eq!(paths.len(), 0);
+
+    let text_cbor = "hello".to_cbor();
+    assert!(!pattern.matches(&text_cbor));
+    let paths = pattern.paths(&text_cbor);
+    assert_eq!(paths.len(), 0);
+
+    let array_cbor = vec![1, 2, 3].to_cbor();
+    assert!(!pattern.matches(&array_cbor));
+    let paths = pattern.paths(&array_cbor);
+    assert_eq!(paths.len(), 0);
+}
+
+#[test]
+fn test_null_pattern_display() {
+    assert_eq!(Pattern::null().to_string(), "NULL");
 }

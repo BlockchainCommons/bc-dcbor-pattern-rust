@@ -30,10 +30,7 @@ impl Matcher for ValuePattern {
                 // TODO: Implement when KnownValuePattern is ready
                 unimplemented!("KnownValuePattern not yet implemented")
             }
-            ValuePattern::Null(_pattern) => {
-                // TODO: Implement when NullPattern is ready
-                unimplemented!("NullPattern not yet implemented")
-            }
+            ValuePattern::Null(pattern) => pattern.paths(cbor),
             ValuePattern::Number(pattern) => pattern.paths(cbor),
             ValuePattern::Text(pattern) => pattern.paths(cbor),
         }
@@ -61,8 +58,8 @@ impl Matcher for ValuePattern {
             ValuePattern::KnownValue(_pattern) => {
                 unimplemented!("KnownValuePattern compile not yet implemented")
             }
-            ValuePattern::Null(_pattern) => {
-                unimplemented!("NullPattern compile not yet implemented")
+            ValuePattern::Null(pattern) => {
+                pattern.compile(code, literals, captures)
             }
             ValuePattern::Number(pattern) => {
                 pattern.compile(code, literals, captures)
@@ -82,7 +79,7 @@ impl std::fmt::Display for ValuePattern {
             ValuePattern::Date(pattern) => write!(f, "{}", pattern),
             ValuePattern::Digest(pattern) => write!(f, "{:?}", pattern), /* Temporary */
             ValuePattern::KnownValue(pattern) => write!(f, "{:?}", pattern), /* Temporary */
-            ValuePattern::Null(pattern) => write!(f, "{:?}", pattern), /* Temporary */
+            ValuePattern::Null(pattern) => write!(f, "{}", pattern),
             ValuePattern::Number(pattern) => write!(f, "{}", pattern),
             ValuePattern::Text(pattern) => write!(f, "{}", pattern),
         }

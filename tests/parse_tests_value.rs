@@ -48,3 +48,19 @@ fn parse_bool_patterns_round_trip() {
         assert_eq!(parsed, pattern);
     }
 }
+
+#[test]
+fn parse_null() {
+    let src = "NULL";
+    let p = Pattern::parse(src).unwrap();
+    assert_eq!(p, Pattern::null());
+    assert_eq!(p.to_string(), src);
+}
+
+#[test]
+fn parse_null_pattern_round_trip() {
+    let pattern = Pattern::null();
+    let string_repr = pattern.to_string();
+    let parsed = Pattern::parse(&string_repr).unwrap();
+    assert_eq!(parsed, pattern);
+}
