@@ -293,14 +293,16 @@ impl Pattern {
 
     /// Parses a pattern from a string.
     ///
-    /// This implementation currently supports boolean, date, number, null, and text
-    /// patterns. More patterns will be added as they are implemented.
+    /// This implementation currently supports boolean, date, number, null, and
+    /// text patterns. More patterns will be added as they are implemented.
     pub fn parse(input: &str) -> Result<Self> {
         use logos::Logos;
 
         use crate::parse::{
             Token,
-            value::{parse_bool, parse_date, parse_null, parse_number, parse_text},
+            value::{
+                parse_bool, parse_date, parse_null, parse_number, parse_text,
+            },
         };
 
         let mut lexer = Token::lexer(input);
@@ -324,10 +326,7 @@ impl Matcher for Pattern {
     fn paths(&self, cbor: &dcbor::CBOR) -> Vec<Path> {
         match self {
             Pattern::Value(pattern) => pattern.paths(cbor),
-            Pattern::Structure(_pattern) => {
-                // TODO: Implement when StructurePattern is ready
-                unimplemented!("StructurePattern paths not yet implemented")
-            }
+            Pattern::Structure(pattern) => pattern.paths(cbor),
             Pattern::Meta(pattern) => pattern.paths(cbor),
         }
     }
@@ -342,8 +341,8 @@ impl Matcher for Pattern {
             Pattern::Value(pattern) => {
                 pattern.compile(code, literals, captures);
             }
-            Pattern::Structure(_pattern) => {
-                unimplemented!("StructurePattern compile not yet implemented")
+            Pattern::Structure(pattern) => {
+                pattern.compile(code, literals, captures);
             }
             Pattern::Meta(pattern) => {
                 pattern.compile(code, literals, captures);
