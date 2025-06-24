@@ -82,12 +82,13 @@ impl Matcher for ByteStringPattern {
 
     fn compile(
         &self,
-        _code: &mut Vec<Instr>,
-        _literals: &mut Vec<Pattern>,
+        code: &mut Vec<Instr>,
+        literals: &mut Vec<Pattern>,
         _captures: &mut Vec<String>,
     ) {
-        // TODO: Implement VM compilation when VM is ready
-        unimplemented!("ByteStringPattern::compile not yet implemented");
+        let idx = literals.len();
+        literals.push(Pattern::Value(crate::pattern::ValuePattern::ByteString(self.clone())));
+        code.push(Instr::MatchPredicate(idx));
     }
 }
 

@@ -35,12 +35,15 @@ impl Matcher for BoolPattern {
 
     fn compile(
         &self,
-        _code: &mut Vec<Instr>,
-        _literals: &mut Vec<Pattern>,
+        code: &mut Vec<Instr>,
+        literals: &mut Vec<Pattern>,
         _captures: &mut Vec<String>,
     ) {
-        // TODO: Implement VM compilation when VM is ready
-        unimplemented!("BoolPattern::compile not yet implemented");
+        let idx = literals.len();
+        literals.push(Pattern::Value(crate::pattern::ValuePattern::Bool(
+            self.clone(),
+        )));
+        code.push(Instr::MatchPredicate(idx));
     }
 }
 
