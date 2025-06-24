@@ -118,14 +118,12 @@ Comparison: `bc-envelope-pattern::pattern::leaf` has 13 pattern types vs our 8
 - [x] `bool_pattern.rs` - Boolean value patterns (**FULLY IMPLEMENTED!**)
 - [x] `bytestring_pattern.rs` - Byte string patterns (**FULLY IMPLEMENTED!**)
 - [x] `date_pattern.rs` - Date/time patterns (**FULLY IMPLEMENTED!**)
+- [x] `digest_pattern.rs` - Cryptographic digest patterns (**FULLY IMPLEMENTED!**)
 - [x] `known_value_pattern.rs` - Known value patterns (**FULLY IMPLEMENTED!**)
 - [x] `null_pattern.rs` - Null value patterns (**FULLY IMPLEMENTED!**)
 - [x] `number_pattern.rs` - Numeric patterns (int, float, ranges) (**FULLY IMPLEMENTED!**)
 - [x] `text_pattern.rs` - Text string patterns (**FULLY IMPLEMENTED!**)
 - [x] `value_pattern.rs` - Top-level value pattern enum (**FULLY IMPLEMENTED!**)
-
-**🔨 Stub implementations (need full implementation):**
-- [ ] `digest_pattern.rs` - Cryptographic digest patterns (`Digest` is implemented in `bc-components`) (**STUB: No Matcher impl, causes unimplemented!() in value_pattern.rs**)
 
 #### ✅ Structure Patterns (pattern::structure)
 Comparison: `bc-envelope-pattern::pattern::structure` has 10 envelope-specific patterns vs our 4 dCBOR patterns

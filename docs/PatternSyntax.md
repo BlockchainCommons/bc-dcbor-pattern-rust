@@ -85,7 +85,7 @@ All value patterns match atomic CBOR values.
     - `DIGEST ( hex )`
         - Matches a digest whose value starts with the specified hex prefix. Up to 32 bytes can be specified, which is the length of the full SHA-256 digest.
     - `DIGEST ( ur:digest/value )`
-        - Matches the specified `ur:digest` value, parsed using the `bc-ur` crate.
+        - Matches the specified `ur:digest` value, parsed using `Digest::from_ur_string()`.
 
 ## Structure Patterns
 
