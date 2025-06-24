@@ -101,6 +101,7 @@ struct Thread {
     saved_paths: Vec<Path>,
     captures: Vec<Vec<Path>>,
     capture_stack: Vec<Vec<usize>>,
+    #[allow(dead_code)]
     seen: HashSet<Vec<u8>>, // Use CBOR encoding as hash key
 }
 
