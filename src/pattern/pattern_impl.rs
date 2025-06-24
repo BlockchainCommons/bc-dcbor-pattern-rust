@@ -111,6 +111,41 @@ impl Pattern {
         Pattern::Value(ValuePattern::ByteString(crate::pattern::value::ByteStringPattern::regex(regex)))
     }
 
+    /// Creates a pattern that matches any date value.
+    pub fn any_date() -> Self {
+        Pattern::Value(ValuePattern::Date(crate::pattern::value::DatePattern::any()))
+    }
+
+    /// Creates a pattern that matches a specific date value.
+    pub fn date(date: dcbor::Date) -> Self {
+        Pattern::Value(ValuePattern::Date(crate::pattern::value::DatePattern::value(date)))
+    }
+
+    /// Creates a pattern that matches dates within a range (inclusive).
+    pub fn date_range(range: std::ops::RangeInclusive<dcbor::Date>) -> Self {
+        Pattern::Value(ValuePattern::Date(crate::pattern::value::DatePattern::range(range)))
+    }
+
+    /// Creates a pattern that matches dates that are on or after the specified date.
+    pub fn date_earliest(date: dcbor::Date) -> Self {
+        Pattern::Value(ValuePattern::Date(crate::pattern::value::DatePattern::earliest(date)))
+    }
+
+    /// Creates a pattern that matches dates that are on or before the specified date.
+    pub fn date_latest(date: dcbor::Date) -> Self {
+        Pattern::Value(ValuePattern::Date(crate::pattern::value::DatePattern::latest(date)))
+    }
+
+    /// Creates a pattern that matches a date by its ISO-8601 string representation.
+    pub fn date_iso8601(iso_string: impl Into<String>) -> Self {
+        Pattern::Value(ValuePattern::Date(crate::pattern::value::DatePattern::iso8601(iso_string)))
+    }
+
+    /// Creates a pattern that matches dates whose ISO-8601 string representation matches the given regex pattern.
+    pub fn date_regex(regex: regex::Regex) -> Self {
+        Pattern::Value(ValuePattern::Date(crate::pattern::value::DatePattern::regex(regex)))
+    }
+
     /// Parses a pattern from a string.
     ///
     /// This implementation currently supports boolean and number patterns.

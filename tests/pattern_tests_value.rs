@@ -1,4 +1,4 @@
-use dcbor::prelude::*;
+use dcbor::{prelude::*, Date};
 use dcbor_pattern::{Matcher, Pattern};
 
 #[test]
@@ -387,4 +387,216 @@ fn test_byte_string_pattern_display() {
     let regex = regex::bytes::Regex::new(r"^test.*").unwrap();
     let regex_pattern = Pattern::byte_string_regex(regex);
     assert_eq!(regex_pattern.to_string(), "BSTR(/^test.*/)");
+}
+
+#[test]
+fn test_date_pattern_any() {
+    let pattern = Pattern::any_date();
+
+    // Should match any date
+    let date = Date::from_ymd(2023, 12, 25);
+    let date_cbor = date.to_cbor();
+    assert!(pattern.matches(&date_cbor));
+    let paths = pattern.paths(&date_cbor);
+    assert_eq!(paths.len(), 1);
+    assert_eq!(paths[0].len(), 1);
+    assert_eq!(paths[0][0], date_cbor);
+
+    // Should not match non-date
+    let text_cbor = "2023-12-25".to_cbor();
+    assert!(!pattern.matches(&text_cbor));
+    let paths = pattern.paths(&text_cbor);
+    assert_eq!(paths.len(), 0);
+
+    let number_cbor = 1703462400.to_cbor(); // Unix timestamp for 2023-12-25
+    assert!(!pattern.matches(&number_cbor));
+}
+
+#[test]
+fn test_date_pattern_specific() {
+    let date = Date::from_ymd(2023, 12, 25);
+    let pattern = Pattern::date(date.clone());
+
+    // Should match the specific date
+    let date_cbor = date.to_cbor();
+    assert!(pattern.matches(&date_cbor));
+
+    // Should not match a different date
+    let other_date = Date::from_ymd(2024, 1, 1);
+    let other_date_cbor = other_date.to_cbor();
+    assert!(!pattern.matches(&other_date_cbor));
+
+    // Should not match non-date
+    let text_cbor = "2023-12-25".to_cbor();
+    assert!(!pattern.matches(&text_cbor));
+}
+
+#[test]
+fn test_date_pattern_range() {
+    let start_date = Date::from_ymd(2023, 12, 20);
+    let end_date = Date::from_ymd(2023, 12, 30);
+    let pattern = Pattern::date_range(start_date.clone()..=end_date.clone());
+
+    // Should match date within range
+    let middle_date = Date::from_ymd(2023, 12, 25);
+    let middle_date_cbor = middle_date.to_cbor();
+    assert!(pattern.matches(&middle_date_cbor));
+
+    // Should match date at start of range
+    let start_date_cbor = start_date.to_cbor();
+    assert!(pattern.matches(&start_date_cbor));
+
+    // Should match date at end of range
+    let end_date_cbor = end_date.to_cbor();
+    assert!(pattern.matches(&end_date_cbor));
+
+    // Should not match date before range
+    let early_date = Date::from_ymd(2023, 12, 15);
+    let early_date_cbor = early_date.to_cbor();
+    assert!(!pattern.matches(&early_date_cbor));
+
+    // Should not match date after range
+    let late_date = Date::from_ymd(2024, 1, 5);
+    let late_date_cbor = late_date.to_cbor();
+    assert!(!pattern.matches(&late_date_cbor));
+}
+
+#[test]
+fn test_date_pattern_earliest() {
+    let earliest_date = Date::from_ymd(2023, 12, 20);
+    let pattern = Pattern::date_earliest(earliest_date.clone());
+
+    // Should match date equal to earliest
+    let earliest_date_cbor = earliest_date.to_cbor();
+    assert!(pattern.matches(&earliest_date_cbor));
+
+    // Should match date after earliest
+    let later_date = Date::from_ymd(2023, 12, 25);
+    let later_date_cbor = later_date.to_cbor();
+    assert!(pattern.matches(&later_date_cbor));
+
+    // Should not match date before earliest
+    let earlier_date = Date::from_ymd(2023, 12, 15);
+    let earlier_date_cbor = earlier_date.to_cbor();
+    assert!(!pattern.matches(&earlier_date_cbor));
+}
+
+#[test]
+fn test_date_pattern_latest() {
+    let latest_date = Date::from_ymd(2023, 12, 30);
+    let pattern = Pattern::date_latest(latest_date.clone());
+
+    // Should match date equal to latest
+    let latest_date_cbor = latest_date.to_cbor();
+    assert!(pattern.matches(&latest_date_cbor));
+
+    // Should match date before latest
+    let earlier_date = Date::from_ymd(2023, 12, 25);
+    let earlier_date_cbor = earlier_date.to_cbor();
+    assert!(pattern.matches(&earlier_date_cbor));
+
+    // Should not match date after latest
+    let later_date = Date::from_ymd(2024, 1, 5);
+    let later_date_cbor = later_date.to_cbor();
+    assert!(!pattern.matches(&later_date_cbor));
+}
+
+#[test]
+fn test_date_pattern_iso8601() {
+    let date = Date::from_ymd(2023, 12, 25);
+    let iso_string = date.to_string();
+    let pattern = Pattern::date_iso8601(iso_string.clone());
+
+    // Should match date with matching ISO string
+    let date_cbor = date.to_cbor();
+    assert!(pattern.matches(&date_cbor));
+
+    // Should not match date with different ISO string
+    let other_date = Date::from_ymd(2024, 1, 1);
+    let other_date_cbor = other_date.to_cbor();
+    assert!(!pattern.matches(&other_date_cbor));
+}
+
+#[test]
+fn test_date_pattern_regex() {
+    // Pattern to match any date in 2023
+    let regex = regex::Regex::new(r"^2023-").unwrap();
+    let pattern = Pattern::date_regex(regex);
+
+    // Should match date in 2023
+    let date_2023 = Date::from_ymd(2023, 12, 25);
+    let date_2023_cbor = date_2023.to_cbor();
+    assert!(pattern.matches(&date_2023_cbor));
+
+    // Should not match date in 2024
+    let date_2024 = Date::from_ymd(2024, 1, 1);
+    let date_2024_cbor = date_2024.to_cbor();
+    assert!(!pattern.matches(&date_2024_cbor));
+
+    // Test with more specific regex (December dates)
+    let december_regex = regex::Regex::new(r"-12-").unwrap();
+    let december_pattern = Pattern::date_regex(december_regex);
+
+    // Should match December date
+    assert!(december_pattern.matches(&date_2023_cbor));
+
+    // Should not match January date
+    let january_date = Date::from_ymd(2023, 1, 15);
+    let january_date_cbor = january_date.to_cbor();
+    assert!(!december_pattern.matches(&january_date_cbor));
+}
+
+#[test]
+fn test_date_pattern_with_time() {
+    // Test with dates that include time components
+    let datetime = Date::from_timestamp(1703462400.0); // 2023-12-25 00:00:00 UTC
+    let pattern = Pattern::any_date();
+
+    let datetime_cbor = datetime.to_cbor();
+    assert!(pattern.matches(&datetime_cbor));
+
+    // Test specific time matching
+    let specific_pattern = Pattern::date(datetime.clone());
+    assert!(specific_pattern.matches(&datetime_cbor));
+
+    // Test with fractional seconds
+    let datetime_with_millis = Date::from_timestamp(1703462400.123);
+    let datetime_with_millis_cbor = datetime_with_millis.to_cbor();
+    assert!(pattern.matches(&datetime_with_millis_cbor));
+}
+
+#[test]
+fn test_date_pattern_display() {
+    assert_eq!(Pattern::any_date().to_string(), "DATE");
+
+    let date = Date::from_ymd(2023, 12, 25);
+    assert_eq!(Pattern::date(date.clone()).to_string(), format!("DATE({})", date));
+
+    let start_date = Date::from_ymd(2023, 12, 20);
+    let end_date = Date::from_ymd(2023, 12, 30);
+    assert_eq!(
+        Pattern::date_range(start_date.clone()..=end_date.clone()).to_string(),
+        format!("DATE({}...{})", start_date, end_date)
+    );
+
+    assert_eq!(
+        Pattern::date_earliest(date.clone()).to_string(),
+        format!("DATE({}...)", date)
+    );
+
+    assert_eq!(
+        Pattern::date_latest(date.clone()).to_string(),
+        format!("DATE(...{})", date)
+    );
+
+    assert_eq!(
+        Pattern::date_iso8601("2023-12-25T00:00:00Z").to_string(),
+        "DATE(2023-12-25T00:00:00Z)"
+    );
+
+    let regex = regex::Regex::new(r"^2023-").unwrap();
+    assert_eq!(
+        Pattern::date_regex(regex).to_string(),
+        "DATE(/^2023-/)"
+    );
 }

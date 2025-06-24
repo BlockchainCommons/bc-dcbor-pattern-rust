@@ -21,10 +21,7 @@ impl Matcher for ValuePattern {
         match self {
             ValuePattern::Bool(pattern) => pattern.paths(cbor),
             ValuePattern::ByteString(pattern) => pattern.paths(cbor),
-            ValuePattern::Date(_pattern) => {
-                // TODO: Implement when DatePattern is ready
-                unimplemented!("DatePattern not yet implemented")
-            }
+            ValuePattern::Date(pattern) => pattern.paths(cbor),
             ValuePattern::Digest(_pattern) => {
                 // TODO: Implement when DigestPattern is ready
                 unimplemented!("DigestPattern not yet implemented")
@@ -55,8 +52,8 @@ impl Matcher for ValuePattern {
             ValuePattern::ByteString(pattern) => {
                 pattern.compile(code, literals, captures)
             }
-            ValuePattern::Date(_pattern) => {
-                unimplemented!("DatePattern compile not yet implemented")
+            ValuePattern::Date(pattern) => {
+                pattern.compile(code, literals, captures)
             }
             ValuePattern::Digest(_pattern) => {
                 unimplemented!("DigestPattern compile not yet implemented")
@@ -82,7 +79,7 @@ impl std::fmt::Display for ValuePattern {
         match self {
             ValuePattern::Bool(pattern) => write!(f, "{}", pattern),
             ValuePattern::ByteString(pattern) => write!(f, "{}", pattern),
-            ValuePattern::Date(pattern) => write!(f, "{:?}", pattern), /* Temporary */
+            ValuePattern::Date(pattern) => write!(f, "{}", pattern),
             ValuePattern::Digest(pattern) => write!(f, "{:?}", pattern), /* Temporary */
             ValuePattern::KnownValue(pattern) => write!(f, "{:?}", pattern), /* Temporary */
             ValuePattern::Null(pattern) => write!(f, "{:?}", pattern), /* Temporary */
