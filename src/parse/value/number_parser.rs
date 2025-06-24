@@ -17,7 +17,9 @@ fn parse_number_inner(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
         lexer.next(); // consume the NaN token
         match lexer.next() {
             Some(Ok(Token::ParenClose)) => return Ok(Pattern::number_nan()),
-            Some(Ok(t)) => return Err(Error::UnexpectedToken(Box::new(t), lexer.span())),
+            Some(Ok(t)) => {
+                return Err(Error::UnexpectedToken(Box::new(t), lexer.span()));
+            }
             Some(Err(e)) => return Err(e),
             None => return Err(Error::ExpectedCloseParen(lexer.span())),
         }
@@ -57,7 +59,9 @@ fn parse_number_inner(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
                 };
                 return Ok(pattern);
             }
-            Some(Ok(t)) => return Err(Error::UnexpectedToken(Box::new(t), lexer.span())),
+            Some(Ok(t)) => {
+                return Err(Error::UnexpectedToken(Box::new(t), lexer.span()));
+            }
             Some(Err(e)) => return Err(e),
             None => return Err(Error::ExpectedCloseParen(lexer.span())),
         }
@@ -72,8 +76,12 @@ fn parse_number_inner(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
             lexer.next(); // consume ellipsis
             let second = parse_float_number(lexer)?;
             match lexer.next() {
-                Some(Ok(Token::ParenClose)) => Ok(Pattern::number_range(first..=second)),
-                Some(Ok(t)) => Err(Error::UnexpectedToken(Box::new(t), lexer.span())),
+                Some(Ok(Token::ParenClose)) => {
+                    Ok(Pattern::number_range(first..=second))
+                }
+                Some(Ok(t)) => {
+                    Err(Error::UnexpectedToken(Box::new(t), lexer.span()))
+                }
                 Some(Err(e)) => Err(e),
                 None => Err(Error::ExpectedCloseParen(lexer.span())),
             }
@@ -90,10 +98,8 @@ fn parse_number_inner(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
 
 fn parse_float_number(lexer: &mut logos::Lexer<Token>) -> Result<f64> {
     match lexer.next() {
-        Some(Ok(Token::FloatNumber(Ok(value)))) => Ok(value),
-        Some(Ok(Token::FloatNumber(Err(e)))) => Err(e),
-        Some(Ok(Token::UnsignedInteger(Ok(value)))) => Ok(value as f64),
-        Some(Ok(Token::UnsignedInteger(Err(e)))) => Err(e),
+        Some(Ok(Token::NumberLiteral(Ok(value)))) => Ok(value),
+        Some(Ok(Token::NumberLiteral(Err(e)))) => Err(e),
         Some(Ok(t)) => Err(Error::UnexpectedToken(Box::new(t), lexer.span())),
         Some(Err(e)) => Err(e),
         None => Err(Error::UnexpectedEndOfInput),
@@ -102,14 +108,17 @@ fn parse_float_number(lexer: &mut logos::Lexer<Token>) -> Result<f64> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use logos::Logos;
+
+    use super::*;
 
     fn test_parse(input: &str) -> Result<Pattern> {
         let mut lexer = Token::lexer(input);
         match lexer.next() {
             Some(Ok(Token::Number)) => parse_number(&mut lexer),
-            Some(Ok(token)) => Err(Error::UnexpectedToken(Box::new(token), lexer.span())),
+            Some(Ok(token)) => {
+                Err(Error::UnexpectedToken(Box::new(token), lexer.span()))
+            }
             Some(Err(e)) => Err(e),
             None => Err(Error::EmptyInput),
         }
@@ -179,7 +188,9 @@ mod tests {
     #[test]
     fn test_scientific_notation() {
         match test_parse("NUMBER(1e10)") {
-            Ok(pattern) => assert_eq!(pattern.to_string(), "NUMBER(10000000000)"),
+            Ok(pattern) => {
+                assert_eq!(pattern.to_string(), "NUMBER(10000000000)")
+            }
             Err(e) => panic!("Failed to parse NUMBER(1e10): {:?}", e),
         }
 

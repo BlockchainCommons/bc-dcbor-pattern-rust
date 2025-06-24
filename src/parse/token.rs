@@ -1,3 +1,5 @@
+use dcbor::prelude::*;
+use dcbor_parse::parse_dcbor_item_partial;
 use logos::{Lexer, Logos};
 
 use crate::{Error, Quantifier, Reluctance, Result};
@@ -125,15 +127,9 @@ pub enum Token {
     #[token("<")]
     LessThan,
 
-    #[regex(r"[1-9]\d*|0", |lex|
-        lex.slice().parse::<usize>().map_err(|_| Error::InvalidNumberFormat(lex.span()))
-    )]
-    UnsignedInteger(Result<usize>),
-
-    #[regex(r"-(?:[1-9]\d*|0)(?:\.\d+)?(?:[eE][+-]?\d+)?|(?:[1-9]\d*|0)(?:\.\d+(?:[eE][+-]?\d+)?|[eE][+-]?\d+)", priority = 3, callback = |lex|
-        lex.slice().parse::<f64>().map_err(|_| Error::InvalidNumberFormat(lex.span()))
-    )]
-    FloatNumber(Result<f64>),
+    /// Number literal parsed using dcbor-parse for consistency with dCBOR
+    #[regex(r"-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?", callback = parse_number)]
+    NumberLiteral(Result<f64>),
 
     #[regex(r"@[a-zA-Z_][a-zA-Z0-9_]*", |lex|
         lex.slice()[1..].to_string()
@@ -145,6 +141,18 @@ pub enum Token {
 
     #[token("{", parse_range)]
     Range(Result<Quantifier>),
+}
+
+/// Callback to parse numbers using dcbor-parse for consistency with dCBOR
+fn parse_number(lex: &mut Lexer<Token>) -> Result<f64> {
+    let number_str = lex.slice();
+    match parse_dcbor_item_partial(number_str) {
+        Ok((cbor, _)) => match f64::try_from_cbor(&cbor) {
+            Ok(value) => Ok(value),
+            Err(_) => Err(Error::InvalidNumberFormat(lex.span())),
+        },
+        Err(_) => Err(Error::InvalidNumberFormat(lex.span())),
+    }
 }
 
 /// Callback used by the `Regex` variant above.
@@ -338,22 +346,46 @@ mod tests {
     }
 
     #[test]
-    fn test_unsigned_integer() {
+    fn test_number_literals() {
         let mut lexer = Token::lexer("42");
         let token = lexer.next();
         println!("Token for '42': {:?}", token);
-        if let Some(Ok(Token::UnsignedInteger(Ok(42)))) = token {
-            // Successfully parsed integer
+        if let Some(Ok(Token::NumberLiteral(Ok(value)))) = token {
+            assert_eq!(value, 42.0);
         } else {
             panic!("Failed to parse integer literal");
         }
 
-        // Test unsigned integer
+        // Test zero
         let mut lexer = Token::lexer("0");
-        if let Some(Ok(Token::UnsignedInteger(Ok(0)))) = lexer.next() {
-            // Successfully parsed zero
+        if let Some(Ok(Token::NumberLiteral(Ok(value)))) = lexer.next() {
+            assert_eq!(value, 0.0);
         } else {
             panic!("Failed to parse zero literal");
+        }
+
+        // Test negative number
+        let mut lexer = Token::lexer("-10");
+        if let Some(Ok(Token::NumberLiteral(Ok(value)))) = lexer.next() {
+            assert_eq!(value, -10.0);
+        } else {
+            panic!("Failed to parse negative literal");
+        }
+
+        // Test floating point
+        let mut lexer = Token::lexer("3.2222");
+        if let Some(Ok(Token::NumberLiteral(Ok(value)))) = lexer.next() {
+            assert_eq!(value, 3.2222);
+        } else {
+            panic!("Failed to parse float literal");
+        }
+
+        // Test scientific notation
+        let mut lexer = Token::lexer("1e5");
+        if let Some(Ok(Token::NumberLiteral(Ok(value)))) = lexer.next() {
+            assert_eq!(value, 100000.0);
+        } else {
+            panic!("Failed to parse scientific notation literal");
         }
     }
 
