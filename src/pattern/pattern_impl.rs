@@ -208,22 +208,31 @@ impl Pattern {
 
     /// Creates a pattern that matches any known value.
     pub fn any_known_value() -> Self {
-        Pattern::Value(ValuePattern::KnownValue(crate::pattern::value::KnownValuePattern::any()))
+        Pattern::Value(ValuePattern::KnownValue(
+            crate::pattern::value::KnownValuePattern::any(),
+        ))
     }
 
     /// Creates a pattern that matches a specific known value.
     pub fn known_value(value: known_values::KnownValue) -> Self {
-        Pattern::Value(ValuePattern::KnownValue(crate::pattern::value::KnownValuePattern::value(value)))
+        Pattern::Value(ValuePattern::KnownValue(
+            crate::pattern::value::KnownValuePattern::value(value),
+        ))
     }
 
     /// Creates a pattern that matches a known value by name.
     pub fn known_value_named(name: impl Into<String>) -> Self {
-        Pattern::Value(ValuePattern::KnownValue(crate::pattern::value::KnownValuePattern::named(name)))
+        Pattern::Value(ValuePattern::KnownValue(
+            crate::pattern::value::KnownValuePattern::named(name),
+        ))
     }
 
-    /// Creates a pattern that matches known values using a regex on their names.
+    /// Creates a pattern that matches known values using a regex on their
+    /// names.
     pub fn known_value_regex(regex: regex::Regex) -> Self {
-        Pattern::Value(ValuePattern::KnownValue(crate::pattern::value::KnownValuePattern::regex(regex)))
+        Pattern::Value(ValuePattern::KnownValue(
+            crate::pattern::value::KnownValuePattern::regex(regex),
+        ))
     }
 
     // Meta pattern convenience methods
@@ -255,7 +264,7 @@ impl Pattern {
     }
 
     /// Creates a pattern that matches if the inner pattern does not match.
-    pub fn not(pattern: Pattern) -> Self {
+    pub fn not_matching(pattern: Pattern) -> Self {
         Pattern::Meta(MetaPattern::Not(crate::pattern::meta::NotPattern::new(
             pattern,
         )))
@@ -344,8 +353,8 @@ impl Matcher for Pattern {
     fn is_complex(&self) -> bool {
         match self {
             Pattern::Value(pattern) => pattern.is_complex(),
-            Pattern::Structure(_pattern) => false, /* TODO: implement when
-                                                     * ready */
+            Pattern::Structure(_pattern) => false, /* TODO: implement when */
+            // ready
             Pattern::Meta(pattern) => pattern.is_complex(),
         }
     }

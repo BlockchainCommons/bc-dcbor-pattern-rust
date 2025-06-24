@@ -80,7 +80,7 @@ fn test_or_pattern() {
 
 #[test]
 fn test_not_pattern() {
-    let pattern = Pattern::not(Pattern::number(5));
+    let pattern = Pattern::not_matching(Pattern::number(5));
 
     // Should match values that don't match the inner pattern
     assert!(pattern.matches(&cbor("42")));
@@ -100,7 +100,7 @@ fn test_not_pattern_complex() {
         Pattern::number_greater_than(5),
         Pattern::number_less_than(10),
     ]);
-    let pattern = Pattern::not(inner);
+    let pattern = Pattern::not_matching(inner);
 
     // Should match values outside the range
     assert!(pattern.matches(&cbor("3"))); // < 5
