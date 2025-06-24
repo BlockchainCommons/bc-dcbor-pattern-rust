@@ -38,7 +38,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         null_pattern.matches(&number_cbor)
     );
     println!(
-        "  \"hello\"        -> matches: {}",
+        r#"  "hello"        -> matches: {}"#,
         null_pattern.matches(&text_cbor)
     );
     println!(

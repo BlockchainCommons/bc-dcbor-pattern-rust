@@ -1,2 +1,104 @@
+use dcbor::prelude::*;
+
+use crate::pattern::{Matcher, Path, Pattern, vm::Instr};
+
+/// A pattern that matches if all contained patterns match.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct AndPattern { }
+pub struct AndPattern(Vec<Pattern>);
+
+impl AndPattern {
+    /// Creates a new `AndPattern` with the given patterns.
+    pub fn new(patterns: Vec<Pattern>) -> Self { AndPattern(patterns) }
+
+    /// Returns the patterns contained in this AND pattern.
+    pub fn patterns(&self) -> &[Pattern] { &self.0 }
+}
+
+impl Matcher for AndPattern {
+    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
+        if self.patterns().iter().all(|pattern| pattern.matches(cbor)) {
+            vec![vec![cbor.clone()]]
+        } else {
+            vec![]
+        }
+    }
+
+    /// Compile into byte-code (AND = all must match).
+    fn compile(
+        &self,
+        code: &mut Vec<Instr>,
+        lits: &mut Vec<Pattern>,
+        captures: &mut Vec<String>,
+    ) {
+        // Each pattern must match at this position
+        for pattern in self.patterns() {
+            pattern.compile(code, lits, captures);
+        }
+    }
+
+    fn is_complex(&self) -> bool {
+        // The pattern is complex if it contains more than one pattern, or if
+        // the one pattern is complex itself.
+        self.patterns().len() > 1
+            || self.patterns().iter().any(|p| p.is_complex())
+    }
+}
+
+impl std::fmt::Display for AndPattern {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            self.patterns()
+                .iter()
+                .map(|p| p.to_string())
+                .collect::<Vec<_>>()
+                .join("&")
+        )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_and_pattern_display() {
+        let pattern1 = Pattern::number_greater_than(5);
+        let pattern2 = Pattern::number_less_than(10);
+        let and_pattern = AndPattern::new(vec![pattern1, pattern2]);
+        assert_eq!(and_pattern.to_string(), "NUMBER(>5)&NUMBER(<10)");
+    }
+
+    #[test]
+    fn test_and_pattern_matches_when_all_patterns_match() {
+        let pattern = AndPattern::new(vec![
+            Pattern::number_greater_than(5),
+            Pattern::number_less_than(10),
+        ]);
+
+        let cbor_7 = CBOR::from(7);
+        assert!(pattern.matches(&cbor_7));
+    }
+
+    #[test]
+    fn test_and_pattern_fails_when_any_pattern_fails() {
+        let pattern = AndPattern::new(vec![
+            Pattern::number_greater_than(5),
+            Pattern::number_less_than(10),
+        ]);
+
+        let cbor_12 = CBOR::from(12); // > 10, so second pattern fails
+        assert!(!pattern.matches(&cbor_12));
+
+        let cbor_3 = CBOR::from(3); // < 5, so first pattern fails
+        assert!(!pattern.matches(&cbor_3));
+    }
+
+    #[test]
+    fn test_and_pattern_empty_returns_true() {
+        let pattern = AndPattern::new(vec![]);
+        let cbor = CBOR::from("any value");
+        assert!(pattern.matches(&cbor));
+    }
+}

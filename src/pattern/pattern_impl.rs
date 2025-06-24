@@ -151,6 +151,33 @@ impl Pattern {
         Pattern::Value(ValuePattern::Null(crate::pattern::value::NullPattern::new()))
     }
 
+    // Meta pattern convenience methods
+
+    /// Creates a pattern that always matches any CBOR value.
+    pub fn any() -> Self {
+        Pattern::Meta(MetaPattern::Any(crate::pattern::meta::AnyPattern::new()))
+    }
+
+    /// Creates a pattern that never matches any CBOR value.
+    pub fn none() -> Self {
+        Pattern::Meta(MetaPattern::None(crate::pattern::meta::NonePattern::new()))
+    }
+
+    /// Creates a pattern that matches if all contained patterns match.
+    pub fn and(patterns: Vec<Pattern>) -> Self {
+        Pattern::Meta(MetaPattern::And(crate::pattern::meta::AndPattern::new(patterns)))
+    }
+
+    /// Creates a pattern that matches if any contained pattern matches.
+    pub fn or(patterns: Vec<Pattern>) -> Self {
+        Pattern::Meta(MetaPattern::Or(crate::pattern::meta::OrPattern::new(patterns)))
+    }
+
+    /// Creates a pattern that matches if the inner pattern does not match.
+    pub fn not(pattern: Pattern) -> Self {
+        Pattern::Meta(MetaPattern::Not(crate::pattern::meta::NotPattern::new(pattern)))
+    }
+
     /// Parses a pattern from a string.
     ///
     /// This implementation currently supports boolean, number, and null patterns.
@@ -178,12 +205,9 @@ impl Matcher for Pattern {
             Pattern::Value(pattern) => pattern.paths(cbor),
             Pattern::Structure(_pattern) => {
                 // TODO: Implement when StructurePattern is ready
-                unimplemented!("StructurePattern not yet implemented")
+                unimplemented!("StructurePattern paths not yet implemented")
             }
-            Pattern::Meta(_pattern) => {
-                // TODO: Implement when MetaPattern is ready
-                unimplemented!("MetaPattern not yet implemented")
-            }
+            Pattern::Meta(pattern) => pattern.paths(cbor),
         }
     }
 
@@ -194,13 +218,23 @@ impl Matcher for Pattern {
         captures: &mut Vec<String>,
     ) {
         match self {
-            Pattern::Value(pattern) => pattern.compile(code, literals, captures),
+            Pattern::Value(pattern) => {
+                pattern.compile(code, literals, captures);
+            }
             Pattern::Structure(_pattern) => {
                 unimplemented!("StructurePattern compile not yet implemented")
             }
-            Pattern::Meta(_pattern) => {
-                unimplemented!("MetaPattern compile not yet implemented")
+            Pattern::Meta(pattern) => {
+                pattern.compile(code, literals, captures);
             }
+        }
+    }
+
+    fn is_complex(&self) -> bool {
+        match self {
+            Pattern::Value(pattern) => pattern.is_complex(),
+            Pattern::Structure(_pattern) => false, // TODO: implement when ready
+            Pattern::Meta(pattern) => pattern.is_complex(),
         }
     }
 }
@@ -210,7 +244,7 @@ impl std::fmt::Display for Pattern {
         match self {
             Pattern::Value(pattern) => write!(f, "{}", pattern),
             Pattern::Structure(pattern) => write!(f, "{:?}", pattern), // Temporary
-            Pattern::Meta(pattern) => write!(f, "{:?}", pattern), // Temporary
+            Pattern::Meta(pattern) => write!(f, "{}", pattern),
         }
     }
 }

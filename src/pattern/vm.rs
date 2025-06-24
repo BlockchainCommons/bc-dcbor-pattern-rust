@@ -120,8 +120,8 @@ pub(crate) fn atomic_paths(
         Value(v) => v.paths(cbor),
         Structure(s) => s.paths(cbor),
         Meta(meta) => match meta {
-            crate::pattern::meta::MetaPattern::Any => vec![vec![cbor.clone()]],
-            crate::pattern::meta::MetaPattern::None => vec![],
+            crate::pattern::meta::MetaPattern::Any(_) => vec![vec![cbor.clone()]],
+            crate::pattern::meta::MetaPattern::None(_) => vec![],
             crate::pattern::meta::MetaPattern::Search(_) => {
                 panic!(
                     "SearchPattern should be compiled to Search instruction, not MatchPredicate"
