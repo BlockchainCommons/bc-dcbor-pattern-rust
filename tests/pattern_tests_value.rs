@@ -646,3 +646,195 @@ fn test_null_pattern() {
 fn test_null_pattern_display() {
     assert_eq!(Pattern::null().to_string(), "NULL");
 }
+
+#[test]
+fn test_known_value_pattern_any() {
+    let pattern = Pattern::any_known_value();
+
+    // Test with known values represented as tagged values with tag 40000
+    let known_value_cbor = cbor("'1'"); // This represents known_values::IS_A as 40000(1)
+    assert!(pattern.matches(&known_value_cbor));
+    let paths = pattern.paths(&known_value_cbor);
+    assert_eq!(paths.len(), 1);
+    assert_eq!(paths[0].len(), 1);
+    assert_eq!(paths[0][0], known_value_cbor);
+
+    // Test with another known value
+    let date_value_cbor = cbor("'16'"); // This represents known_values::DATE as 40000(16)
+    assert!(pattern.matches(&date_value_cbor));
+    let paths = pattern.paths(&date_value_cbor);
+    assert_eq!(paths.len(), 1);
+
+    // Test with custom known value
+    let custom_value_cbor = cbor("'12345'");
+    assert!(pattern.matches(&custom_value_cbor));
+    let paths = pattern.paths(&custom_value_cbor);
+    assert_eq!(paths.len(), 1);
+
+    // Should not match plain unsigned integers (these are NOT known values)
+    let plain_int_cbor = cbor("1");
+    assert!(!pattern.matches(&plain_int_cbor));
+    let paths = pattern.paths(&plain_int_cbor);
+    assert_eq!(paths.len(), 0);
+
+    let text_cbor = cbor(r#""hello""#);
+    assert!(!pattern.matches(&text_cbor));
+    let paths = pattern.paths(&text_cbor);
+    assert_eq!(paths.len(), 0);
+
+    let negative_cbor = cbor("-1");
+    assert!(!pattern.matches(&negative_cbor));
+    let paths = pattern.paths(&negative_cbor);
+    assert_eq!(paths.len(), 0);
+}
+
+#[test]
+fn test_known_value_pattern_specific() {
+    let is_a_value = known_values::IS_A;
+    let date_value = known_values::DATE;
+
+    let is_a_pattern = Pattern::known_value(is_a_value);
+    let date_pattern = Pattern::known_value(date_value);
+
+    let is_a_cbor = cbor("'1'"); // IS_A value as 40000(1)
+    let date_cbor = cbor("'16'"); // DATE value as 40000(16)
+    let other_cbor = cbor("'42'"); // Some other known value as 40000(42)
+    let plain_int_cbor = cbor("1"); // Plain integer, NOT a known value
+    let text_cbor = cbor(r#""hello""#);
+
+    // is_a pattern tests
+    assert!(is_a_pattern.matches(&is_a_cbor));
+    assert!(!is_a_pattern.matches(&date_cbor));
+    assert!(!is_a_pattern.matches(&other_cbor));
+    assert!(!is_a_pattern.matches(&plain_int_cbor)); // Should NOT match plain integers
+    assert!(!is_a_pattern.matches(&text_cbor));
+
+    // date pattern tests
+    assert!(!date_pattern.matches(&is_a_cbor));
+    assert!(date_pattern.matches(&date_cbor));
+    assert!(!date_pattern.matches(&other_cbor));
+    assert!(!date_pattern.matches(&plain_int_cbor)); // Should NOT match plain integers
+    assert!(!date_pattern.matches(&text_cbor));
+
+    // Test paths for matching case
+    let paths = is_a_pattern.paths(&is_a_cbor);
+    assert_eq!(paths.len(), 1);
+    assert_eq!(paths[0], vec![is_a_cbor]);
+
+    // Test paths for non-matching case
+    let paths = is_a_pattern.paths(&date_cbor);
+    assert_eq!(paths.len(), 0);
+}
+
+#[test]
+fn test_known_value_pattern_named() {
+    let is_a_pattern = Pattern::known_value_named("isA");
+    let date_pattern = Pattern::known_value_named("date");
+    let unknown_pattern = Pattern::known_value_named("unknownValue");
+
+    let is_a_cbor = cbor("'1'"); // IS_A value as 40000(1)
+    let date_cbor = cbor("'16'"); // DATE value as 40000(16)
+    let other_cbor = cbor("'42'"); // Some other known value as 40000(42)
+    let plain_int_cbor = cbor("1"); // Plain integer, NOT a known value
+    let text_cbor = cbor(r#""hello""#);
+
+    // is_a pattern tests
+    assert!(is_a_pattern.matches(&is_a_cbor));
+    assert!(!is_a_pattern.matches(&date_cbor));
+    assert!(!is_a_pattern.matches(&other_cbor));
+    assert!(!is_a_pattern.matches(&plain_int_cbor)); // Should NOT match plain integers
+    assert!(!is_a_pattern.matches(&text_cbor));
+
+    // date pattern tests
+    assert!(!date_pattern.matches(&is_a_cbor));
+    assert!(date_pattern.matches(&date_cbor));
+    assert!(!date_pattern.matches(&other_cbor));
+    assert!(!date_pattern.matches(&plain_int_cbor)); // Should NOT match plain integers
+    assert!(!date_pattern.matches(&text_cbor));
+
+    // unknown pattern tests (should not match anything)
+    assert!(!unknown_pattern.matches(&is_a_cbor));
+    assert!(!unknown_pattern.matches(&date_cbor));
+    assert!(!unknown_pattern.matches(&other_cbor));
+    assert!(!unknown_pattern.matches(&plain_int_cbor));
+    assert!(!unknown_pattern.matches(&text_cbor));
+
+    // Test paths for matching case
+    let paths = is_a_pattern.paths(&is_a_cbor);
+    assert_eq!(paths.len(), 1);
+    assert_eq!(paths[0], vec![is_a_cbor.clone()]);
+
+    // Test paths for non-matching case
+    let paths = date_pattern.paths(&is_a_cbor);
+    assert_eq!(paths.len(), 0);
+}
+
+#[test]
+fn test_known_value_pattern_regex() {
+    // Test regex that matches names starting with "is"
+    let is_pattern =
+        Pattern::known_value_regex(regex::Regex::new(r"^is.*").unwrap());
+
+    // Test regex that matches names ending with "te"
+    let te_pattern =
+        Pattern::known_value_regex(regex::Regex::new(r".*te$").unwrap());
+
+    // Test regex that doesn't match any known value names
+    let no_match_pattern =
+        Pattern::known_value_regex(regex::Regex::new(r"^xyz.*").unwrap());
+
+    let is_a_cbor = cbor("'1'"); // IS_A value (name: "isA") as 40000(1)
+    let date_cbor = cbor("'16'"); // DATE value (name: "date") as 40000(16)
+    let note_cbor = cbor("'4'"); // NOTE value (name: "note") as 40000(4)
+    let other_cbor = cbor("'42'"); // Some other known value as 40000(42)
+    let plain_int_cbor = cbor("1"); // Plain integer, NOT a known value
+    let text_cbor = cbor(r#""hello""#);
+
+    // is pattern tests (should match IS_A which starts with "is")
+    assert!(is_pattern.matches(&is_a_cbor));
+    assert!(!is_pattern.matches(&date_cbor));
+    assert!(!is_pattern.matches(&note_cbor));
+    assert!(!is_pattern.matches(&other_cbor));
+    assert!(!is_pattern.matches(&plain_int_cbor)); // Should NOT match plain integers
+    assert!(!is_pattern.matches(&text_cbor));
+
+    // te pattern tests (should match DATE and NOTE which end with "te")
+    assert!(!te_pattern.matches(&is_a_cbor));
+    assert!(te_pattern.matches(&date_cbor)); // "date" ends with "te"
+    assert!(te_pattern.matches(&note_cbor)); // "note" ends with "te"
+    assert!(!te_pattern.matches(&other_cbor));
+    assert!(!te_pattern.matches(&plain_int_cbor)); // Should NOT match plain integers
+    assert!(!te_pattern.matches(&text_cbor));
+
+    // no match pattern tests
+    assert!(!no_match_pattern.matches(&is_a_cbor));
+    assert!(!no_match_pattern.matches(&date_cbor));
+    assert!(!no_match_pattern.matches(&note_cbor));
+    assert!(!no_match_pattern.matches(&other_cbor));
+    assert!(!no_match_pattern.matches(&plain_int_cbor));
+    assert!(!no_match_pattern.matches(&text_cbor));
+
+    // Test paths for matching case
+    let paths = is_pattern.paths(&is_a_cbor);
+    assert_eq!(paths.len(), 1);
+    assert_eq!(paths[0], vec![is_a_cbor.clone()]);
+}
+
+#[test]
+fn test_known_value_pattern_display() {
+    let any_pattern = Pattern::any_known_value();
+    assert_eq!(any_pattern.to_string(), "KNOWN");
+
+    let is_a_pattern = Pattern::known_value(known_values::IS_A);
+    assert_eq!(is_a_pattern.to_string(), "KNOWN('isA')");
+
+    let date_pattern = Pattern::known_value(known_values::DATE);
+    assert_eq!(date_pattern.to_string(), "KNOWN('date')");
+
+    let named_pattern = Pattern::known_value_named("customName");
+    assert_eq!(named_pattern.to_string(), "KNOWN('customName')");
+
+    let regex_pattern =
+        Pattern::known_value_regex(regex::Regex::new(r"^is.*").unwrap());
+    assert_eq!(regex_pattern.to_string(), "KNOWN(/^is.*/)");
+}

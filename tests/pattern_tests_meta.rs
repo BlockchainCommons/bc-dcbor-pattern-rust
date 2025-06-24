@@ -303,8 +303,6 @@ fn test_capture_pattern_is_complex() {
 
 #[test]
 fn test_repeat_pattern_basic() {
-    use dcbor_pattern::{Quantifier, Reluctance};
-
     // Test exact match (default quantifier)
     let pattern = Pattern::group(Pattern::number(42));
 
