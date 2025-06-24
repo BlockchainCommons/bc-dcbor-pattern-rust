@@ -81,6 +81,21 @@ impl Pattern {
         Pattern::Value(ValuePattern::Number(crate::pattern::value::NumberPattern::nan()))
     }
 
+    /// Creates a pattern that matches any text value.
+    pub fn any_text() -> Self {
+        Pattern::Value(ValuePattern::Text(crate::pattern::value::TextPattern::any()))
+    }
+
+    /// Creates a pattern that matches a specific text value.
+    pub fn text<T: Into<String>>(value: T) -> Self {
+        Pattern::Value(ValuePattern::Text(crate::pattern::value::TextPattern::value(value)))
+    }
+
+    /// Creates a pattern that matches text using a regex.
+    pub fn text_regex(regex: regex::Regex) -> Self {
+        Pattern::Value(ValuePattern::Text(crate::pattern::value::TextPattern::regex(regex)))
+    }
+
     /// Parses a pattern from a string.
     ///
     /// This implementation currently supports boolean and number patterns.
