@@ -180,16 +180,17 @@ impl Pattern {
 
     /// Parses a pattern from a string.
     ///
-    /// This implementation currently supports boolean, number, and null patterns.
+    /// This implementation currently supports boolean, date, number, and null patterns.
     /// More patterns will be added as they are implemented.
     pub fn parse(input: &str) -> Result<Self> {
         use logos::Logos;
-        use crate::parse::{Token, value::{parse_bool, parse_number, parse_null}};
+        use crate::parse::{Token, value::{parse_bool, parse_date, parse_number, parse_null}};
 
         let mut lexer = Token::lexer(input);
 
         match lexer.next() {
             Some(Ok(Token::Bool)) => parse_bool(&mut lexer),
+            Some(Ok(Token::Date)) => parse_date(&mut lexer),
             Some(Ok(Token::Number)) => parse_number(&mut lexer),
             Some(Ok(Token::Null)) => parse_null(&mut lexer),
             Some(Ok(token)) => Err(Error::UnexpectedToken(Box::new(token), lexer.span())),
