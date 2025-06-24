@@ -9,19 +9,25 @@ pub enum StructurePattern {
 }
 
 impl Matcher for StructurePattern {
-    fn paths(&self, _cbor: &dcbor::CBOR) -> Vec<Path> {
-        // TODO: Implement structure pattern matching
-        vec![]
+    fn paths(&self, cbor: &dcbor::CBOR) -> Vec<Path> {
+        match self {
+            StructurePattern::Array(pattern) => pattern.paths(cbor),
+            StructurePattern::Map(pattern) => pattern.paths(cbor),
+            StructurePattern::Tagged(pattern) => pattern.paths(cbor),
+        }
     }
 
     fn compile(
         &self,
-        _code: &mut Vec<Instr>,
-        _literals: &mut Vec<Pattern>,
-        _captures: &mut Vec<String>,
+        code: &mut Vec<Instr>,
+        literals: &mut Vec<Pattern>,
+        captures: &mut Vec<String>,
     ) {
-        // TODO: Implement structure pattern compilation
-        unimplemented!("StructurePattern::compile not yet implemented")
+        match self {
+            StructurePattern::Array(pattern) => pattern.compile(code, literals, captures),
+            StructurePattern::Map(pattern) => pattern.compile(code, literals, captures),
+            StructurePattern::Tagged(pattern) => pattern.compile(code, literals, captures),
+        }
     }
 }
 

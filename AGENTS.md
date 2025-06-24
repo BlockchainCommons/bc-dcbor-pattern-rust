@@ -8,6 +8,7 @@ You will be receiving tasks to implement the pattern matcher and text syntax par
 
 - For pattern strings with embedded quotes or other special characters, use `r#""#` syntax to avoid awkward escaping issues.
 - Always make sure that `cargo test` and `cargo clippy` pass before you're done with your changes.
+- Avoid directly using `as_case` and `CBORCase` wherever possible. Make sure you understand the whole API in `dcbor` before you resort to using them.
 
 ## Crates in this Workspace
 
@@ -122,16 +123,14 @@ Comparison: `bc-envelope-pattern::pattern::leaf` has 13 pattern types vs our 8
 - [ ] `map_pattern.rs` - CBOR map patterns (in structure module instead)
 - [ ] `tagged_pattern.rs` - CBOR tagged patterns (in structure module instead)
 
-#### 🔨 Structure Patterns (pattern::structure)
+#### ✅ Structure Patterns (pattern::structure)
 Comparison: `bc-envelope-pattern::pattern::structure` has 10 envelope-specific patterns vs our 4 dCBOR patterns
 
-**Basic Matcher trait implementation:**
-- [x] `structure_pattern.rs` - Top-level structure pattern enum (✅ **BASIC MATCHER IMPLEMENTED**)
-
-**Stub implementations (need full implementation):**
-- [ ] `array_pattern.rs` - CBOR array structure patterns
-- [ ] `map_pattern.rs` - CBOR map structure patterns
-- [ ] `tagged_pattern.rs` - CBOR tagged value patterns
+**✅ Fully implemented with Matcher trait:**
+- [x] `structure_pattern.rs` - Top-level structure pattern enum (**FULLY IMPLEMENTED!**)
+- [x] `array_pattern.rs` - CBOR array structure patterns (**FULLY IMPLEMENTED!**)
+- [x] `map_pattern.rs` - CBOR map structure patterns (**FULLY IMPLEMENTED!**)
+- [x] `tagged_pattern.rs` - CBOR tagged value patterns (**FULLY IMPLEMENTED!**)
 
 #### ✅ Meta Patterns (pattern::meta)
 Comparison: `bc-envelope-pattern::pattern::meta` has 11 meta patterns vs our 8
@@ -211,24 +210,25 @@ Comparison: `bc-envelope-pattern::pattern::meta` has 11 meta patterns vs our 8
 - ✅ `parse_tests_value.rs` - 29 tests passing
 - ✅ `pattern_tests_value.rs` - 42 tests passing
 - ✅ `pattern_tests_meta.rs` - **9 tests passing** (**NEW!**)
+- ✅ `pattern_tests_structure.rs` - **10 tests passing** (**NEW!**)
 - ✅ `error_tests.rs` - 6 tests passing
 
 #### ❌ Missing/Empty Test Suites
 - [ ] `parse_tests_meta.rs` - 0 tests
 - [ ] `parse_tests_structure.rs` - 0 tests
-- [ ] `pattern_tests_structure.rs` - 0 tests
 
 ### Priority Implementation Order
 
 🎉 **MAJOR PROGRESS: Core Meta Patterns Implementation Complete!**
 
 **Next Priority Tasks:**
-1. **Structure Patterns** - CBOR compound data structures (arrays, maps, tags) - now unblocked by VM
-2. **Complete Meta Patterns** - Capture, Repeat, and Search patterns
-3. **Missing Value Patterns** - Complete digest and known value patterns
+1. **Complete Meta Patterns** - Capture, Repeat, and Search patterns
+2. **Missing Value Patterns** - Complete digest and known value patterns
+3. **Structure Pattern Parsers** - Text syntax parsing for arrays, maps, and tagged values
 4. **Main Parse Pattern** - Entry point for pattern parsing
 5. **Complete Test Coverage** - Tests for all implemented features
 
 **Completed Major Milestones:**
 - ✅ **VM Implementation** - Fully functional pattern matching virtual machine
 - ✅ **Core Meta Patterns** - AND, OR, NOT, ANY, NONE patterns fully implemented with tests!
+- ✅ **Structure Patterns** - CBOR array, map, and tagged value patterns fully implemented with tests!
