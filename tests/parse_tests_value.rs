@@ -186,3 +186,102 @@ fn parse_date_spaced() {
 
     assert_eq!(p, Pattern::date(expected_date));
 }
+
+#[test]
+fn parse_text_any() {
+    let src = "TEXT";
+    let p = Pattern::parse(src).unwrap();
+    assert_eq!(p, Pattern::any_text());
+    assert_eq!(p.to_string(), src);
+}
+
+#[test]
+fn parse_text_literal() {
+    let src = r#"TEXT("hello")"#;
+    let p = Pattern::parse(src).unwrap();
+    assert_eq!(p, Pattern::text("hello"));
+    assert_eq!(p.to_string(), src);
+
+    let spaced = r#"TEXT ( "hello" )"#;
+    let p_spaced = Pattern::parse(spaced).unwrap();
+    assert_eq!(p_spaced, Pattern::text("hello"));
+    assert_eq!(p_spaced.to_string(), src);
+}
+
+#[test]
+fn parse_text_literal_with_spaces() {
+    let src = r#"TEXT("hello world")"#;
+    let p = Pattern::parse(src).unwrap();
+    assert_eq!(p, Pattern::text("hello world"));
+    assert_eq!(p.to_string(), src);
+}
+
+#[test]
+fn parse_text_literal_with_escapes() {
+    let src = r#"TEXT("say \"hello\"")"#;
+    let p = Pattern::parse(src).unwrap();
+    assert_eq!(p, Pattern::text(r#"say "hello""#));
+    assert_eq!(p.to_string(), src);
+}
+
+#[test]
+fn parse_text_regex() {
+    let src = r"TEXT(/h.*o/)";
+    let p = Pattern::parse(src).unwrap();
+    let regex = regex::Regex::new("h.*o").unwrap();
+    assert_eq!(p, Pattern::text_regex(regex));
+    assert_eq!(p.to_string(), src);
+
+    let spaced = r"TEXT ( /h.*o/ )";
+    let p_spaced = Pattern::parse(spaced).unwrap();
+    assert_eq!(p_spaced, Pattern::text_regex(regex::Regex::new("h.*o").unwrap()));
+    assert_eq!(p_spaced.to_string(), src);
+}
+
+#[test]
+fn parse_text_regex_digits() {
+    let src = r"TEXT(/^\d+$/)";
+    let p = Pattern::parse(src).unwrap();
+    let regex = regex::Regex::new(r"^\d+$").unwrap();
+    assert_eq!(p, Pattern::text_regex(regex));
+    assert_eq!(p.to_string(), src);
+}
+
+#[test]
+fn parse_text_patterns_round_trip() {
+    let patterns = vec![
+        Pattern::any_text(),
+        Pattern::text("hello"),
+        Pattern::text("hello world"),
+        Pattern::text(r#"say "hello""#),
+        Pattern::text_regex(regex::Regex::new(r"^\d+$").unwrap()),
+        Pattern::text_regex(regex::Regex::new("h.*o").unwrap()),
+    ];
+
+    for pattern in patterns {
+        let string_repr = pattern.to_string();
+        let parsed = Pattern::parse(&string_repr).unwrap();
+        assert_eq!(pattern, parsed, "Round trip failed for pattern: {}", string_repr);
+    }
+}
+
+#[test]
+fn parse_text_edge_cases() {
+    // Empty string
+    let src = r#"TEXT("")"#;
+    let p = Pattern::parse(src).unwrap();
+    assert_eq!(p, Pattern::text(""));
+    assert_eq!(p.to_string(), src);
+
+    // String with newlines and special characters
+    let src = r#"TEXT("Hello\nWorld")"#;
+    let p = Pattern::parse(src).unwrap();
+    assert_eq!(p, Pattern::text("Hello\\nWorld"));
+
+    // Regex with special characters
+    let src = r"TEXT(/[a-zA-Z]+/)";
+    let p = Pattern::parse(src).unwrap();
+    let regex = regex::Regex::new("[a-zA-Z]+").unwrap();
+    assert_eq!(p, Pattern::text_regex(regex));
+    assert_eq!(p.to_string(), src);
+}

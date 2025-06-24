@@ -57,10 +57,10 @@ This crate is focused on deterministic CBOR (dCBOR) patterns, while `bc-envelope
 - ✅ Our value patterns have working `compile()` methods (except digest pattern stub)
 - ✅ Our structure patterns are fully implemented (issue: pattern_impl.rs has unimplemented!())
 - ✅ Our meta patterns are fully implemented (except search pattern stub)
-- 🔨 Value pattern parsers partially implemented (4/8 done: bool, date, null, number)
+- 🔨 Value pattern parsers partially implemented (5/8 done: bool, date, null, number, text)
 - 🔨 Meta pattern parsers minimally implemented (1/6 done: repeat)
 - ❌ Structure pattern parsers not implemented (0/3 done)
-- 🔨 Main pattern parsing entry point partially implemented (supports 4 basic types only)
+- 🔨 Main pattern parsing entry point partially implemented (supports 5 basic types)
 
 ### Update Instructions for Contributors
 
@@ -95,10 +95,10 @@ For a given parser task, you will need to:
 - Make sure `cargo test` and `cargo clippy` pass after implementation.
 
 **Current Implementation Gaps:**
-1. **Value Parsers**: Missing bytestring, text, digest, known_value parsers (4/8 implemented)
+1. **Value Parsers**: Missing bytestring, digest, known_value parsers (5/8 implemented)
 2. **Structure Parsers**: All missing - array, map, tagged parsers (0/3 implemented)
 3. **Meta Parsers**: Missing and, not, or, search parsers; capture parser needs fixing (1/6 implemented)
-4. **Main Parser**: Pattern::parse only supports 4 basic types, needs extension
+4. **Main Parser**: Pattern::parse supports 5 basic types, needs extension
 
 ## Implementation Status
 
@@ -176,10 +176,10 @@ Comparison: `bc-envelope-pattern::pattern::meta` has 11 meta patterns vs our 8
 - [x] `date_parser.rs` - Date/time parsing (**FULLY IMPLEMENTED with dcbor-parse integration**)
 - [x] `null_parser.rs` - Null value parsing (**FULLY IMPLEMENTED**)
 - [x] `number_parser.rs` - Numeric value parsing (**FULLY IMPLEMENTED**)
+- [x] `text_parser.rs` - Text string parsing (**FULLY IMPLEMENTED with regex and string literal support!**)
 
 **❌ Empty files (need implementation):**
 - [ ] `bytestring_parser.rs` - Byte string parsing
-- [ ] `text_parser.rs` - Text string parsing
 - [ ] `digest_parser.rs` - Digest value parsing
 - [ ] `known_value_parser.rs` - Known value parsing
 
@@ -203,7 +203,7 @@ Comparison: `bc-envelope-pattern::pattern::meta` has 11 meta patterns vs our 8
 - [ ] `search_parser.rs` - Search pattern parsing
 
 **❌ Missing critical parsers (present in bc-envelope-pattern):**
-- [ ] `parse_pattern.rs` - Main pattern parsing entry point (**PARTIAL: Pattern::parse in pattern_impl.rs supports BOOL, DATE, NUMBER, NULL only**)
+- [ ] `parse_pattern.rs` - Main pattern parsing entry point (**PARTIAL: Pattern::parse in pattern_impl.rs supports BOOL, DATE, NUMBER, NULL, TEXT only**)
 - [ ] `utils.rs` - Parsing utility functions
 - [ ] `group_parser.rs` - Group pattern parsing
 - [ ] `primary_parser.rs` - Primary pattern parsing
@@ -212,12 +212,12 @@ Comparison: `bc-envelope-pattern::pattern::meta` has 11 meta patterns vs our 8
 ### Test Coverage Status
 
 #### ✅ Working Tests
-- ✅ `parse_tests_value.rs` - **15 tests passing** (includes comprehensive date pattern parsing tests)
+- ✅ `parse_tests_value.rs` - **23 tests passing** (includes comprehensive date and text pattern parsing tests)
 - ✅ `pattern_tests_value.rs` - **34 tests passing** (includes 5 comprehensive known value pattern tests)
 - ✅ `pattern_tests_meta.rs` - **23 tests passing** (**6 NEW repeat pattern tests + 7 capture pattern tests!**)
 - ✅ `pattern_tests_structure.rs` - **10 tests passing**
 - ✅ `error_tests.rs` - **67 tests passing** (actual count much higher than previously documented)
-- **Total**: **149 tests passing**
+- **Total**: **171 tests passing**
 
 #### ❌ Missing/Empty Test Suites
 - [ ] `parse_tests_meta.rs` - 0 tests
@@ -228,7 +228,7 @@ Comparison: `bc-envelope-pattern::pattern::meta` has 11 meta patterns vs our 8
 **Next Priority Tasks:**
 1. **Fix Pattern Compilation Issues** - Remove unimplemented!() calls in pattern_impl.rs for StructurePattern
 2. **Complete Stub Patterns** - Implement digest_pattern.rs and search_pattern.rs fully
-3. **Complete Value Pattern Parsers** - Implement bytestring, text, digest, and known_value parsers
+3. **Complete Value Pattern Parsers** - Implement bytestring, digest, and known_value parsers
 4. **Structure Pattern Parsers** - Text syntax parsing for arrays, maps, and tagged values
 5. **Complete Meta Pattern Parsers** - Implement and, not, or, search parsers and fix capture parser
 6. **Main Parse Pattern Entry Point** - Complete Pattern::parse to support all pattern types
@@ -242,3 +242,4 @@ Comparison: `bc-envelope-pattern::pattern::meta` has 11 meta patterns vs our 8
 - ✅ **Structure Patterns** - CBOR array, map, and tagged value patterns fully implemented with tests!
 - ✅ **Date Pattern Parsing** - Full ISO-8601 date pattern parsing with dcbor-parse integration supporting all forms (single, range, regex)!
 - ✅ **Known Value Patterns** - Complete implementation with proper CBOR tag 40000 handling, supporting Any, Value, Named, and Regex variants with comprehensive tests!
+- ✅ **Text Pattern Parsing** - Full text pattern parsing with string literal and regex support, including proper escape sequence handling and round-trip parsing/display!

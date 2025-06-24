@@ -82,7 +82,9 @@ impl Matcher for TextPattern {
         _captures: &mut Vec<String>,
     ) {
         let idx = literals.len();
-        literals.push(Pattern::Value(crate::pattern::ValuePattern::Text(self.clone())));
+        literals.push(Pattern::Value(crate::pattern::ValuePattern::Text(
+            self.clone(),
+        )));
         code.push(Instr::MatchPredicate(idx));
     }
 }
@@ -91,7 +93,10 @@ impl std::fmt::Display for TextPattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             TextPattern::Any => write!(f, "TEXT"),
-            TextPattern::Value(value) => write!(f, r#"TEXT("{}")"#, value),
+            TextPattern::Value(value) => {
+                let escaped = value.replace("\\", "\\\\").replace("\"", "\\\"");
+                write!(f, r#"TEXT("{}")"#, escaped)
+            }
             TextPattern::Regex(regex) => write!(f, r#"TEXT(/{}/)"#, regex),
         }
     }
