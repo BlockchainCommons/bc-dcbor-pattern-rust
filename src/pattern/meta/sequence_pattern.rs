@@ -74,11 +74,27 @@ impl Matcher for SequencePattern {
             return;
         }
 
-        // For sequence patterns, compile each pattern in order.
-        // The actual sequential behavior is handled by the containing
-        // structure pattern (like array patterns with elements).
-        for pattern in &self.patterns {
+        if self.patterns.len() == 1 {
+            // Single pattern, just compile it directly
+            self.patterns[0].compile(code, literals, captures);
+            return;
+        }
+
+        // Multiple patterns in sequence - use ExtendSequence and CombineSequence
+        // to implement proper sequence semantics in the VM
+        for (i, pattern) in self.patterns.iter().enumerate() {
+            if i > 0 {
+                // For patterns after the first, extend the sequence to move to next element
+                code.push(Instr::ExtendSequence);
+            }
+
+            // Compile the pattern to match current element
             pattern.compile(code, literals, captures);
+
+            if i > 0 {
+                // Combine the sequence after matching (except for the first pattern)
+                code.push(Instr::CombineSequence);
+            }
         }
     }
 
@@ -98,8 +114,9 @@ impl Matcher for SequencePattern {
         &self,
         cbor: &dcbor::CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
-        // For now, sequence patterns use basic implementation without captures
-        // TODO: Implement full sequence capture support
+        // For sequence patterns, the capture logic is handled by the
+        // VM when compiled by the main Pattern. When called directly,
+        // we use the basic implementation.
         (self.paths(cbor), std::collections::HashMap::new())
     }
 }

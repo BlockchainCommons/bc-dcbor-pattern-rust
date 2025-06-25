@@ -429,6 +429,11 @@ impl Matcher for Pattern {
                 // logic
                 return pattern.paths_with_captures(cbor);
             }
+            Pattern::Structure(pattern) => {
+                // Structure patterns like ArrayPattern handle their own capture
+                // logic, including special handling for SequencePattern
+                return pattern.paths_with_captures(cbor);
+            }
             _ => {
                 // Use VM for other pattern types that need it
             }

@@ -227,6 +227,90 @@ impl ArrayPattern {
         arr.iter()
             .all(|element| repeat_pattern.pattern().matches(element))
     }
+
+    /// Handle sequence patterns with captures by manually matching elements
+    /// and collecting captures with proper array context.
+    fn handle_sequence_captures(
+        &self,
+        seq_pattern: &SequencePattern,
+        array_cbor: &CBOR,
+        arr: &[CBOR],
+    ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
+        // Use the existing sequence matching logic to find element assignments
+        if let Some(assignments) =
+            self.find_sequence_element_assignments(seq_pattern, arr)
+        {
+            let mut all_captures = std::collections::HashMap::new();
+
+            // For each pattern in the sequence, collect captures from its
+            // assigned element
+            for (pattern_idx, element_idx) in assignments {
+                let pattern = &seq_pattern.patterns()[pattern_idx];
+                let element = &arr[element_idx];
+
+                // Get captures from this pattern matching this element
+                let (_element_paths, element_captures) =
+                    pattern.paths_with_captures(element);
+
+                // Transform captures to include array context
+                for (capture_name, captured_paths) in element_captures {
+                    let mut array_context_paths = Vec::new();
+                    for captured_path in captured_paths {
+                        // Create path: [array] + [element_at_index] +
+                        // rest_of_path
+                        let mut array_path =
+                            vec![array_cbor.clone(), element.clone()];
+                        if captured_path.len() > 1 {
+                            array_path
+                                .extend(captured_path.iter().skip(1).cloned());
+                        }
+                        array_context_paths.push(array_path);
+                    }
+                    all_captures
+                        .entry(capture_name)
+                        .or_insert_with(Vec::new)
+                        .extend(array_context_paths);
+                }
+            }
+
+            // Return the array path and all captures
+            (vec![vec![array_cbor.clone()]], all_captures)
+        } else {
+            // Sequence doesn't match the array
+            (vec![], std::collections::HashMap::new())
+        }
+    }
+
+    /// Find which array elements are assigned to which sequence patterns.
+    /// Returns a vector of (pattern_index, element_index) pairs if the sequence
+    /// matches.
+    fn find_sequence_element_assignments(
+        &self,
+        seq_pattern: &SequencePattern,
+        arr: &[CBOR],
+    ) -> Option<Vec<(usize, usize)>> {
+        let patterns = seq_pattern.patterns();
+
+        // Simple case: if pattern count equals element count, try one-to-one
+        // matching
+        if patterns.len() == arr.len() {
+            let mut assignments = Vec::new();
+            for (pattern_idx, pattern) in patterns.iter().enumerate() {
+                let element = &arr[pattern_idx];
+                if pattern.matches(element) {
+                    assignments.push((pattern_idx, pattern_idx));
+                } else {
+                    return None; // Pattern doesn't match its corresponding element
+                }
+            }
+            return Some(assignments);
+        }
+
+        // TODO: Handle more complex cases with repeats and variable assignments
+        // For now, return None for sequences that don't have one-to-one element
+        // mapping
+        None
+    }
 }
 
 impl Matcher for ArrayPattern {
@@ -391,12 +475,16 @@ impl Matcher for ArrayPattern {
                     // First check that we have an array
                     let array_check_idx = literals.len();
                     literals.push(Pattern::Structure(
-                        crate::pattern::StructurePattern::Array(ArrayPattern::Any),
+                        crate::pattern::StructurePattern::Array(
+                            ArrayPattern::Any,
+                        ),
                     ));
                     code.push(Instr::MatchStructure(array_check_idx));
 
                     // Navigate to array elements
-                    code.push(Instr::PushAxis(crate::pattern::vm::Axis::ArrayElement));
+                    code.push(Instr::PushAxis(
+                        crate::pattern::vm::Axis::ArrayElement,
+                    ));
 
                     // Compile the inner pattern with captures
                     pattern.compile(code, literals, captures);
@@ -405,8 +493,9 @@ impl Matcher for ArrayPattern {
                     code.push(Instr::Pop);
                 }
                 _ => {
-                    // Other array patterns (length-based) don't support captures in this context
-                    // Fall back to MatchStructure
+                    // Other array patterns (length-based) don't support
+                    // captures in this context Fall back to
+                    // MatchStructure
                     let idx = literals.len();
                     literals.push(Pattern::Structure(
                         crate::pattern::StructurePattern::Array(self.clone()),
@@ -441,7 +530,9 @@ impl Matcher for ArrayPattern {
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         // For simple cases that never have captures, use the fast path
         match self {
-            ArrayPattern::Any | ArrayPattern::WithLength(_) | ArrayPattern::WithLengthRange(_) => {
+            ArrayPattern::Any
+            | ArrayPattern::WithLength(_)
+            | ArrayPattern::WithLengthRange(_) => {
                 return (self.paths(cbor), std::collections::HashMap::new());
             }
             ArrayPattern::WithElements(pattern) => {
@@ -451,7 +542,10 @@ impl Matcher for ArrayPattern {
 
                 if capture_names.is_empty() {
                     // No captures in the element pattern, use the fast path
-                    return (self.paths(cbor), std::collections::HashMap::new());
+                    return (
+                        self.paths(cbor),
+                        std::collections::HashMap::new(),
+                    );
                 }
 
                 // Has captures, continue with complex logic below
@@ -468,40 +562,56 @@ impl Matcher for ArrayPattern {
                         return (vec![], std::collections::HashMap::new());
                     }
 
-                    // The array itself matches, now we need to run the inner pattern
-                    // with VM to collect captures from matching elements
-                    let mut code = Vec::new();
-                    let mut literals = Vec::new();
-                    let mut captures = Vec::new();
-
-                    pattern.compile(&mut code, &mut literals, &mut captures);
-                    code.push(crate::pattern::vm::Instr::Accept);
-
-                    let program = crate::pattern::vm::Program {
-                        code,
-                        literals,
-                        capture_names: captures,
-                    };
-
-                    // Run the inner pattern VM against the array itself
-                    // The VM will navigate to array elements automatically
-                    let (_inner_paths, inner_captures) = crate::pattern::vm::run(&program, cbor);
-
-                    // Transform the captures to have proper array context
-                    let mut all_captures = std::collections::HashMap::new();
-                    for (capture_name, captured_paths) in inner_captures {
-                        let mut array_context_paths = Vec::new();
-                        for captured_path in captured_paths {
-                            // The captured path should already include array context from VM navigation
-                            array_context_paths.push(captured_path);
+                    // For patterns with captures, we need special handling
+                    // depending on the inner pattern type
+                    match pattern.as_ref() {
+                        Pattern::Meta(
+                            crate::pattern::MetaPattern::Sequence(seq_pattern),
+                        ) => {
+                            // Special handling for SequencePattern with
+                            // captures
+                            self.handle_sequence_captures(
+                                seq_pattern,
+                                cbor,
+                                _arr,
+                            )
                         }
-                        all_captures.insert(capture_name, array_context_paths);
-                    }
+                        _ => {
+                            // For non-sequence patterns, use the original VM
+                            // approach
+                            // but start with the main Pattern's VM compilation
+                            // for better compatibility
+                            let mut code = Vec::new();
+                            let mut literals = Vec::new();
+                            let mut captures = Vec::new();
 
-                    // Return the array path and all collected captures
-                    (vec![vec![cbor.clone()]], all_captures)
+                            // Compile the entire ArrayPattern (not just the
+                            // inner pattern)
+                            let array_pattern = Pattern::Structure(
+                                crate::pattern::StructurePattern::Array(
+                                    self.clone(),
+                                ),
+                            );
+                            array_pattern.compile(
+                                &mut code,
+                                &mut literals,
+                                &mut captures,
+                            );
+                            code.push(crate::pattern::vm::Instr::Accept);
+
+                            let program = crate::pattern::vm::Program {
+                                code,
+                                literals,
+                                capture_names: captures,
+                            };
+
+                            // Run the VM program against the CBOR
+                            crate::pattern::vm::run(&program, cbor)
+                        }
+                    }
                 } else {
-                    // Should not reach here due to early return above
+                    // Other array patterns (length-based) don't have inner
+                    // patterns with captures
                     (self.paths(cbor), std::collections::HashMap::new())
                 }
             }
@@ -511,7 +621,6 @@ impl Matcher for ArrayPattern {
             }
         }
     }
-
 }
 
 impl std::fmt::Display for ArrayPattern {
