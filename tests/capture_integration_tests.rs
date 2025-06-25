@@ -2,7 +2,6 @@
 
 mod common;
 
-use dcbor::prelude::*;
 use dcbor_parse::parse_dcbor_item;
 use dcbor_pattern::{Matcher, Pattern, Result, format_paths_with_captures};
 use indoc::indoc;
@@ -229,13 +228,25 @@ fn test_capture_in_map() -> Result<()> {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
 
-    // Should match the map
-    assert_eq!(paths.len(), 1);
-
-    // Should capture both key and value
-    assert_eq!(captures.len(), 2);
-    assert!(captures.contains_key("key"));
-    assert!(captures.contains_key("value"));
+    // Validate formatted output with captures
+    #[rustfmt::skip]
+    let expected_output = indoc! {r#"
+        @key
+            {"name": "Alice"}
+                "name"
+        @value
+            {"name": "Alice"}
+                "Alice"
+        {"name": "Alice"}
+    "#}.trim();
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &paths,
+            &captures,
+            dcbor_pattern::FormatPathsOpts::default()
+        ),
+        expected_output
+    );
 
     Ok(())
 }
@@ -248,17 +259,25 @@ fn test_capture_with_search() -> Result<()> {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
 
-    // Search should find the nested 42
-    assert!(!paths.is_empty());
-
-    // Should capture it
-    assert_eq!(captures.len(), 1);
-    assert!(captures.contains_key("found"));
-
-    let found_path = &captures["found"][0];
-    // Should be path to the nested 42: [root_array, inner_array, 42]
-    assert_eq!(found_path.len(), 3);
-    assert_eq!(found_path[2], CBOR::from(42));
+    // Validate formatted output with captures
+    #[rustfmt::skip]
+    let expected_output = indoc! {r#"
+        @found
+            [1, [2, 42], 3]
+                [2, 42]
+                    42
+        [1, [2, 42], 3]
+            [2, 42]
+                42
+    "#}.trim();
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &paths,
+            &captures,
+            dcbor_pattern::FormatPathsOpts::default()
+        ),
+        expected_output
+    );
 
     Ok(())
 }
@@ -271,17 +290,22 @@ fn test_capture_with_tagged() -> Result<()> {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
 
-    // Should match the tagged value
-    assert_eq!(paths.len(), 1);
-
-    // Should capture the content
-    assert_eq!(captures.len(), 1);
-    assert!(captures.contains_key("content"));
-
-    let content_path = &captures["content"][0];
-    // Should be path to the tagged content: [tagged_value, content]
-    assert_eq!(content_path.len(), 2);
-    assert_eq!(content_path[1], CBOR::from(42));
+    // Validate formatted output with captures
+    #[rustfmt::skip]
+    let expected_output = indoc! {r#"
+        @content
+            1(42)
+                42
+        1(42)
+    "#}.trim();
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &paths,
+            &captures,
+            dcbor_pattern::FormatPathsOpts::default()
+        ),
+        expected_output
+    );
 
     Ok(())
 }
@@ -302,10 +326,91 @@ fn test_capture_performance() -> Result<()> {
     let (paths, captures) = pattern.paths_with_captures(&cbor);
     let duration = start.elapsed();
 
-    // Should find all the numbers
-    assert!(!paths.is_empty());
-    assert!(captures.contains_key("nums"));
-    assert_eq!(captures["nums"].len(), 9); // Should capture all 9 numbers
+    // Validate formatted output with all captured numbers
+    #[rustfmt::skip]
+    let expected_output = indoc! {r#"
+        @nums
+            [{"a": [1, 2, 3]}, {"b": [4, 5, 6]}, {"c": [7, 8, 9]}]
+                {"a": [1, 2, 3]}
+                    [1, 2, 3]
+                        1
+            [{"a": [1, 2, 3]}, {"b": [4, 5, 6]}, {"c": [7, 8, 9]}]
+                {"a": [1, 2, 3]}
+                    [1, 2, 3]
+                        2
+            [{"a": [1, 2, 3]}, {"b": [4, 5, 6]}, {"c": [7, 8, 9]}]
+                {"a": [1, 2, 3]}
+                    [1, 2, 3]
+                        3
+            [{"a": [1, 2, 3]}, {"b": [4, 5, 6]}, {"c": [7, 8, 9]}]
+                {"b": [4, 5, 6]}
+                    [4, 5, 6]
+                        4
+            [{"a": [1, 2, 3]}, {"b": [4, 5, 6]}, {"c": [7, 8, 9]}]
+                {"b": [4, 5, 6]}
+                    [4, 5, 6]
+                        5
+            [{"a": [1, 2, 3]}, {"b": [4, 5, 6]}, {"c": [7, 8, 9]}]
+                {"b": [4, 5, 6]}
+                    [4, 5, 6]
+                        6
+            [{"a": [1, 2, 3]}, {"b": [4, 5, 6]}, {"c": [7, 8, 9]}]
+                {"c": [7, 8, 9]}
+                    [7, 8, 9]
+                        7
+            [{"a": [1, 2, 3]}, {"b": [4, 5, 6]}, {"c": [7, 8, 9]}]
+                {"c": [7, 8, 9]}
+                    [7, 8, 9]
+                        8
+            [{"a": [1, 2, 3]}, {"b": [4, 5, 6]}, {"c": [7, 8, 9]}]
+                {"c": [7, 8, 9]}
+                    [7, 8, 9]
+                        9
+        [{"a": [1, 2, 3]}, {"b": [4, 5, 6]}, {"c": [7, 8, 9]}]
+            {"a": [1, 2, 3]}
+                [1, 2, 3]
+                    1
+        [{"a": [1, 2, 3]}, {"b": [4, 5, 6]}, {"c": [7, 8, 9]}]
+            {"a": [1, 2, 3]}
+                [1, 2, 3]
+                    2
+        [{"a": [1, 2, 3]}, {"b": [4, 5, 6]}, {"c": [7, 8, 9]}]
+            {"a": [1, 2, 3]}
+                [1, 2, 3]
+                    3
+        [{"a": [1, 2, 3]}, {"b": [4, 5, 6]}, {"c": [7, 8, 9]}]
+            {"b": [4, 5, 6]}
+                [4, 5, 6]
+                    4
+        [{"a": [1, 2, 3]}, {"b": [4, 5, 6]}, {"c": [7, 8, 9]}]
+            {"b": [4, 5, 6]}
+                [4, 5, 6]
+                    5
+        [{"a": [1, 2, 3]}, {"b": [4, 5, 6]}, {"c": [7, 8, 9]}]
+            {"b": [4, 5, 6]}
+                [4, 5, 6]
+                    6
+        [{"a": [1, 2, 3]}, {"b": [4, 5, 6]}, {"c": [7, 8, 9]}]
+            {"c": [7, 8, 9]}
+                [7, 8, 9]
+                    7
+        [{"a": [1, 2, 3]}, {"b": [4, 5, 6]}, {"c": [7, 8, 9]}]
+            {"c": [7, 8, 9]}
+                [7, 8, 9]
+                    8
+        [{"a": [1, 2, 3]}, {"b": [4, 5, 6]}, {"c": [7, 8, 9]}]
+            {"c": [7, 8, 9]}
+                [7, 8, 9]
+                    9
+    "#}.trim();
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &paths,
+            &captures,
+            dcbor_pattern::FormatPathsOpts::default()
+        ),
+        expected_output
+    );
 
     // Should complete reasonably quickly (less than 10ms for this small
     // example)
@@ -326,11 +431,19 @@ fn test_no_captures_optimization() -> Result<()> {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
 
-    // Should match
-    assert_eq!(paths.len(), 1);
-
-    // Should have no captures
-    assert_eq!(captures.len(), 0);
+    // Validate formatted output with no captures
+    #[rustfmt::skip]
+    let expected_output = indoc! {r#"
+        42
+    "#}.trim();
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &paths,
+            &captures,
+            dcbor_pattern::FormatPathsOpts::default()
+        ),
+        expected_output
+    );
 
     Ok(())
 }
@@ -369,21 +482,41 @@ fn test_complex_nested_captures() -> Result<()> {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
 
-    // Should match
-    assert_eq!(paths.len(), 1);
-
-    // Should have all captures
-    assert_eq!(captures.len(), 6);
-    assert!(captures.contains_key("first_map"));
-    assert!(captures.contains_key("key1"));
-    assert!(captures.contains_key("val1"));
-    assert!(captures.contains_key("second_map"));
-    assert!(captures.contains_key("key2"));
-    assert!(captures.contains_key("val2"));
-
-    // Verify val2 captured "Alice"
-    let val2_path = &captures["val2"][0];
-    assert_eq!(val2_path[val2_path.len() - 1], CBOR::from("Alice"));
+    // Validate formatted output with all captures
+    #[rustfmt::skip]
+    let expected_output = indoc! {r#"
+        @first_map
+            [{"type": "person"}, {"name": "Alice"}]
+                {"type": "person"}
+        @key1
+            [{"type": "person"}, {"name": "Alice"}]
+                {"type": "person"}
+                    "type"
+        @key2
+            [{"type": "person"}, {"name": "Alice"}]
+                {"name": "Alice"}
+                    "name"
+        @second_map
+            [{"type": "person"}, {"name": "Alice"}]
+                {"name": "Alice"}
+        @val1
+            [{"type": "person"}, {"name": "Alice"}]
+                {"type": "person"}
+                    "person"
+        @val2
+            [{"type": "person"}, {"name": "Alice"}]
+                {"name": "Alice"}
+                    "Alice"
+        [{"type": "person"}, {"name": "Alice"}]
+    "#}.trim();
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &paths,
+            &captures,
+            dcbor_pattern::FormatPathsOpts::default()
+        ),
+        expected_output
+    );
 
     Ok(())
 }
