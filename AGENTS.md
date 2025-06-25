@@ -267,6 +267,10 @@ let pattern = parse("ARRAY((ANY)*>NUMBER(42))");               // Ending with el
 ```
 
 **Implementation Tasks:**
+- [ ] **⚠️ NEW API NEEDED**: Implement `SequencePattern` meta pattern type and add to `MetaPattern` enum
+- [ ] **⚠️ NEW API NEEDED**: Add programmatic `Pattern::sequence(patterns: Vec<Pattern>)` constructor method
+- [ ] **⚠️ NEW API NEEDED**: Add sequence parsing support (`parse_sequence()` function)
+- [ ] **⚠️ MISSING API**: Add `Pattern::any_array()` convenience method to main Pattern impl
 - [ ] Extend `array_parser.rs` to support the unified `ARRAY(pattern)` syntax
 - [ ] Implement parsing of sequence patterns within array parentheses
 - [ ] Add support for complex nested patterns with repeat quantifiers
@@ -282,10 +286,17 @@ let pattern = parse("MAP(ANY:TEXT(\"value\"))");               // Value constrai
 let pattern = parse("MAP(TEXT(\"name\"):TEXT, TEXT(\"age\"):NUMBER)"); // Multiple constraints
 ```
 
+**Current API Assessment:**
+- ✅ `MapPattern::with_key(pattern)` - EXISTS
+- ✅ `MapPattern::with_value(pattern)` - EXISTS
+- ✅ `MapPattern::with_key_value(key_pattern, value_pattern)` - EXISTS
+- ✅ `MapPattern::with_length(n)` and `with_length_range(range)` - EXISTS
+
 **Implementation Tasks:**
-- [ ] Extend `map_parser.rs` to support the unified `MAP(pattern: pattern, ...)` syntax
+- [ ] **⚠️ MISSING API**: Add `Pattern::any_map()` convenience method to main Pattern impl
+- [ ] **⚠️ ENHANCEMENT NEEDED**: Extend `MapPattern` to support multiple key-value constraints simultaneously
+- [ ] Extend `map_parser.rs` to support the unified `MAP(pattern: pattern, ...)` syntax with multiple constraints
 - [ ] Implement parsing of complex key and value patterns
-- [ ] Add support for multiple key-value constraints
 - [ ] Add comprehensive tests for all map pattern variations
 
 #### 🎯 Implementation Phase 3: Advanced Nested Patterns
@@ -299,13 +310,27 @@ let pattern = parse("MAP(TEXT(\"users\"):ARRAY({3,}))");       // Map with array
 let pattern = parse("ARRAY(MAP(TEXT(\"id\"):NUMBER) > (ANY)*)"); // Array starting with maps
 ```
 
+**Current API Assessment:**
+- ✅ `TaggedPattern::with_tag_and_content(tag, pattern)` - EXISTS
+- ✅ All nested pattern support through existing APIs - EXISTS
+
 **Implementation Tasks:**
-- [ ] Verify nested pattern parsing works correctly across all parsers
+- [ ] **⚠️ MISSING API**: Add `Pattern::any_tagged()` convenience method to main Pattern impl
+- [ ] Verify nested pattern parsing works correctly across all modules
 - [ ] Test complex nesting scenarios with unified syntax
 - [ ] Optimize VM instructions for deeply nested patterns
 - [ ] Add performance tests for complex nested patterns
 
 #### 🔧 Technical Implementation Notes
+
+**Missing Core APIs Identified:**
+- **⚠️ CRITICAL**: `SequencePattern` implementation is completely missing from the meta pattern system
+- **⚠️ CRITICAL**: No programmatic way to create sequence patterns (e.g., `Pattern::sequence(vec![a, b, c])`)
+- **⚠️ MISSING**: Structure pattern convenience methods in main `Pattern` impl:
+  - `Pattern::any_array()`
+  - `Pattern::any_map()`
+  - `Pattern::any_tagged()`
+- **⚠️ ENHANCEMENT**: `MapPattern` needs support for multiple simultaneous key-value constraints
 
 **Unified Syntax Approach:**
 - `ARRAY(pattern)` replaces multiple fragmented syntax variations
@@ -315,8 +340,9 @@ let pattern = parse("ARRAY(MAP(TEXT(\"id\"):NUMBER) > (ANY)*)"); // Array starti
 
 **VM Considerations:**
 - Current VM supports all necessary instruction types for unified syntax
-- Array patterns with sequences will use existing SequenceStart/SequenceNext instructions
-- Map key-value constraints will use existing MapKey/MapValue navigation
+- ✅ Array patterns with sequences will use existing SequenceStart/SequenceNext instructions
+- ✅ Map key-value constraints will use existing MapKey/MapValue navigation
+- ❌ **CRITICAL**: Sequence pattern compilation needs to be implemented to generate proper VM instructions
 - No new VM instructions required - unified syntax leverages existing infrastructure
 
 **Testing Strategy:**
@@ -326,32 +352,67 @@ let pattern = parse("ARRAY(MAP(TEXT(\"id\"):NUMBER) > (ANY)*)"); // Array starti
 - Verify round-trip parsing (parse → display → parse) for complex patterns
 - Performance testing for deeply nested composite patterns
 
-### 🎯 Next Steps
+### 🚀 Development Guidance for Unified Syntax Implementation
 
-The `dcbor-pattern` crate core functionality is **production ready**. The next development phase focuses on **implementing the unified advanced pattern syntax**:
+#### 🔒 Critical Implementation Requirements (NEVER Break These)
 
-**Priority 1: Unified Pattern Syntax Implementation**
-- Implement the simplified unified syntax documented in `PatternSyntax.md`
-- Extend `array_parser.rs` to support `ARRAY(pattern)` with sequences and repeats
-- Enhance `map_parser.rs` to support complex key-value patterns
-- Add comprehensive test coverage for all documented syntax variations
-- Maintain backward compatibility with existing pattern API
+**Code Quality Standards:**
+- **ALL existing tests must continue to pass** - Never break existing functionality
+- **Always run `cargo test && cargo clippy`** before declaring any task complete
+- **Use idiomatic Rust** - Follow safety, performance, and best practices from coding instructions
+- **Follow existing code patterns** - Study and mimic the implementation style in the codebase
+- **Maintain backward compatibility** - All existing APIs must continue to work
 
-**Priority 2: Enhanced Capabilities**
-- Performance optimizations for large dCBOR documents
-- Additional pattern types if new use cases emerge
-- Integration with other Blockchain Commons tools
+**Development Standards:**
+- **Add comprehensive tests** - Every new feature needs both unit and integration tests
+- **Update documentation** - If changes affect public APIs, update relevant documentation
+- **Incremental implementation** - Complete one logical task at a time, verify it works, then stop for review. Don't move to the next task in the same turn.
 
-**Development Focus:**
-The implementation work will focus on **parser enhancements for unified syntax** rather than core pattern functionality, as the underlying VM and pattern matching infrastructure is complete and supports all necessary operations. The simplified documentation approach reduces implementation complexity significantly.
+#### 📋 Implementation Task Selection Strategy
 
-### 📝 Recent Test Improvements (December 2024)
+**Task Priority Order:**
+1. **Missing Core APIs First** - Implement SequencePattern, Pattern::sequence(), convenience methods
+2. **Parser Enhancements Second** - Extend array_parser.rs and map_parser.rs for unified syntax
+3. **Comprehensive Testing Third** - Add tests for all documented syntax variations
 
-**Pattern Test Refactoring**: The test files `pattern_tests_value.rs` and `pattern_tests_structure.rs` have been refactored to use `Pattern::parse()` with a helper function where possible:
+**Phase-Based Approach:**
+- **Phase 1**: Enhanced Array Pattern Support (SequencePattern implementation, array parser)
+- **Phase 2**: Enhanced Map Pattern Support (multiple constraints, convenience methods)
+- **Phase 3**: Advanced Nested Patterns (testing complex scenarios, performance optimization)
 
-- Added `parse(s: &str) -> Pattern` helper function to eliminate `.unwrap()` noise
-- Converted simple pattern creation to use text parsing (e.g., `parse("BOOL")`, `parse("NUMBER(42)")`)
-- Maintained programmatic API for complex patterns that cannot be expressed in text syntax
-- Improved test readability while maintaining full functionality
+#### 🗂️ Key Implementation Files & Their Roles
 
-This refactoring demonstrates the text parsing capabilities and provides cleaner test code, while highlighting areas where text syntax could be expanded in the future.
+**Core Pattern APIs (Add missing methods here):**
+- `src/pattern/pattern_impl.rs` - Main Pattern API, add Pattern::any_array(), Pattern::any_map(), Pattern::any_tagged(), Pattern::sequence()
+- `src/pattern/meta/meta_pattern.rs` - Add SequencePattern to MetaPattern enum
+- `src/pattern/meta/` - Create sequence_pattern.rs for SequencePattern implementation
+
+**Parser Enhancement Files:**
+- `src/parse/structure/array_parser.rs` - Extend for unified ARRAY(pattern) syntax
+- `src/parse/structure/map_parser.rs` - Extend for MAP(pattern:pattern,...) syntax with multiple constraints
+- `src/parse/meta/` - Add sequence parsing support if needed
+
+**Reference Documentation:**
+- `AGENTS.md` - Complete development plan and API gap analysis
+- `docs/PatternSyntax.md` - Target syntax specification and examples
+- Existing test files - Study patterns for implementing comprehensive test coverage
+
+#### 🎯 Implementation Success Criteria
+
+**Functional Requirements:**
+- All existing tests continue to pass
+- New functionality has comprehensive test coverage (unit + integration)
+- Code passes `cargo clippy` with zero warnings
+- All documented syntax examples in PatternSyntax.md work correctly
+
+**Quality Requirements:**
+- Implementation follows existing code patterns and architecture
+- Changes are backwards compatible with existing programmatic API
+- Documentation is updated for any public API changes
+- Progress measurably advances toward unified syntax goals
+
+**Architecture Constraints:**
+- Leverage existing VM instructions - no new instruction types needed
+- Focus on parser enhancements, not core pattern matching logic
+- Maintain separation between value/structure/meta pattern categories
+- Use existing quantifier and VM infrastructure
