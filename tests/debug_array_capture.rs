@@ -1,7 +1,7 @@
 // Debug array captures
 
 use dcbor_parse::parse_dcbor_item;
-use dcbor_pattern::*;
+use dcbor_pattern::{Matcher, *};
 
 #[test]
 fn debug_array_capture() {
@@ -11,7 +11,7 @@ fn debug_array_capture() {
     println!("Pattern: {}", pattern);
     println!("CBOR: {}", cbor);
 
-    let (paths, captures) = pattern.match_with_captures(&cbor);
+    let (paths, captures) = pattern.paths_with_captures(&cbor);
 
     println!("Paths: {:?}", paths);
     println!("Captures: {:?}", captures);

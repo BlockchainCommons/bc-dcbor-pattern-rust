@@ -394,17 +394,6 @@ impl Pattern {
             crate::pattern::structure::TaggedPattern::any(),
         ))
     }
-
-    /// Execute pattern matching and return both paths and captures.
-    /// This is a convenience method that calls the `paths_with_captures` method
-    /// from the `Matcher` trait.
-    pub fn match_with_captures(
-        &self,
-        cbor: &dcbor::CBOR,
-    ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
-        use crate::pattern::Matcher;
-        self.paths_with_captures(cbor)
-    }
 }
 
 impl Matcher for Pattern {

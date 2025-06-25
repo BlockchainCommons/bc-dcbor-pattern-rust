@@ -1,8 +1,7 @@
 // Simple debug test to understand capture implementation
 
-use dcbor::prelude::*;
 use dcbor_parse::parse_dcbor_item;
-use dcbor_pattern::*;
+use dcbor_pattern::{Matcher, *};
 
 #[test]
 fn test_simple_pattern_without_capture() -> Result<()> {
@@ -23,7 +22,7 @@ fn test_simple_pattern_with_capture() -> Result<()> {
     let paths = pattern.paths(&cbor);
     println!("With capture - normal paths: {:?}", paths);
 
-    let (vm_paths, captures) = pattern.match_with_captures(&cbor);
+    let (vm_paths, captures) = pattern.paths_with_captures(&cbor);
     println!("With capture - VM paths: {:?}", vm_paths);
     println!("With capture - captures: {:?}", captures);
 

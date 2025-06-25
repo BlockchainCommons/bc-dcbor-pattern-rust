@@ -1,7 +1,7 @@
 // Debug array pattern paths_with_captures implementation
 
 use dcbor_parse::parse_dcbor_item;
-use dcbor_pattern::*;
+use dcbor_pattern::{Matcher, *};
 
 #[test]
 fn debug_array_pattern_paths_with_captures() {
@@ -13,7 +13,7 @@ fn debug_array_pattern_paths_with_captures() {
 
     // Test the inner pattern directly on the array
     let (inner_paths, inner_captures) =
-        inner_pattern.match_with_captures(&cbor);
+        inner_pattern.paths_with_captures(&cbor);
     println!(
         "Inner pattern on array - paths: {:?}, captures: {:?}",
         inner_paths, inner_captures
@@ -22,7 +22,7 @@ fn debug_array_pattern_paths_with_captures() {
     // Test the inner pattern on the array element
     let element = parse_dcbor_item("42").unwrap();
     let (element_paths, element_captures) =
-        inner_pattern.match_with_captures(&element);
+        inner_pattern.paths_with_captures(&element);
     println!(
         "Inner pattern on element - paths: {:?}, captures: {:?}",
         element_paths, element_captures
@@ -47,7 +47,7 @@ fn debug_array_element_traversal() {
             println!("Element {}: {:?}", i, element);
 
             let pattern = Pattern::parse("@item(NUMBER(42))").unwrap();
-            let (paths, captures) = pattern.match_with_captures(element);
+            let (paths, captures) = pattern.paths_with_captures(element);
             println!(
                 "Pattern on element {} - paths: {:?}, captures: {:?}",
                 i, paths, captures

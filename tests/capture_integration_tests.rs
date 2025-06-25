@@ -2,7 +2,7 @@
 
 use dcbor::prelude::*;
 use dcbor_parse::parse_dcbor_item;
-use dcbor_pattern::{Pattern, Result};
+use dcbor_pattern::{Matcher, Pattern, Result};
 
 /// Test basic capture functionality with simple patterns
 #[test]
@@ -10,7 +10,7 @@ fn test_capture_basic_number() -> Result<()> {
     let pattern = Pattern::parse("@num(NUMBER(42))")?;
     let cbor = parse_dcbor_item("42").unwrap();
 
-    let (paths, captures) = pattern.match_with_captures(&cbor);
+    let (paths, captures) = pattern.paths_with_captures(&cbor);
 
     // Should match the root
     assert_eq!(paths.len(), 1);
@@ -32,7 +32,7 @@ fn test_capture_basic_text() -> Result<()> {
     let pattern = Pattern::parse(r#"@greeting(TEXT("hello"))"#)?;
     let cbor = parse_dcbor_item(r#""hello""#).unwrap();
 
-    let (paths, captures) = pattern.match_with_captures(&cbor);
+    let (paths, captures) = pattern.paths_with_captures(&cbor);
 
     // Should match and capture
     assert_eq!(paths.len(), 1);
@@ -49,7 +49,7 @@ fn test_capture_no_match() -> Result<()> {
     let pattern = Pattern::parse("@num(NUMBER(42))")?;
     let cbor = parse_dcbor_item("24").unwrap();
 
-    let (paths, captures) = pattern.match_with_captures(&cbor);
+    let (paths, captures) = pattern.paths_with_captures(&cbor);
 
     // Should not match
     assert_eq!(paths.len(), 0);
@@ -66,7 +66,7 @@ fn test_multiple_captures_or() -> Result<()> {
 
     // Test matching the first alternative
     let cbor1 = parse_dcbor_item("42").unwrap();
-    let (paths1, captures1) = pattern.match_with_captures(&cbor1);
+    let (paths1, captures1) = pattern.paths_with_captures(&cbor1);
 
     assert_eq!(paths1.len(), 1);
     assert_eq!(captures1.len(), 1);
@@ -75,7 +75,7 @@ fn test_multiple_captures_or() -> Result<()> {
 
     // Test matching the second alternative
     let cbor2 = parse_dcbor_item(r#""hello""#).unwrap();
-    let (paths2, captures2) = pattern.match_with_captures(&cbor2);
+    let (paths2, captures2) = pattern.paths_with_captures(&cbor2);
 
     assert_eq!(paths2.len(), 1);
     assert_eq!(captures2.len(), 1);
@@ -91,7 +91,7 @@ fn test_nested_captures() -> Result<()> {
     let pattern = Pattern::parse("@outer(@inner(NUMBER(42)))")?;
     let cbor = parse_dcbor_item("42").unwrap();
 
-    let (paths, captures) = pattern.match_with_captures(&cbor);
+    let (paths, captures) = pattern.paths_with_captures(&cbor);
 
     // Should match
     assert_eq!(paths.len(), 1);
@@ -114,7 +114,7 @@ fn test_capture_in_array() -> Result<()> {
     let pattern = Pattern::parse("ARRAY(@item(NUMBER(42)))")?;
     let cbor = parse_dcbor_item("[42]").unwrap();
 
-    let (paths, captures) = pattern.match_with_captures(&cbor);
+    let (paths, captures) = pattern.paths_with_captures(&cbor);
 
     // Should match the array
     assert_eq!(paths.len(), 1);
@@ -140,7 +140,7 @@ fn test_capture_in_array_sequence() -> Result<()> {
         Pattern::parse("ARRAY(@first(TEXT(\"a\")) > @second(NUMBER(42)))")?;
     let cbor = parse_dcbor_item(r#"["a", 42]"#).unwrap();
 
-    let (paths, captures) = pattern.match_with_captures(&cbor);
+    let (paths, captures) = pattern.paths_with_captures(&cbor);
 
     // Should match the array
     assert_eq!(paths.len(), 1);
@@ -170,7 +170,7 @@ fn test_capture_in_map() -> Result<()> {
         Pattern::parse(r#"MAP(@key(TEXT("name")): @value(TEXT("Alice")))"#)?;
     let cbor = parse_dcbor_item(r#"{"name": "Alice"}"#).unwrap();
 
-    let (paths, captures) = pattern.match_with_captures(&cbor);
+    let (paths, captures) = pattern.paths_with_captures(&cbor);
 
     // Should match the map
     assert_eq!(paths.len(), 1);
@@ -189,7 +189,7 @@ fn test_capture_with_search() -> Result<()> {
     let pattern = Pattern::parse("SEARCH(@found(NUMBER(42)))")?;
     let cbor = parse_dcbor_item(r#"[1, [2, 42], 3]"#).unwrap();
 
-    let (paths, captures) = pattern.match_with_captures(&cbor);
+    let (paths, captures) = pattern.paths_with_captures(&cbor);
 
     // Search should find the nested 42
     assert!(!paths.is_empty());
@@ -212,7 +212,7 @@ fn test_capture_with_tagged() -> Result<()> {
     let pattern = Pattern::parse("TAG(1, @content(NUMBER(42)))")?;
     let cbor = parse_dcbor_item("1(42)").unwrap();
 
-    let (paths, captures) = pattern.match_with_captures(&cbor);
+    let (paths, captures) = pattern.paths_with_captures(&cbor);
 
     // Should match the tagged value
     assert_eq!(paths.len(), 1);
@@ -242,7 +242,7 @@ fn test_capture_performance() -> Result<()> {
     let pattern = Pattern::parse("SEARCH(@nums(NUMBER))")?;
 
     let start = std::time::Instant::now();
-    let (paths, captures) = pattern.match_with_captures(&cbor);
+    let (paths, captures) = pattern.paths_with_captures(&cbor);
     let duration = start.elapsed();
 
     // Should find all the numbers
@@ -267,7 +267,7 @@ fn test_no_captures_optimization() -> Result<()> {
     let pattern = Pattern::parse("NUMBER(42)")?;
     let cbor = parse_dcbor_item("42").unwrap();
 
-    let (paths, captures) = pattern.match_with_captures(&cbor);
+    let (paths, captures) = pattern.paths_with_captures(&cbor);
 
     // Should match
     assert_eq!(paths.len(), 1);
@@ -310,7 +310,7 @@ fn test_complex_nested_captures() -> Result<()> {
     let cbor =
         parse_dcbor_item(r#"[{"type": "person"}, {"name": "Alice"}]"#).unwrap();
 
-    let (paths, captures) = pattern.match_with_captures(&cbor);
+    let (paths, captures) = pattern.paths_with_captures(&cbor);
 
     // Should match
     assert_eq!(paths.len(), 1);

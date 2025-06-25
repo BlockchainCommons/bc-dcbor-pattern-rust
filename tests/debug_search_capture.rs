@@ -24,7 +24,7 @@ fn debug_search_capture() {
     println!("Direct captures: {:?}", captures);
 
     // Test with public API
-    let (api_paths, api_captures) = pattern.match_with_captures(&cbor);
+    let (api_paths, api_captures) = pattern.paths_with_captures(&cbor);
     println!("API capture paths: {:?}", api_paths);
     println!("API captures: {:?}", api_captures);
 }
