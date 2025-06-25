@@ -8,9 +8,12 @@ use indoc::indoc;
 /// Helper function to parse CBOR diagnostic notation into CBOR objects
 fn cbor(s: &str) -> CBOR { parse_dcbor_item(s).unwrap() }
 
+/// Helper function to parse pattern text into Pattern objects
+fn parse(s: &str) -> Pattern { Pattern::parse(s).unwrap() }
+
 #[test]
 fn test_bool_pattern_any() {
-    let pattern = Pattern::any_bool();
+    let pattern = parse("BOOL");
 
     // Should match true
     let true_cbor = cbor("true");
@@ -37,8 +40,8 @@ fn test_bool_pattern_any() {
 
 #[test]
 fn test_bool_pattern_specific() {
-    let true_pattern = Pattern::bool(true);
-    let false_pattern = Pattern::bool(false);
+    let true_pattern = parse("BOOL(true)");
+    let false_pattern = parse("BOOL(false)");
 
     let true_cbor = cbor("true");
     let false_cbor = cbor("false");
@@ -69,14 +72,14 @@ fn test_bool_pattern_specific() {
 
 #[test]
 fn test_bool_pattern_display() {
-    assert_eq!(Pattern::any_bool().to_string(), "BOOL");
-    assert_eq!(Pattern::bool(true).to_string(), "BOOL(true)");
-    assert_eq!(Pattern::bool(false).to_string(), "BOOL(false)");
+    assert_eq!(parse("BOOL").to_string(), "BOOL");
+    assert_eq!(parse("BOOL(true)").to_string(), "BOOL(true)");
+    assert_eq!(parse("BOOL(false)").to_string(), "BOOL(false)");
 }
 
 #[test]
 fn test_text_pattern_any() {
-    let pattern = Pattern::any_text();
+    let pattern = parse("TEXT");
 
     // Should match any text
     let hello_cbor = cbor(r#""Hello""#);
@@ -102,8 +105,8 @@ fn test_text_pattern_any() {
 
 #[test]
 fn test_text_pattern_specific() {
-    let hello_pattern = Pattern::text("Hello");
-    let world_pattern = Pattern::text("World");
+    let hello_pattern = parse(r#"TEXT("Hello")"#);
+    let world_pattern = parse(r#"TEXT("World")"#);
 
     let hello_cbor = cbor(r#""Hello""#);
     let world_cbor = cbor(r#""World""#);
@@ -158,8 +161,8 @@ fn test_text_pattern_regex() {
 
 #[test]
 fn test_text_pattern_display() {
-    assert_eq!(Pattern::any_text().to_string(), "TEXT");
-    assert_eq!(Pattern::text("Hello").to_string(), r#"TEXT("Hello")"#);
+    assert_eq!(parse("TEXT").to_string(), "TEXT");
+    assert_eq!(parse(r#"TEXT("Hello")"#).to_string(), r#"TEXT("Hello")"#);
 
     let regex_pattern =
         Pattern::text_regex(regex::Regex::new(r"^\d+$").unwrap());
@@ -168,7 +171,7 @@ fn test_text_pattern_display() {
 
 #[test]
 fn test_number_pattern_any() {
-    let pattern = Pattern::any_number();
+    let pattern = parse("NUMBER");
 
     // Should match integers
     let int_cbor = cbor("42");
@@ -204,8 +207,8 @@ fn test_number_pattern_any() {
 
 #[test]
 fn test_number_pattern_specific() {
-    let int_pattern = Pattern::number(42);
-    let float_pattern = Pattern::number(3.2222);
+    let int_pattern = parse("NUMBER(42)");
+    let float_pattern = parse("NUMBER(3.2222)");
 
     let int_cbor = cbor("42");
     let float_cbor = cbor("3.2222");
@@ -238,7 +241,7 @@ fn test_number_pattern_specific() {
 
 #[test]
 fn test_number_pattern_range() {
-    let range_pattern = Pattern::number_range(10..=20);
+    let range_pattern = parse("NUMBER(10...20)");
 
     let in_range_cbor = cbor("15");
     let boundary_low_cbor = cbor("10");
@@ -277,10 +280,10 @@ fn test_number_pattern_range() {
 
 #[test]
 fn test_number_pattern_comparisons() {
-    let gt_pattern = Pattern::number_greater_than(10);
-    let gte_pattern = Pattern::number_greater_than_or_equal(10);
-    let lt_pattern = Pattern::number_less_than(10);
-    let lte_pattern = Pattern::number_less_than_or_equal(10);
+    let gt_pattern = parse("NUMBER(>10)");
+    let gte_pattern = parse("NUMBER(>=10)");
+    let lt_pattern = parse("NUMBER(<10)");
+    let lte_pattern = parse("NUMBER(<=10)");
 
     let equal_cbor = cbor("10");
     let greater_cbor = cbor("15");
@@ -324,7 +327,7 @@ fn test_number_pattern_comparisons() {
 
 #[test]
 fn test_number_pattern_nan() {
-    let nan_pattern = Pattern::number_nan();
+    let nan_pattern = parse("NUMBER(NaN)");
 
     let nan_cbor = cbor("NaN");
     let number_cbor = cbor("42");
@@ -345,29 +348,20 @@ fn test_number_pattern_nan() {
 
 #[test]
 fn test_number_pattern_display() {
-    assert_eq!(Pattern::any_number().to_string(), "NUMBER");
-    assert_eq!(Pattern::number(42).to_string(), "NUMBER(42)");
-    assert_eq!(Pattern::number(3.2222).to_string(), "NUMBER(3.2222)");
-    assert_eq!(
-        Pattern::number_range(10..=20).to_string(),
-        "NUMBER(10...20)"
-    );
-    assert_eq!(Pattern::number_greater_than(10).to_string(), "NUMBER(>10)");
-    assert_eq!(
-        Pattern::number_greater_than_or_equal(10).to_string(),
-        "NUMBER(>=10)"
-    );
-    assert_eq!(Pattern::number_less_than(10).to_string(), "NUMBER(<10)");
-    assert_eq!(
-        Pattern::number_less_than_or_equal(10).to_string(),
-        "NUMBER(<=10)"
-    );
-    assert_eq!(Pattern::number_nan().to_string(), "NUMBER(NaN)");
+    assert_eq!(parse("NUMBER").to_string(), "NUMBER");
+    assert_eq!(parse("NUMBER(42)").to_string(), "NUMBER(42)");
+    assert_eq!(parse("NUMBER(3.2222)").to_string(), "NUMBER(3.2222)");
+    assert_eq!(parse("NUMBER(10...20)").to_string(), "NUMBER(10...20)");
+    assert_eq!(parse("NUMBER(>10)").to_string(), "NUMBER(>10)");
+    assert_eq!(parse("NUMBER(>=10)").to_string(), "NUMBER(>=10)");
+    assert_eq!(parse("NUMBER(<10)").to_string(), "NUMBER(<10)");
+    assert_eq!(parse("NUMBER(<=10)").to_string(), "NUMBER(<=10)");
+    assert_eq!(parse("NUMBER(NaN)").to_string(), "NUMBER(NaN)");
 }
 
 #[test]
 fn test_byte_string_pattern_any() {
-    let pattern = Pattern::any_byte_string();
+    let pattern = parse("BSTR");
 
     // Should match any byte string
     let cbor_bytes = cbor("h'01020304'");
@@ -393,8 +387,8 @@ fn test_byte_string_pattern_any() {
 
 #[test]
 fn test_byte_string_pattern_specific() {
-    let exact_pattern = Pattern::byte_string(vec![0x01, 0x02, 0x03, 0x04]);
-    let different_pattern = Pattern::byte_string(vec![0x05, 0x06]);
+    let exact_pattern = parse("BSTR(h'01020304')");
+    let different_pattern = parse("BSTR(h'0506')");
 
     let cbor_bytes = cbor("h'01020304'");
     let different_cbor = cbor("h'0506'");
@@ -450,7 +444,7 @@ fn test_byte_string_pattern_regex() {
 
 #[test]
 fn test_byte_string_pattern_binary_data() {
-    let pattern = Pattern::any_byte_string();
+    let pattern = parse("BSTR");
 
     // Test with actual binary data (not text)
     let binary_cbor = cbor("h'00010203fffefd'");
@@ -462,8 +456,7 @@ fn test_byte_string_pattern_binary_data() {
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
-    let exact_pattern =
-        Pattern::byte_string(vec![0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD]);
+    let exact_pattern = parse("BSTR(h'00010203fffefd')");
     let paths = exact_pattern.paths(&binary_cbor);
     #[rustfmt::skip]
     let expected = indoc! {r#"
@@ -471,7 +464,7 @@ fn test_byte_string_pattern_binary_data() {
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
-    let different_pattern = Pattern::byte_string(vec![0x00, 0x01, 0x02]);
+    let different_pattern = parse("BSTR(h'000102')");
     assert!(!different_pattern.matches(&binary_cbor));
 
     // Test regex that matches any bytes starting with 0x00
@@ -494,11 +487,8 @@ fn test_byte_string_pattern_binary_data() {
 
 #[test]
 fn test_byte_string_pattern_display() {
-    assert_eq!(Pattern::any_byte_string().to_string(), "BSTR");
-    assert_eq!(
-        Pattern::byte_string(vec![0xde, 0xad, 0xbe, 0xef]).to_string(),
-        "BSTR(h'deadbeef')"
-    );
+    assert_eq!(parse("BSTR").to_string(), "BSTR");
+    assert_eq!(parse("BSTR(h'deadbeef')").to_string(), "BSTR(h'deadbeef')");
 
     let regex = regex::bytes::Regex::new(r"^test.*").unwrap();
     let regex_pattern = Pattern::byte_string_regex(regex);
@@ -507,7 +497,7 @@ fn test_byte_string_pattern_display() {
 
 #[test]
 fn test_date_pattern_any() {
-    let pattern = Pattern::any_date();
+    let pattern = parse("DATE");
 
     // Should match any date
     let date = Date::from_ymd(2023, 12, 25);
@@ -720,7 +710,7 @@ fn test_date_pattern_regex() {
 fn test_date_pattern_with_time() {
     // Test with dates that include time components
     let datetime = Date::from_timestamp(1703462400.0); // 2023-12-25 00:00:00 UTC
-    let pattern = Pattern::any_date();
+    let pattern = parse("DATE");
 
     let datetime_cbor = datetime.to_cbor();
     let paths = pattern.paths(&datetime_cbor);
@@ -752,7 +742,7 @@ fn test_date_pattern_with_time() {
 
 #[test]
 fn test_date_pattern_display() {
-    assert_eq!(Pattern::any_date().to_string(), "DATE");
+    assert_eq!(parse("DATE").to_string(), "DATE");
 
     let date = Date::from_ymd(2023, 12, 25);
     assert_eq!(
@@ -788,7 +778,7 @@ fn test_date_pattern_display() {
 
 #[test]
 fn test_null_pattern() {
-    let pattern = Pattern::null();
+    let pattern = parse("NULL");
 
     // Should match null
     let null_cbor = cbor("null");
@@ -818,12 +808,12 @@ fn test_null_pattern() {
 
 #[test]
 fn test_null_pattern_display() {
-    assert_eq!(Pattern::null().to_string(), "NULL");
+    assert_eq!(parse("NULL").to_string(), "NULL");
 }
 
 #[test]
 fn test_known_value_pattern_any() {
-    let pattern = Pattern::any_known_value();
+    let pattern = parse("KNOWN");
 
     // Test with known values represented as tagged values with tag 40000
     let known_value_cbor = cbor("'1'"); // This represents known_values::IS_A as 40000(1)
@@ -865,11 +855,8 @@ fn test_known_value_pattern_any() {
 
 #[test]
 fn test_known_value_pattern_specific() {
-    let is_a_value = known_values::IS_A;
-    let date_value = known_values::DATE;
-
-    let is_a_pattern = Pattern::known_value(is_a_value);
-    let date_pattern = Pattern::known_value(date_value);
+    let is_a_pattern = parse("KNOWN('isA')");
+    let date_pattern = parse("KNOWN('date')");
 
     let is_a_cbor = cbor("'1'"); // IS_A value as 40000(1)
     let date_cbor = cbor("'16'"); // DATE value as 40000(16)
@@ -906,9 +893,9 @@ fn test_known_value_pattern_specific() {
 
 #[test]
 fn test_known_value_pattern_named() {
-    let is_a_pattern = Pattern::known_value_named("isA");
-    let date_pattern = Pattern::known_value_named("date");
-    let unknown_pattern = Pattern::known_value_named("unknownValue");
+    let is_a_pattern = parse("KNOWN('isA')");
+    let date_pattern = parse("KNOWN('date')");
+    let unknown_pattern = parse("KNOWN('unknownValue')");
 
     let is_a_cbor = cbor("'1'"); // IS_A value as 40000(1)
     let date_cbor = cbor("'16'"); // DATE value as 40000(16)
@@ -1016,7 +1003,7 @@ fn test_known_value_pattern_regex() {
 
 #[test]
 fn test_known_value_pattern_display() {
-    let any_pattern = Pattern::any_known_value();
+    let any_pattern = parse("KNOWN");
     assert_eq!(any_pattern.to_string(), "KNOWN");
 
     let is_a_pattern = Pattern::known_value(known_values::IS_A);

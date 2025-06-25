@@ -248,8 +248,107 @@ These formatting differences don't affect pattern matching functionality, but th
 
 **Update**: All meta pattern tests in `pattern_tests_meta.rs` have been successfully updated to use `assert_actual_expected!()` with correct path comparisons. All 31 tests now pass with the actual output format. The above formatting issues remain as documentation-only concerns since the functionality works correctly.
 
+3. **Tagged Pattern Text Parsing Not Implemented**: The text parser does not currently support tagged pattern syntax. Patterns like `"TAGGED"`, `"TAGGED_TAG(1234)"`, etc. cause parsing errors with `UnrecognizedToken`. Tagged patterns must be created programmatically using `TaggedPattern::any()`, `TaggedPattern::with_tag()`, etc. This limitation affects the ability to create all structure patterns via text parsing.
+
+4. **Range Pattern Text Parsing Not Implemented**: Array and map patterns with length ranges (e.g., `ArrayPattern::with_length_range(1..=10)`, `MapPattern::with_length_range(2..=8)`) cannot be expressed in text syntax. These must be created programmatically.
+
+5. **Composite Pattern Text Parsing Limitations**: Patterns that take other patterns as parameters (like `ArrayPattern::with_elements(pattern)`, `MapPattern::with_key(pattern)`) work when the inner pattern can be parsed from text, but the outer structure pattern constructors themselves don't have text syntax equivalents.
+
+### 🚧 Missing Text Syntax Examples
+
+The following pattern syntax should be implemented to provide complete text parsing coverage:
+
+#### Tagged Patterns
+```rust
+// Current: Must use programmatic API
+let pattern = TaggedPattern::any();
+let pattern = TaggedPattern::with_tag(Tag::new(1234, "test"));
+let pattern = TaggedPattern::with_content(Pattern::text("content"));
+
+// Proposed text syntax:
+let pattern = parse("TAGGED");                    // Any tagged value
+let pattern = parse("TAGGED(1234)");              // Specific tag number
+let pattern = parse("TAGGED(*, TEXT(\"content\"))"); // Any tag with specific content
+let pattern = parse("TAGGED(1234, TEXT(\"content\"))"); // Specific tag and content
+```
+
+#### Range Patterns
+```rust
+// Current: Must use programmatic API
+let pattern = ArrayPattern::with_length_range(1..=10);
+let pattern = MapPattern::with_length_range(2..=8);
+
+// Proposed text syntax:
+let pattern = parse("ARRAY({1,10})");            // Array length range
+let pattern = parse("MAP({2,8})");               // Map length range
+let pattern = parse("ARRAY({1,})");              // Array minimum length
+let pattern = parse("MAP({,5})");                // Map maximum length
+```
+
+#### Composite Structure Patterns
+```rust
+// Current: Must use programmatic API
+let element_pattern = Pattern::number(42);
+let pattern = ArrayPattern::with_elements(element_pattern);
+let key_pattern = Pattern::text("key");
+let pattern = MapPattern::with_key(key_pattern);
+
+// Proposed text syntax using existing sequence and repeat patterns:
+let pattern = parse("ARRAY((ANY)*>NUMBER(42)>(ANY)*)"); // Array containing 42 anywhere
+let pattern = parse("ARRAY(NUMBER(42)>(ANY)*)");        // Array starting with 42
+let pattern = parse("ARRAY((ANY)*>NUMBER(42))");        // Array ending with 42
+let pattern = parse("MAP(TEXT(\"key\"):ANY)");          // Map with specific key (if supported)
+let pattern = parse("MAP(ANY:TEXT(\"value\"))");        // Map with specific value (if supported)
+```
+
+#### Advanced Composite Patterns
+```rust
+// Current: Complex programmatic construction
+let inner = Pattern::text("target");
+let array_pattern = ArrayPattern::with_elements(inner);
+let tagged_pattern = TaggedPattern::with_content(Pattern::Structure(array_pattern.into()));
+
+// Proposed text syntax using existing sequence and repeat patterns:
+let pattern = parse("TAGGED(100, ARRAY((ANY)*>TEXT(\"target\")>(ANY)*))");
+let pattern = parse("MAP(TEXT(\"users\"):ARRAY({3,}))"); // Map with array of min 3 users (if supported)
+let pattern = parse("ARRAY((MAP(TEXT(\"id\"):NUMBER)>(ANY)*)"); // Array starting with objects having id numbers
+```
+
+#### Date and Known Value Extensions
+```rust
+// These syntaxes are ALREADY IMPLEMENTED:
+let pattern = parse("DATE(2023-01-01...2023-12-31)"); // Date range - ✅ IMPLEMENTED!
+let pattern = parse("DATE(/^2023-/)");                // Date regex - ✅ IMPLEMENTED!
+let pattern = parse("KNOWN(/^is.*/)");                // Known value regex - ✅ IMPLEMENTED!
+
+// Still proposed (not yet implemented):
+// (None - the above examples were the main missing features)
+```
+
+These syntax additions would enable:
+- **Complete text-based pattern construction**: All patterns expressible as text
+- **Better composability**: Complex nested patterns in readable syntax
+- **Enhanced testing**: All test patterns could use the `parse()` helper
+- **Improved documentation**: Examples could show text syntax instead of API calls
+
 ### 🎯 Next Steps
 This crate is **production ready**. Potential future enhancements could include:
 - Performance optimizations for large dCBOR documents
 - Additional pattern types if new use cases emerge
 - Integration with other Blockchain Commons tools
+- **Implementation of missing text syntax** (see examples in "Missing Text Syntax Examples" section):
+  - Tagged pattern syntax (`TAGGED`, `TAGGED(tag)`, etc.)
+  - Range pattern syntax (`ARRAY({1..10})`, `MAP({2..8})`, etc.)
+  - Composite pattern syntax (`ARRAY(*, pattern, *)`, `MAP(key, value)`, etc.)
+  - Extended date and known value syntax
+
+### 📝 Recent Test Improvements (December 2024)
+
+**Pattern Test Refactoring**: The test files `pattern_tests_value.rs` and `pattern_tests_structure.rs` have been refactored to use `Pattern::parse()` with a helper function where possible:
+
+- Added `parse(s: &str) -> Pattern` helper function to eliminate `.unwrap()` noise
+- Converted simple pattern creation to use text parsing (e.g., `parse("BOOL")`, `parse("NUMBER(42)")`)
+- Maintained programmatic API for complex patterns that cannot be expressed in text syntax
+- Improved test readability while maintaining full functionality
+
+This refactoring demonstrates the text parsing capabilities and provides cleaner test code, while highlighting areas where text syntax could be expanded in the future.

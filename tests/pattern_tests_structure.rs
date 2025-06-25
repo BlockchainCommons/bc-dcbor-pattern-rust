@@ -10,10 +10,13 @@ use indoc::indoc;
 /// Helper function to parse CBOR diagnostic notation into CBOR objects
 fn cbor(s: &str) -> CBOR { parse_dcbor_item(s).unwrap() }
 
+/// Helper function to parse pattern text into Pattern objects
+fn parse(s: &str) -> Pattern { Pattern::parse(s).unwrap() }
+
 /// Test that ArrayPattern::Any matches any array
 #[test]
 fn test_array_pattern_any() {
-    let pattern = ArrayPattern::any();
+    let pattern = parse("ARRAY");
 
     // Should match empty array
     let empty_array = cbor("[]");
@@ -41,7 +44,7 @@ fn test_array_pattern_any() {
 /// Test that ArrayPattern::WithLength matches arrays with specific length
 #[test]
 fn test_array_pattern_with_length() {
-    let pattern = ArrayPattern::with_length(2);
+    let pattern = parse("ARRAY({2})");
 
     // Should match array with length 2
     let array = cbor("[1, 2]");
@@ -65,7 +68,7 @@ fn test_array_pattern_with_length() {
 /// elements
 #[test]
 fn test_array_pattern_with_elements() {
-    let number_pattern = Pattern::number(42);
+    let number_pattern = parse("NUMBER(42)");
     let pattern = ArrayPattern::with_elements(number_pattern);
 
     // Should match array containing 42
@@ -85,7 +88,7 @@ fn test_array_pattern_with_elements() {
 /// Test MapPattern::Any matches any map
 #[test]
 fn test_map_pattern_any() {
-    let pattern = MapPattern::any();
+    let pattern = parse("MAP");
 
     // Should match empty map
     let empty_map = cbor("{}");
@@ -113,7 +116,7 @@ fn test_map_pattern_any() {
 /// Test MapPattern::WithKey matches maps containing specific keys
 #[test]
 fn test_map_pattern_with_key() {
-    let text_pattern = Pattern::text("target_key");
+    let text_pattern = parse(r#"TEXT("target_key")"#);
     let pattern = MapPattern::with_key(text_pattern);
 
     // Should match map with target key
@@ -139,7 +142,7 @@ fn test_map_pattern_with_key() {
 /// Test MapPattern::WithValue matches maps containing specific values
 #[test]
 fn test_map_pattern_with_value() {
-    let text_pattern = Pattern::text("target_value");
+    let text_pattern = parse(r#"TEXT("target_value")"#);
     let pattern = MapPattern::with_value(text_pattern);
 
     // Should match map with target value
@@ -208,7 +211,7 @@ fn test_tagged_pattern_with_tag() {
 /// Test TaggedPattern::WithContent matches tagged values with matching content
 #[test]
 fn test_tagged_pattern_with_content() {
-    let text_pattern = Pattern::text("target_content");
+    let text_pattern = parse(r#"TEXT("target_content")"#);
     let pattern = TaggedPattern::with_content(text_pattern);
 
     // Should match tagged value with matching content
@@ -229,16 +232,16 @@ fn test_tagged_pattern_with_content() {
 #[test]
 fn test_structure_pattern_display() {
     // Array patterns
-    assert_eq!(format!("{}", ArrayPattern::any()), "ARRAY");
-    assert_eq!(format!("{}", ArrayPattern::with_length(5)), "ARRAY({5})");
+    assert_eq!(parse("ARRAY").to_string(), "ARRAY");
+    assert_eq!(parse("ARRAY({5})").to_string(), "ARRAY({5})");
     assert_eq!(
         format!("{}", ArrayPattern::with_length_range(1..=10)),
         "ARRAY({1,10})"
     );
 
     // Map patterns
-    assert_eq!(format!("{}", MapPattern::any()), "MAP");
-    assert_eq!(format!("{}", MapPattern::with_length(3)), "MAP({3})");
+    assert_eq!(parse("MAP").to_string(), "MAP");
+    assert_eq!(parse("MAP({3})").to_string(), "MAP({3})");
     assert_eq!(
         format!("{}", MapPattern::with_length_range(2..=8)),
         "MAP({2,8})"
