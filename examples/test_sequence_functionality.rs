@@ -23,7 +23,7 @@ fn main() {
     println!("Has {} captures", captures.len());
 
     // Test with some CBOR data
-    let test_cbor = vec!["hello".to_cbor(), 42.to_cbor(), true.to_cbor()];
+    let test_cbor = ["hello".to_cbor(), 42.to_cbor(), true.to_cbor()];
 
     println!("Testing with {} CBOR values:", test_cbor.len());
     for (i, cbor) in test_cbor.iter().enumerate() {

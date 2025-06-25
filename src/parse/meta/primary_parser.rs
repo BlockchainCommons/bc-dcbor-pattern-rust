@@ -39,11 +39,15 @@ pub(crate) fn parse_primary(
         Token::None => Ok(Pattern::none()),
         Token::Search => super::parse_search(lexer),
 
-        // Parenthesized groups - parse the inner pattern
+        // Parenthesized groups - parse the inner pattern and check for
+        // quantifiers
         Token::ParenOpen => {
             let pattern = super::parse_or(lexer)?;
             match lexer.next() {
-                Some(Ok(Token::ParenClose)) => Ok(pattern),
+                Some(Ok(Token::ParenClose)) => {
+                    // After closing parenthesis, check for quantifiers
+                    super::parse_quantifier(pattern, lexer)
+                }
                 Some(Ok(token)) => {
                     Err(Error::UnexpectedToken(Box::new(token), lexer.span()))
                 }
