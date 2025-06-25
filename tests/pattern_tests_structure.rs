@@ -18,19 +18,19 @@ fn test_array_pattern_any() {
     // Should match empty array
     let empty_array = cbor("[]");
     let paths = pattern.paths(&empty_array);
+    #[rustfmt::skip]
     let expected = indoc! {r#"
         []
-    "#}
-    .trim();
+    "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Should match non-empty array
     let array = cbor("[1, 2, 3]");
     let paths = pattern.paths(&array);
+    #[rustfmt::skip]
     let expected = indoc! {r#"
         [1, 2, 3]
-    "#}
-    .trim();
+    "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match non-array
@@ -46,10 +46,10 @@ fn test_array_pattern_with_length() {
     // Should match array with length 2
     let array = cbor("[1, 2]");
     let paths = pattern.paths(&array);
+    #[rustfmt::skip]
     let expected = indoc! {r#"
         [1, 2]
-    "#}
-    .trim();
+    "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match array with different length
@@ -71,10 +71,10 @@ fn test_array_pattern_with_elements() {
     // Should match array containing 42
     let array = cbor("[1, 42, 3]");
     let paths = pattern.paths(&array);
+    #[rustfmt::skip]
     let expected = indoc! {r#"
         [1, 42, 3]
-    "#}
-    .trim();
+    "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match array without 42
@@ -90,19 +90,19 @@ fn test_map_pattern_any() {
     // Should match empty map
     let empty_map = cbor("{}");
     let paths = pattern.paths(&empty_map);
+    #[rustfmt::skip]
     let expected = indoc! {r#"
         {}
-    "#}
-    .trim();
+    "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Should match non-empty map
     let cbor_map = cbor(r#"{"key": "value"}"#);
     let paths = pattern.paths(&cbor_map);
+    #[rustfmt::skip]
     let expected = indoc! {r#"
         {"key": "value"}
-    "#}
-    .trim();
+    "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match non-map
@@ -120,6 +120,7 @@ fn test_map_pattern_with_key() {
     let cbor_map =
         cbor(r#"{"target_key": "value", "other_key": "other_value"}"#);
     let paths = pattern.paths(&cbor_map);
+    #[rustfmt::skip]
     let expected = indoc! {r#"
         {
             "other_key":
@@ -127,8 +128,7 @@ fn test_map_pattern_with_key() {
             "target_key":
             "value"
         }
-    "#}
-    .trim();
+    "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match map without target key
@@ -146,6 +146,7 @@ fn test_map_pattern_with_value() {
     let cbor_map =
         cbor(r#"{"key": "target_value", "other_key": "other_value"}"#);
     let paths = pattern.paths(&cbor_map);
+    #[rustfmt::skip]
     let expected = indoc! {r#"
         {
             "key":
@@ -153,8 +154,7 @@ fn test_map_pattern_with_value() {
             "other_key":
             "other_value"
         }
-    "#}
-    .trim();
+    "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match map without target value
@@ -170,10 +170,10 @@ fn test_tagged_pattern_any() {
     // Should match any tagged value
     let tagged = cbor(r#"1234("content")"#);
     let paths = pattern.paths(&tagged);
+    #[rustfmt::skip]
     let expected = indoc! {r#"
         1234("content")
-    "#}
-    .trim();
+    "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match non-tagged value
@@ -190,10 +190,10 @@ fn test_tagged_pattern_with_tag() {
     // Should match tagged value with correct tag
     let tagged = cbor(r#"1234("content")"#);
     let paths = pattern.paths(&tagged);
+    #[rustfmt::skip]
     let expected = indoc! {r#"
         1234("content")
-    "#}
-    .trim();
+    "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match tagged value with different tag
@@ -214,10 +214,10 @@ fn test_tagged_pattern_with_content() {
     // Should match tagged value with matching content
     let tagged = cbor(r#"1234("target_content")"#);
     let paths = pattern.paths(&tagged);
+    #[rustfmt::skip]
     let expected = indoc! {r#"
         1234("target_content")
-    "#}
-    .trim();
+    "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match tagged value with different content

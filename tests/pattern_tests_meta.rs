@@ -559,24 +559,25 @@ fn test_search_pattern_basic() {
     // Test with nested structure containing the number
     let array_cbor = cbor("[1, 42, 3]");
     let paths = pattern.paths(&array_cbor);
+    #[rustfmt::skip]
     let expected = indoc! {r#"
         [1, 42, 3]
             42
-    "#}
-    .trim();
+    "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     let map_cbor = cbor("{1: 42}");
     let paths = pattern.paths(&map_cbor);
+    #[rustfmt::skip]
     let expected = indoc! {r#"
         {1: 42}
             42
-    "#}
-    .trim();
+    "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     let nested_cbor = cbor("{\"key\": [1, 2, 42]}");
     let paths = pattern.paths(&nested_cbor);
+    #[rustfmt::skip]
     let expected = indoc! {r#"
         {
             "key":
@@ -584,8 +585,7 @@ fn test_search_pattern_basic() {
         }
             [1, 2, 42]
                 42
-    "#}
-    .trim();
+    "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Test that it doesn't match when the value is not present
@@ -603,24 +603,25 @@ fn test_search_pattern_text() {
     // Test with nested structures
     let array_cbor = cbor(r#"["hello", "world"]"#);
     let paths = pattern.paths(&array_cbor);
+    #[rustfmt::skip]
     let expected = indoc! {r#"
         ["hello", "world"]
             "hello"
-    "#}
-    .trim();
+    "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     let map_cbor = cbor(r#"{"greeting": "hello"}"#);
     let paths = pattern.paths(&map_cbor);
+    #[rustfmt::skip]
     let expected = indoc! {r#"
         {"greeting": "hello"}
             "hello"
-    "#}
-    .trim();
+    "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     let nested_cbor = cbor(r#"[{"nested": ["hello"]}]"#);
     let paths = pattern.paths(&nested_cbor);
+    #[rustfmt::skip]
     let expected = indoc! {r#"
         [
             {
@@ -634,8 +635,7 @@ fn test_search_pattern_text() {
         }
                 ["hello"]
                     "hello"
-    "#}
-    .trim();
+    "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Test that it doesn't match when the text is not present
@@ -663,6 +663,7 @@ fn test_search_pattern_any() {
     let array_cbor = cbor("[1, 2, 3]");
     let paths = pattern.paths(&array_cbor);
     // ANY matches everything, so this should match all nodes in the tree
+    #[rustfmt::skip]
     let expected = indoc! {r#"
         [1, 2, 3]
         [1, 2, 3]
@@ -671,8 +672,7 @@ fn test_search_pattern_any() {
             2
         [1, 2, 3]
             3
-    "#}
-    .trim();
+    "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     let empty_map_cbor = cbor("{}");
@@ -708,6 +708,7 @@ fn test_search_pattern_complex() {
     // Should match because the structure contains the number 5 in multiple
     // places
     let paths = pattern.paths(&test_data);
+    #[rustfmt::skip]
     let expected = indoc! {r#"
         {
             "data":
@@ -775,8 +776,7 @@ fn test_search_pattern_complex() {
             [7, 8, 9]
         }
                 5
-    "#}
-    .trim();
+    "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Check specific paths are found
@@ -792,6 +792,7 @@ fn test_search_pattern_with_captures() {
     // Test with a nested structure
     let data = cbor("[1, {\"key\": 42}, 3]");
     let paths = pattern.paths(&data);
+    #[rustfmt::skip]
     let expected = indoc! {r#"
         [
             1,
@@ -800,8 +801,7 @@ fn test_search_pattern_with_captures() {
         ]
             {"key": 42}
                 42
-    "#}
-    .trim();
+    "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Display should show the capture in the search
@@ -865,6 +865,7 @@ fn test_search_pattern_with_structure_pattern() {
 
     let paths = pattern.paths(&data);
     // Should find the outer arrays structure and the inner arrays
+    #[rustfmt::skip]
     let expected = indoc! {r#"
         {
             "arrays":
@@ -907,8 +908,7 @@ fn test_search_pattern_with_structure_pattern() {
             [3, 4]
         ]
                 [3, 4]
-    "#}
-    .trim();
+    "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     assert!(paths.len() >= 3); // The "arrays" value plus the two inner arrays
