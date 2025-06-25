@@ -195,19 +195,56 @@ pub fn format_path(path: &Path) -> String {
     format_path_opt(path, FormatPathsOpts::default())
 }
 
+/// Format multiple paths with captures in a structured way.
+/// Captures come first, sorted lexicographically by name, with their name
+/// prefixed by '@'. Regular paths follow after all captures.
+pub fn format_paths_with_captures(
+    paths: &[Path],
+    captures: &std::collections::HashMap<String, Vec<Path>>,
+    opts: impl AsRef<FormatPathsOpts>,
+) -> String {
+    let opts = opts.as_ref();
+    let mut result = Vec::new();
+
+    // First, format all captures, sorted lexicographically by name
+    let mut capture_names: Vec<&String> = captures.keys().collect();
+    capture_names.sort();
+
+    for capture_name in capture_names {
+        if let Some(capture_paths) = captures.get(capture_name) {
+            result.push(format!("@{}", capture_name));
+            for path in capture_paths {
+                let formatted_path = format_path_opt(path, opts);
+                // Add indentation to each line of the formatted path
+                for line in formatted_path.split('\n') {
+                    if !line.is_empty() {
+                        result.push(format!("   {}", line));
+                    }
+                }
+            }
+        }
+    }
+
+    // Then, format all regular paths
+    for path in paths {
+        let formatted_path = format_path_opt(path, opts);
+        for line in formatted_path.split('\n') {
+            if !line.is_empty() {
+                result.push(line.to_string());
+            }
+        }
+    }
+
+    result.join("\n")
+}
+
 /// Format multiple paths with custom formatting options.
 pub fn format_paths_opt(
     paths: &[Path],
     opts: impl AsRef<FormatPathsOpts>,
 ) -> String {
-    let opts = opts.as_ref();
-
-    // Join all formatted paths with a newline for all formats.
-    paths
-        .iter()
-        .map(|path| format_path_opt(path, opts))
-        .collect::<Vec<_>>()
-        .join("\n")
+    // Call format_paths_with_captures with empty captures
+    format_paths_with_captures(paths, &std::collections::HashMap::new(), opts)
 }
 
 /// Format multiple paths with default options.
@@ -285,5 +322,80 @@ mod tests {
         assert_eq!(lines.len(), 2);
         assert!(lines[0].contains("1"));
         assert!(lines[1].contains("2"));
+    }
+
+    #[test]
+    fn test_format_paths_with_captures() {
+        use std::collections::HashMap;
+
+        let path1 = vec![CBOR::from(1)];
+        let path2 = vec![CBOR::from(2)];
+        let paths = vec![path1.clone(), path2.clone()];
+
+        let mut captures = HashMap::new();
+        captures.insert("capture1".to_string(), vec![path1]);
+        captures.insert("capture2".to_string(), vec![path2]);
+
+        let formatted = format_paths_with_captures(
+            &paths,
+            &captures,
+            FormatPathsOpts::default(),
+        );
+        let lines: Vec<&str> = formatted.split('\n').collect();
+
+        // Should have captures first (sorted), then regular paths
+        assert!(lines[0] == "@capture1");
+        assert!(lines[1].contains("   1")); // Indented capture content
+        assert!(lines[2] == "@capture2");
+        assert!(lines[3].contains("   2")); // Indented capture content
+        assert!(lines[4].contains("1")); // Regular path 1
+        assert!(lines[5].contains("2")); // Regular path 2
+    }
+
+    #[test]
+    fn test_format_paths_with_empty_captures() {
+        use std::collections::HashMap;
+
+        let path1 = vec![CBOR::from(1)];
+        let path2 = vec![CBOR::from(2)];
+        let paths = vec![path1, path2];
+
+        let captures = HashMap::new();
+        let formatted = format_paths_with_captures(
+            &paths,
+            &captures,
+            FormatPathsOpts::default(),
+        );
+
+        // Should be same as format_paths when no captures
+        let expected = format_paths(&paths);
+        assert_eq!(formatted, expected);
+    }
+
+    #[test]
+    fn test_capture_names_sorted() {
+        use std::collections::HashMap;
+
+        let path1 = vec![CBOR::from(1)];
+        let path2 = vec![CBOR::from(2)];
+        let path3 = vec![CBOR::from(3)];
+        let paths = vec![];
+
+        let mut captures = HashMap::new();
+        captures.insert("zebra".to_string(), vec![path1]);
+        captures.insert("alpha".to_string(), vec![path2]);
+        captures.insert("beta".to_string(), vec![path3]);
+
+        let formatted = format_paths_with_captures(
+            &paths,
+            &captures,
+            FormatPathsOpts::default(),
+        );
+        let lines: Vec<&str> = formatted.split('\n').collect();
+
+        // Should be sorted lexicographically
+        assert!(lines[0] == "@alpha");
+        assert!(lines[2] == "@beta");
+        assert!(lines[4] == "@zebra");
     }
 }

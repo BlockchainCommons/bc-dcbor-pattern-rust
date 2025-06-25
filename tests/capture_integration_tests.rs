@@ -4,7 +4,7 @@ mod common;
 
 use dcbor::prelude::*;
 use dcbor_parse::parse_dcbor_item;
-use dcbor_pattern::{Matcher, Pattern, Result, format_paths};
+use dcbor_pattern::{Matcher, Pattern, Result, format_paths_with_captures};
 use indoc::indoc;
 
 /// Test basic capture functionality with simple patterns
@@ -15,23 +15,21 @@ fn test_capture_basic_number() -> Result<()> {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
 
-    // Should match the root
-    assert_eq!(paths.len(), 1);
-    assert_eq!(paths[0], vec![cbor.clone()]);
-
-    // Validate formatted output
+    // Validate formatted output with captures
     #[rustfmt::skip]
-    let expected_paths = indoc! {r#"
+    let expected_output = indoc! {r#"
+        @num
+           42
         42
     "#}.trim();
-    assert_actual_expected!(format_paths(&paths), expected_paths);
-
-    // Should capture the number
-    assert_eq!(captures.len(), 1);
-    assert!(captures.contains_key("num"));
-    let captured_paths = &captures["num"];
-    assert_eq!(captured_paths.len(), 1);
-    assert_eq!(captured_paths[0], vec![cbor.clone()]);
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &paths,
+            &captures,
+            dcbor_pattern::FormatPathsOpts::default()
+        ),
+        expected_output
+    );
 
     Ok(())
 }
@@ -44,18 +42,21 @@ fn test_capture_basic_text() -> Result<()> {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
 
-    // Should match and capture
-    assert_eq!(paths.len(), 1);
-    assert_eq!(captures.len(), 1);
-    assert!(captures.contains_key("greeting"));
-    assert_eq!(captures["greeting"][0], vec![cbor.clone()]);
-
-    // Validate formatted output
+    // Validate formatted output with captures
     #[rustfmt::skip]
-    let expected_paths = indoc! {r#"
+    let expected_output = indoc! {r#"
+        @greeting
+           "hello"
         "hello"
     "#}.trim();
-    assert_actual_expected!(format_paths(&paths), expected_paths);
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &paths,
+            &captures,
+            dcbor_pattern::FormatPathsOpts::default()
+        ),
+        expected_output
+    );
 
     Ok(())
 }
@@ -68,9 +69,16 @@ fn test_capture_no_match() -> Result<()> {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
 
-    // Should not match
-    assert_eq!(paths.len(), 0);
-    assert_eq!(captures.len(), 0);
+    // Should not match - should be empty output
+    let expected_output = "";
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &paths,
+            &captures,
+            dcbor_pattern::FormatPathsOpts::default()
+        ),
+        expected_output
+    );
 
     Ok(())
 }
@@ -85,19 +93,39 @@ fn test_multiple_captures_or() -> Result<()> {
     let cbor1 = parse_dcbor_item("42").unwrap();
     let (paths1, captures1) = pattern.paths_with_captures(&cbor1);
 
-    assert_eq!(paths1.len(), 1);
-    assert_eq!(captures1.len(), 1);
-    assert!(captures1.contains_key("first"));
-    assert!(!captures1.contains_key("second"));
+    #[rustfmt::skip]
+    let expected_output1 = indoc! {r#"
+        @first
+           42
+        42
+    "#}.trim();
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &paths1,
+            &captures1,
+            dcbor_pattern::FormatPathsOpts::default()
+        ),
+        expected_output1
+    );
 
     // Test matching the second alternative
     let cbor2 = parse_dcbor_item(r#""hello""#).unwrap();
     let (paths2, captures2) = pattern.paths_with_captures(&cbor2);
 
-    assert_eq!(paths2.len(), 1);
-    assert_eq!(captures2.len(), 1);
-    assert!(captures2.contains_key("second"));
-    assert!(!captures2.contains_key("first"));
+    #[rustfmt::skip]
+    let expected_output2 = indoc! {r#"
+        @second
+           "hello"
+        "hello"
+    "#}.trim();
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &paths2,
+            &captures2,
+            dcbor_pattern::FormatPathsOpts::default()
+        ),
+        expected_output2
+    );
 
     Ok(())
 }
@@ -110,17 +138,24 @@ fn test_nested_captures() -> Result<()> {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
 
-    // Should match
-    assert_eq!(paths.len(), 1);
-
-    // Should have both captures pointing to the same value
-    assert_eq!(captures.len(), 2);
-    assert!(captures.contains_key("outer"));
-    assert!(captures.contains_key("inner"));
-
-    // Both captures should point to the same path
-    assert_eq!(captures["outer"][0], vec![cbor.clone()]);
-    assert_eq!(captures["inner"][0], vec![cbor.clone()]);
+    // Should have both captures pointing to the same value, sorted
+    // alphabetically
+    #[rustfmt::skip]
+    let expected_output = indoc! {r#"
+        @inner
+           42
+        @outer
+           42
+        42
+    "#}.trim();
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &paths,
+            &captures,
+            dcbor_pattern::FormatPathsOpts::default()
+        ),
+        expected_output
+    );
 
     Ok(())
 }
@@ -133,19 +168,22 @@ fn test_capture_in_array() -> Result<()> {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
 
-    // Should match the array
-    assert_eq!(paths.len(), 1);
-    assert_eq!(paths[0], vec![cbor.clone()]);
-
-    // Should capture the number element
-    assert_eq!(captures.len(), 1);
-    assert!(captures.contains_key("item"));
-
-    let captured = &captures["item"][0];
-    // The captured path should be [array, element]
-    assert_eq!(captured.len(), 2);
-    assert_eq!(captured[0], cbor);
-    assert_eq!(captured[1], CBOR::from(42));
+    // Validate the structured output
+    #[rustfmt::skip]
+    let expected_output = indoc! {r#"
+        @item
+           [42]
+               42
+        [42]
+    "#}.trim();
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &paths,
+            &captures,
+            dcbor_pattern::FormatPathsOpts::default()
+        ),
+        expected_output
+    );
 
     Ok(())
 }
@@ -159,23 +197,25 @@ fn test_capture_in_array_sequence() -> Result<()> {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
 
-    // Should match the array
-    assert_eq!(paths.len(), 1);
-
-    // Should have both captures
-    assert_eq!(captures.len(), 2);
-    assert!(captures.contains_key("first"));
-    assert!(captures.contains_key("second"));
-
-    // Check first capture points to "a"
-    let first_path = &captures["first"][0];
-    assert_eq!(first_path.len(), 2);
-    assert_eq!(first_path[1], CBOR::from("a"));
-
-    // Check second capture points to 42
-    let second_path = &captures["second"][0];
-    assert_eq!(second_path.len(), 2);
-    assert_eq!(second_path[1], CBOR::from(42));
+    // Should capture both elements, sorted alphabetically
+    #[rustfmt::skip]
+    let expected_output = indoc! {r#"
+        @first
+           ["a", 42]
+               "a"
+        @second
+           ["a", 42]
+               42
+        ["a", 42]
+    "#}.trim();
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &paths,
+            &captures,
+            dcbor_pattern::FormatPathsOpts::default()
+        ),
+        expected_output
+    );
 
     Ok(())
 }
