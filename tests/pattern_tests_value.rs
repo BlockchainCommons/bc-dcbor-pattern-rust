@@ -1,6 +1,9 @@
+mod common;
+
 use dcbor::{Date, prelude::*};
 use dcbor_parse::parse_dcbor_item;
-use dcbor_pattern::{Matcher, Pattern};
+use dcbor_pattern::{format_paths, Matcher, Pattern};
+use indoc::indoc;
 
 /// Helper function to parse CBOR diagnostic notation into CBOR objects
 fn cbor(s: &str) -> CBOR { parse_dcbor_item(s).unwrap() }
@@ -13,23 +16,36 @@ fn test_bool_pattern_any() {
     let true_cbor = cbor("true");
     assert!(pattern.matches(&true_cbor));
     let paths = pattern.paths(&true_cbor);
-    assert_eq!(paths.len(), 1);
-    assert_eq!(paths[0].len(), 1);
-    assert_eq!(paths[0][0], true_cbor);
+    // NO LONGER NECESSARY
+    // assert_eq!(paths.len(), 1);
+    // assert_eq!(paths[0].len(), 1);
+    // assert_eq!(paths[0][0], true_cbor);
+
+    let expected = indoc! {r#"
+        true
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should match false
     let false_cbor = cbor("false");
     assert!(pattern.matches(&false_cbor));
     let paths = pattern.paths(&false_cbor);
-    assert_eq!(paths.len(), 1);
-    assert_eq!(paths[0].len(), 1);
-    assert_eq!(paths[0][0], false_cbor);
+    // NO LONGER NECESSARY
+    // assert_eq!(paths.len(), 1);
+    // assert_eq!(paths[0].len(), 1);
+    // assert_eq!(paths[0][0], false_cbor);
+
+    let expected = indoc! {r#"
+        false
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match non-boolean
     let number_cbor = cbor("42");
     assert!(!pattern.matches(&number_cbor));
-    let paths = pattern.paths(&number_cbor);
-    assert_eq!(paths.len(), 0);
+    // REDUNDANT
+    // let paths = pattern.paths(&number_cbor);
+    // assert_eq!(paths.len(), 0);
 }
 
 #[test]
