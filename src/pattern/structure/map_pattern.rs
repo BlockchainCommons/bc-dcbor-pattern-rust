@@ -148,10 +148,14 @@ impl std::fmt::Display for MapPattern {
                 write!(f, "MAP_KV({}, {})", key_pattern, value_pattern)
             }
             MapPattern::WithLength(length) => {
-                write!(f, "MAP_LEN({})", length)
+                write!(f, "MAP({{{}}})", length)
             }
             MapPattern::WithLengthRange(range) => {
-                write!(f, "MAP_LEN_RANGE({}..={})", range.start(), range.end())
+                if range.end() == &usize::MAX {
+                    write!(f, "MAP({{{},}})", range.start())
+                } else {
+                    write!(f, "MAP({{{},{}}})", range.start(), range.end())
+                }
             }
         }
     }

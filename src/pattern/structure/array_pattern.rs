@@ -103,15 +103,14 @@ impl std::fmt::Display for ArrayPattern {
                 write!(f, "ARRAY_ELEM({})", pattern)
             }
             ArrayPattern::WithLength(length) => {
-                write!(f, "ARRAY_LEN({})", length)
+                write!(f, "ARRAY({{{}}})", length)
             }
             ArrayPattern::WithLengthRange(range) => {
-                write!(
-                    f,
-                    "ARRAY_LEN_RANGE({}..={})",
-                    range.start(),
-                    range.end()
-                )
+                if range.end() == &usize::MAX {
+                    write!(f, "ARRAY({{{},}})", range.start())
+                } else {
+                    write!(f, "ARRAY({{{},{}}})", range.start(), range.end())
+                }
             }
         }
     }

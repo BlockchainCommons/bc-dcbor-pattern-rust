@@ -34,9 +34,9 @@ impl Matcher for StructurePattern {
 impl std::fmt::Display for StructurePattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            StructurePattern::Array(_) => write!(f, "array"),
-            StructurePattern::Map(_) => write!(f, "map"),
-            StructurePattern::Tagged(_) => write!(f, "tagged"),
+            StructurePattern::Array(pattern) => write!(f, "{}", pattern),
+            StructurePattern::Map(pattern) => write!(f, "{}", pattern),
+            StructurePattern::Tagged(pattern) => write!(f, "{}", pattern),
         }
     }
 }

@@ -186,18 +186,18 @@ fn test_tagged_pattern_with_content() {
 fn test_structure_pattern_display() {
     // Array patterns
     assert_eq!(format!("{}", ArrayPattern::any()), "ARRAY");
-    assert_eq!(format!("{}", ArrayPattern::with_length(5)), "ARRAY_LEN(5)");
+    assert_eq!(format!("{}", ArrayPattern::with_length(5)), "ARRAY({5})");
     assert_eq!(
         format!("{}", ArrayPattern::with_length_range(1..=10)),
-        "ARRAY_LEN_RANGE(1..=10)"
+        "ARRAY({1,10})"
     );
 
     // Map patterns
     assert_eq!(format!("{}", MapPattern::any()), "MAP");
-    assert_eq!(format!("{}", MapPattern::with_length(3)), "MAP_LEN(3)");
+    assert_eq!(format!("{}", MapPattern::with_length(3)), "MAP({3})");
     assert_eq!(
         format!("{}", MapPattern::with_length_range(2..=8)),
-        "MAP_LEN_RANGE(2..=8)"
+        "MAP({2,8})"
     );
 
     // Tagged patterns

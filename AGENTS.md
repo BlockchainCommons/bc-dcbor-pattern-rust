@@ -182,10 +182,12 @@ Comparison: `bc-envelope-pattern::pattern::meta` has 11 meta patterns vs our 8
 
 **❌ Empty files (need implementation):**
 
-#### ❌ Structure Parsers (parse::structure)
+#### ✅ Structure Parsers (parse::structure)
+**✅ Fully implemented:**
+- [x] `array_parser.rs` - CBOR array parsing (**FULLY IMPLEMENTED with length range support!**)
+- [x] `map_parser.rs` - CBOR map parsing (**FULLY IMPLEMENTED with length range support!**)
+
 **❌ Empty files (need implementation):**
-- [ ] `array_parser.rs` - CBOR array parsing
-- [ ] `map_parser.rs` - CBOR map parsing
 - [ ] `tagged_parser.rs` - CBOR tagged value parsing
 
 #### 🔨 Meta Parsers (parse::meta)
@@ -202,7 +204,7 @@ Comparison: `bc-envelope-pattern::pattern::meta` has 11 meta patterns vs our 8
 - [ ] `search_parser.rs` - Search pattern parsing
 
 **❌ Missing critical parsers (present in bc-envelope-pattern):**
-- [ ] `parse_pattern.rs` - Main pattern parsing entry point (**PARTIAL: Pattern::parse in pattern_impl.rs supports BOOL, BSTR, DATE, DIGEST, KNOWN, NUMBER, NULL, TEXT only**)
+- [ ] `parse_pattern.rs` - Main pattern parsing entry point (**PARTIAL: Pattern::parse in pattern_impl.rs supports ARRAY, BOOL, BSTR, DATE, DIGEST, KNOWN, NUMBER, NULL, TEXT only**)
 - [ ] `utils.rs` - Parsing utility functions
 - [ ] `group_parser.rs` - Group pattern parsing
 - [ ] `primary_parser.rs` - Primary pattern parsing
@@ -225,13 +227,15 @@ Comparison: `bc-envelope-pattern::pattern::meta` has 11 meta patterns vs our 8
 ### Priority Implementation Order
 
 **Next Priority Tasks:**
-1. **Complete Stub Patterns** - Implement search_pattern.rs fully (paths() and compile() methods)
-2. **Structure Pattern Parsers** - Text syntax parsing for arrays, maps, and tagged values
-3. **Complete Meta Pattern Parsers** - Implement and, not, or, search parsers and fix capture parser
+1. **Structure Pattern Parsers** - Implement tagged_parser.rs to complete structure pattern text syntax parsing (2/3 done)
+2. **Complete Meta Pattern Parsers** - Implement and, not, or, search parsers and fix capture parser
+3. **Complete Stub Patterns** - Implement search_pattern.rs fully (paths() and compile() methods)
 4. **Main Parse Pattern Entry Point** - Complete Pattern::parse to support all pattern types
 5. **Complete Test Coverage** - Tests for all implemented features
 
 **Completed Major Milestones:**
+- ✅ **Map Pattern Parsing** - Full map pattern parsing with length range support and Pattern::parse integration!
+- ✅ **Array Pattern Parsing** - Full array pattern parsing with length range support and Pattern::parse integration!
 - ✅ **All Value Pattern Parsers Complete** - All 8 value pattern parsers fully implemented (bool, bytestring, date, digest, known value, null, number, text)!
 - ✅ **Digest Pattern Parsing** - Full digest pattern parsing with hex prefix and UR string support, including Pattern::parse integration!
 - ✅ **Known Value Pattern Parsing** - Full known value pattern parsing with numeric, named, and regex support!

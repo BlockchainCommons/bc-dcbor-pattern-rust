@@ -321,26 +321,29 @@ impl Pattern {
 
     /// Parses a pattern from a string.
     ///
-    /// This implementation currently supports boolean, bytestring, date,
-    /// digest, number, null, and text patterns. More patterns will be added
-    /// as they are implemented.
+    /// This implementation currently supports array, boolean, bytestring, date,
+    /// digest, map, number, null, and text patterns. More patterns will be
+    /// added as they are implemented.
     pub fn parse(input: &str) -> Result<Self> {
         use logos::Logos;
 
         use crate::parse::{
-            Token,
+            Token, parse_array, parse_map,
             value::{
-                parse_bool, parse_bytestring, parse_date, parse_digest, parse_null, parse_number, parse_text,
+                parse_bool, parse_bytestring, parse_date, parse_digest,
+                parse_null, parse_number, parse_text,
             },
         };
 
         let mut lexer = Token::lexer(input);
 
         match lexer.next() {
+            Some(Ok(Token::Array)) => parse_array(&mut lexer),
             Some(Ok(Token::Bool)) => parse_bool(&mut lexer),
             Some(Ok(Token::ByteString)) => parse_bytestring(&mut lexer),
             Some(Ok(Token::Date)) => parse_date(&mut lexer),
             Some(Ok(Token::Digest)) => parse_digest(&mut lexer),
+            Some(Ok(Token::Map)) => parse_map(&mut lexer),
             Some(Ok(Token::Number)) => parse_number(&mut lexer),
             Some(Ok(Token::Null)) => parse_null(&mut lexer),
             Some(Ok(Token::Text)) => parse_text(&mut lexer),
@@ -395,7 +398,7 @@ impl std::fmt::Display for Pattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Pattern::Value(pattern) => write!(f, "{}", pattern),
-            Pattern::Structure(pattern) => write!(f, "{:?}", pattern), /* Temporary */
+            Pattern::Structure(pattern) => write!(f, "{}", pattern),
             Pattern::Meta(pattern) => write!(f, "{}", pattern),
         }
     }
