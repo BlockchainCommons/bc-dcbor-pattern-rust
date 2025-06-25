@@ -319,40 +319,42 @@ impl Pattern {
         ))
     }
 
-    /// Parses a pattern from a string.
+    /// Parse a pattern expression from a string.
     ///
-    /// This implementation currently supports array, boolean, bytestring, date,
-    /// digest, map, number, null, and text patterns. More patterns will be
-    /// added as they are implemented.
+    /// This method supports the full dCBOR pattern syntax including:
+    /// - Value patterns: BOOL, TEXT, NUMBER, NULL, BSTR, DATE, DIGEST, KNOWN
+    /// - Structure patterns: ARRAY, MAP, TAG
+    /// - Meta patterns: ANY, NONE, AND (&), OR (|), NOT (!)
+    /// - Capture patterns: @name(pattern)
+    /// - Grouping with parentheses
+    /// - Quantifiers: *, +, ?, {n,m}
+    ///
+    /// Examples:
+    /// - `BOOL` - matches any boolean value
+    /// - `TEXT("hello")` - matches the text "hello"
+    /// - `NUMBER(1..10)` - matches numbers from 1 to 10
+    /// - `BOOL | TEXT` - matches boolean or text values
+    /// - `@name(TEXT)` - captures text with name "name"
     pub fn parse(input: &str) -> Result<Self> {
         use logos::Logos;
-
-        use crate::parse::{
-            Token, parse_array, parse_map, parse_tagged,
-            value::{
-                parse_bool, parse_bytestring, parse_date, parse_digest,
-                parse_null, parse_number, parse_text,
-            },
-        };
+        use crate::parse::{Token, meta::parse_or};
 
         let mut lexer = Token::lexer(input);
+        let pattern = parse_or(&mut lexer)?;
 
         match lexer.next() {
-            Some(Ok(Token::Array)) => parse_array(&mut lexer),
-            Some(Ok(Token::Bool)) => parse_bool(&mut lexer),
-            Some(Ok(Token::ByteString)) => parse_bytestring(&mut lexer),
-            Some(Ok(Token::Date)) => parse_date(&mut lexer),
-            Some(Ok(Token::Digest)) => parse_digest(&mut lexer),
-            Some(Ok(Token::Map)) => parse_map(&mut lexer),
-            Some(Ok(Token::Number)) => parse_number(&mut lexer),
-            Some(Ok(Token::Null)) => parse_null(&mut lexer),
-            Some(Ok(Token::Tagged)) => parse_tagged(&mut lexer),
-            Some(Ok(Token::Text)) => parse_text(&mut lexer),
-            Some(Ok(token)) => {
-                Err(Error::UnexpectedToken(Box::new(token), lexer.span()))
+            None => Ok(pattern),
+            Some(Ok(_)) => Err(Error::ExtraData(lexer.span())),
+            Some(Err(e)) => {
+                // If we get an Unknown error from the lexer, convert it to
+                // UnrecognizedToken with span information
+                match e {
+                    Error::Unknown => {
+                        Err(Error::UnrecognizedToken(lexer.span()))
+                    }
+                    _ => Err(e),
+                }
             }
-            Some(Err(e)) => Err(e),
-            None => Err(Error::EmptyInput),
         }
     }
 }

@@ -2,7 +2,7 @@
 // Many parsers are currently unimplemented stubs or empty files
 #![allow(dead_code, unused_imports, unused_variables)]
 
-mod meta;
+pub mod meta;
 mod structure;
 mod token;
 pub mod value;

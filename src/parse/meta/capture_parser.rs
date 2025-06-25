@@ -1,6 +1,4 @@
-// NOTE: This parser is a stub implementation pending completion of the parsing infrastructure
-// TODO: Implement full capture pattern parsing when or_parser is available
-
+use super::{super::Token, parse_or};
 use crate::{Error, Pattern, Result};
 
 /// Parse a capture pattern of the form `@name(pattern)`.
@@ -9,11 +7,28 @@ use crate::{Error, Pattern, Result};
 /// It expects the next token to be an opening parenthesis, followed by a pattern,
 /// followed by a closing parenthesis.
 ///
-/// Currently this is a stub implementation pending completion of the parsing infrastructure.
+/// Examples:
+/// - `@count(NUMBER)` - captures any number with the name "count"
+/// - `@name(TEXT)` - captures any text with the name "name"
+/// - `@item(ARRAY | MAP)` - captures any array or map with the name "item"
 pub(crate) fn parse_capture(
-    _lexer: &mut logos::Lexer<crate::parse::Token>,
-    _name: String,
+    lexer: &mut logos::Lexer<Token>,
+    name: String,
 ) -> Result<Pattern> {
-    // TODO: Implement when or_parser is available
-    Err(Error::UnexpectedEndOfInput)
+    match lexer.next() {
+        Some(Ok(Token::ParenOpen)) => {
+            let pattern = parse_or(lexer)?;
+            match lexer.next() {
+                Some(Ok(Token::ParenClose)) => Ok(Pattern::capture(name, pattern)),
+                Some(Ok(token)) => {
+                    Err(Error::UnexpectedToken(Box::new(token), lexer.span()))
+                }
+                Some(Err(e)) => Err(e),
+                None => Err(Error::ExpectedCloseParen(lexer.span())),
+            }
+        }
+        Some(Ok(token)) => Err(Error::UnexpectedToken(Box::new(token), lexer.span())),
+        Some(Err(e)) => Err(e),
+        None => Err(Error::UnexpectedEndOfInput),
+    }
 }
