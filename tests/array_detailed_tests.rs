@@ -2,7 +2,9 @@ mod common;
 
 use dcbor::CBORCase;
 use dcbor_parse::parse_dcbor_item;
-use dcbor_pattern::{Matcher, Pattern, format_paths};
+use dcbor_pattern::{
+    FormatPathsOpts, Matcher, Pattern, format_paths, format_paths_with_captures,
+};
 use indoc::indoc;
 
 /// Helper function to parse CBOR diagnostic notation into CBOR objects
@@ -22,16 +24,20 @@ fn test_array_pattern_paths_with_captures() {
         inner_pattern.paths_with_captures(&cbor_data);
 
     #[rustfmt::skip]
-    let expected_inner_paths = indoc! {r#"
+    let expected_inner = indoc! {r#"
+        @item
+            [42]
+                42
         [42]
     "#}.trim();
-    assert_actual_expected!(format_paths(&inner_paths), expected_inner_paths);
-
-    assert_eq!(inner_captures.len(), 1);
-    assert!(inner_captures.contains_key("item"));
-    let captured_paths = &inner_captures["item"];
-    assert_eq!(captured_paths.len(), 1);
-    assert_eq!(captured_paths[0], vec![cbor("[42]"), cbor("42")]);
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &inner_paths,
+            &inner_captures,
+            FormatPathsOpts::default()
+        ),
+        expected_inner
+    );
 
     // Test the inner pattern on the array element directly
     let element = cbor("42");
@@ -40,24 +46,28 @@ fn test_array_pattern_paths_with_captures() {
         element_pattern.paths_with_captures(&element);
 
     #[rustfmt::skip]
-    let expected_element_paths = indoc! {r#"
+    let expected_element = indoc! {r#"
+        @item
+            42
         42
     "#}.trim();
     assert_actual_expected!(
-        format_paths(&element_paths),
-        expected_element_paths
+        format_paths_with_captures(
+            &element_paths,
+            &element_captures,
+            FormatPathsOpts::default()
+        ),
+        expected_element
     );
-
-    assert_eq!(element_captures.len(), 1);
-    assert!(element_captures.contains_key("item"));
-    let element_captured_paths = &element_captures["item"];
-    assert_eq!(element_captured_paths.len(), 1);
-    assert_eq!(element_captured_paths[0], vec![element]);
 
     // Test what happens when we call paths() on the inner pattern with the
     // array
     let pattern_paths = inner_pattern.paths(&cbor_data);
-    assert_actual_expected!(format_paths(&pattern_paths), expected_inner_paths);
+    #[rustfmt::skip]
+    let expected_paths_only = indoc! {r#"
+        [42]
+    "#}.trim();
+    assert_actual_expected!(format_paths(&pattern_paths), expected_paths_only);
 }
 
 #[test]
@@ -67,30 +77,23 @@ fn test_array_element_traversal() {
     if let CBORCase::Array(arr) = cbor_data.as_case() {
         assert_eq!(arr.len(), 1, "Array should have one element");
 
-        for (i, element) in arr.iter().enumerate() {
+        for element in arr.iter() {
             let pattern = parse("@item(NUMBER(42))");
             let (paths, captures) = pattern.paths_with_captures(element);
 
             #[rustfmt::skip]
-            let expected_paths = indoc! {r#"
+            let expected = indoc! {r#"
+                @item
+                    42
                 42
             "#}.trim();
-            assert_actual_expected!(format_paths(&paths), expected_paths);
-
-            assert_eq!(
-                captures.len(),
-                1,
-                "Should have one capture for element {}",
-                i
-            );
-            assert!(captures.contains_key("item"));
-            let captured_paths = &captures["item"];
-            assert_eq!(captured_paths.len(), 1);
-            assert_eq!(
-                captured_paths[0],
-                vec![element.clone()],
-                "Capture should match element {}",
-                i
+            assert_actual_expected!(
+                format_paths_with_captures(
+                    &paths,
+                    &captures,
+                    FormatPathsOpts::default()
+                ),
+                expected
             );
         }
     } else {
@@ -105,14 +108,27 @@ fn test_array_pattern_with_multiple_elements() {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
-    // Array patterns can return multiple paths when they match multiple
-    // elements
-    assert!(!paths.is_empty(), "Should have at least one path");
-
-    // Note: captures will contain multiple values for the same name when
-    // matching multiple elements
-    assert!(!captures.is_empty(), "Should have captures");
-    assert!(captures.contains_key("item"), "Should have item captures");
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        @item
+            [42, 100, 200]
+                200
+            [42, 100, 200]
+                100
+            [42, 100, 200]
+                42
+        [42, 100, 200]
+        [42, 100, 200]
+        [42, 100, 200]
+    "#}.trim();
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &paths,
+            &captures,
+            FormatPathsOpts::default()
+        ),
+        expected
+    );
 }
 
 #[test]
@@ -122,18 +138,30 @@ fn test_array_pattern_nested_structure() {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
-    // Should match the outer array
-    assert!(!paths.is_empty(), "Should have at least one path");
-
-    // Should have captures for both outer and inner items
-    assert!(!captures.is_empty(), "Should have captures");
-    assert!(
-        captures.contains_key("outer_item"),
-        "Should have outer_item captures"
-    );
-    assert!(
-        captures.contains_key("inner_item"),
-        "Should have inner_item captures"
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        @inner_item
+            [[42], [100]]
+                [100]
+                    100
+            [[42], [100]]
+                [42]
+                    42
+        @outer_item
+            [[42], [100]]
+                [100]
+            [[42], [100]]
+                [42]
+        [[42], [100]]
+        [[42], [100]]
+    "#}.trim();
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &paths,
+            &captures,
+            FormatPathsOpts::default()
+        ),
+        expected
     );
 }
 
@@ -144,16 +172,23 @@ fn test_array_pattern_specific_value_matching() {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
-    // Should match when array contains the specific value
-    assert!(!paths.is_empty(), "Should have at least one path");
-
-    assert!(
-        !captures.is_empty(),
-        "Should have captures for matching elements"
-    );
-    assert!(
-        captures.contains_key("specific"),
-        "Should have specific captures"
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        @specific
+            [42, 100, 42]
+                42
+            [42, 100, 42]
+                42
+        [42, 100, 42]
+        [42, 100, 42]
+    "#}.trim();
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &paths,
+            &captures,
+            FormatPathsOpts::default()
+        ),
+        expected
     );
 }
 
@@ -164,14 +199,17 @@ fn test_array_pattern_no_match() {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
-    // Should have no paths or captures when no elements match
-    assert!(
-        paths.is_empty(),
-        "No paths should be returned for non-matching pattern"
-    );
-    assert!(
-        captures.is_empty(),
-        "No captures should be returned for non-matching pattern"
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+
+    "#}.trim();
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &paths,
+            &captures,
+            FormatPathsOpts::default()
+        ),
+        expected
     );
 }
 
@@ -182,15 +220,36 @@ fn test_array_pattern_mixed_types() {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
-    // Should match the array and its elements
-    assert!(!paths.is_empty(), "Should have at least one path");
-
-    assert!(
-        !captures.is_empty(),
-        "Should have captures for all elements"
-    );
-    assert!(
-        captures.contains_key("any_item"),
-        "Should have any_item captures"
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        @any_item
+            [42, "hello", true, [1, 2]]
+                [1, 2]
+            [42, "hello", true, [1, 2]]
+                true
+            [42, "hello", true, [1, 2]]
+                "hello"
+            [42, "hello", true, [1, 2]]
+                42
+        [42, "hello", true, [1, 2]]
+            [1, 2]
+        [42, "hello", true, [1, 2]]
+        [42, "hello", true, [1, 2]]
+            true
+        [42, "hello", true, [1, 2]]
+        [42, "hello", true, [1, 2]]
+            "hello"
+        [42, "hello", true, [1, 2]]
+        [42, "hello", true, [1, 2]]
+            42
+        [42, "hello", true, [1, 2]]
+    "#}.trim();
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &paths,
+            &captures,
+            FormatPathsOpts::default()
+        ),
+        expected
     );
 }
