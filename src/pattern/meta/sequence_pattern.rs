@@ -101,7 +101,7 @@ impl std::fmt::Display for SequencePattern {
             write!(f, "()")
         } else {
             let patterns_str: Vec<String> = self.patterns.iter().map(|p| p.to_string()).collect();
-            write!(f, "{}", patterns_str.join(" > "))
+            write!(f, "{}", patterns_str.join(">"))
         }
     }
 }
@@ -148,7 +148,7 @@ mod tests {
         assert!(display.contains("first"));
         assert!(display.contains("second"));
         assert!(display.contains("third"));
-        assert!(display.contains(" > "));
+        assert!(display.contains(">"));
     }
 
     #[test]
@@ -260,7 +260,7 @@ mod tests {
         assert!(display.contains("first"));
         assert!(display.contains("second"));
         assert!(display.contains("third"));
-        assert!(display.contains(" > "));
+        assert!(display.contains(">"));
     }
 
     #[test]
@@ -308,7 +308,7 @@ mod tests {
         let display = sequence.to_string();
         assert!(display.contains("middle1"));
         assert!(display.contains("middle2"));
-        assert!(display.contains(" > "));
+        assert!(display.contains(">"));
     }
 
     #[test]
@@ -331,7 +331,7 @@ mod tests {
         let display = sequence.to_string();
         assert!(display.contains("@first_value"));
         assert!(display.contains("@second_value"));
-        assert!(display.contains(" > "));
+        assert!(display.contains(">"));
     }
 
     #[test]
@@ -380,6 +380,6 @@ mod tests {
 
         // Test display formatting
         let display = sequence.to_string();
-        assert!(display.contains(" > "));
+        assert!(display.contains(">"));
     }
 }

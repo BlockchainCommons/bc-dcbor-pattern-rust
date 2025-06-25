@@ -1,4 +1,4 @@
-use dcbor_pattern::{Pattern, Result};
+use dcbor_pattern::{Pattern, Result, Matcher};
 
 /// Test the OR parser with various patterns
 #[test]
@@ -350,6 +350,119 @@ fn test_parse_search_in_combinations() -> Result<()> {
     // AND with search
     let pattern = Pattern::parse("SEARCH(NUMBER(42)) & SEARCH(TEXT)")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
+
+    Ok(())
+}
+
+/// Test sequence parsing with various patterns
+#[test]
+fn test_parse_sequence_simple() -> Result<()> {
+    let pattern = Pattern::parse(r#"TEXT("hello") > NUMBER(42)"#)?;
+    assert!(matches!(pattern, Pattern::Meta(_)));
+
+    // Test display formatting includes sequence operator
+    let display = pattern.to_string();
+    assert!(display.contains(">"));
+    assert!(display.contains(r#"TEXT("hello")"#));
+    assert!(display.contains("NUMBER(42)"));
+    Ok(())
+}
+
+#[test]
+fn test_parse_sequence_three_patterns() -> Result<()> {
+    let pattern = Pattern::parse("BOOL > TEXT > NUMBER")?;
+    assert!(matches!(pattern, Pattern::Meta(_)));
+
+    // Test display formatting
+    let display = pattern.to_string();
+    assert!(display.contains("BOOL>TEXT>NUMBER"));
+    Ok(())
+}
+
+#[test]
+fn test_parse_sequence_single_pattern() -> Result<()> {
+    let pattern = Pattern::parse("BOOL")?;
+    // Should return the pattern directly, not wrapped in sequence
+    assert!(matches!(pattern, Pattern::Value(_)));
+    Ok(())
+}
+
+#[test]
+fn test_parse_sequence_with_parentheses() -> Result<()> {
+    let pattern = Pattern::parse("(TEXT > NUMBER) | BOOL")?;
+    assert!(matches!(pattern, Pattern::Meta(_)));
+
+    // Should parse as OR of (sequence) and BOOL
+    let display = pattern.to_string();
+    assert!(display.contains("|"));
+    assert!(display.contains(">"));
+    Ok(())
+}
+
+#[test]
+fn test_parse_sequence_precedence_with_or() -> Result<()> {
+    // Test precedence: OR has lower precedence than SEQUENCE
+    let pattern = Pattern::parse("BOOL | TEXT > NUMBER")?;
+    assert!(matches!(pattern, Pattern::Meta(_)));
+
+    // Should parse as: BOOL | (TEXT > NUMBER)
+    // Because sequence has higher precedence than OR
+    let display = pattern.to_string();
+    assert_eq!(display, "BOOL|TEXT>NUMBER");
+    Ok(())
+}
+
+#[test]
+fn test_parse_sequence_precedence_with_and() -> Result<()> {
+    // Test precedence: AND has lower precedence than SEQUENCE
+    let pattern = Pattern::parse("BOOL & TEXT > NUMBER")?;
+    assert!(matches!(pattern, Pattern::Meta(_)));
+
+    // Should parse as: BOOL & (TEXT > NUMBER)
+    let display = pattern.to_string();
+    assert_eq!(display, "BOOL&TEXT>NUMBER");
+    Ok(())
+}
+
+#[test]
+fn test_parse_sequence_with_complex_patterns() -> Result<()> {
+    let pattern = Pattern::parse(r#"ARRAY > MAP > TAG(100, TEXT("content"))"#)?;
+    assert!(matches!(pattern, Pattern::Meta(_)));
+
+    let display = pattern.to_string();
+    assert!(display.contains("ARRAY>MAP>TAG"));
+    Ok(())
+}
+
+/// Test that sequence parsing is working correctly
+#[test]
+fn test_sequence_parsing_functionality() -> Result<()> {
+    // Test that sequences can be parsed and display correctly
+    let pattern = Pattern::parse(r#"NUMBER(1) > NUMBER(2) > NUMBER(3)"#)?;
+
+    // Verify it's a sequence pattern
+    assert!(matches!(pattern, Pattern::Meta(_)));
+
+    // Check the display format
+    let display = pattern.to_string();
+    assert!(display.contains("NUMBER(1)>NUMBER(2)>NUMBER(3)"));
+
+    // Verify that the pattern is recognized as complex
+    assert!(pattern.is_complex());
+
+    Ok(())
+}
+
+#[test]
+fn test_sequence_parsing_mixed_types_display() -> Result<()> {
+    let pattern = Pattern::parse(r#"TEXT("hello") > NUMBER(42) > BOOL(true)"#)?;
+
+    // Verify correct parsing and display
+    let display = pattern.to_string();
+    assert!(display.contains(r#"TEXT("hello")"#));
+    assert!(display.contains("NUMBER(42)"));
+    assert!(display.contains("BOOL(true)"));
+    assert!(display.contains(">"));
 
     Ok(())
 }
