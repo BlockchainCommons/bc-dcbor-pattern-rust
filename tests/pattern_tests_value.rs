@@ -15,19 +15,19 @@ fn test_bool_pattern_any() {
     // Should match true
     let true_cbor = cbor("true");
     let paths = pattern.paths(&true_cbor);
+    #[rustfmt::skip]
     let expected = indoc! {r#"
         true
-    "#}
-    .trim();
+    "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Should match false
     let false_cbor = cbor("false");
     let paths = pattern.paths(&false_cbor);
+    #[rustfmt::skip]
     let expected = indoc! {r#"
         false
-    "#}
-    .trim();
+    "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match non-boolean

@@ -14,6 +14,7 @@
 /// - If the output contains multiple lines, use the `indoc!` macro:
 ///
 /// ```rust
+/// #[rustfmt::skip]
 /// let expected = indoc! {r#"
 ///     Expected output
 /// "#}.trim();
