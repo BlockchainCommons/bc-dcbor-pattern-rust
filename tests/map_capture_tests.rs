@@ -1,7 +1,9 @@
 mod common;
 
 use dcbor_parse::parse_dcbor_item;
-use dcbor_pattern::{Matcher, Pattern, format_paths};
+use dcbor_pattern::{
+    Matcher, Pattern, format_paths, format_paths_with_captures,
+};
 use indoc::indoc;
 
 /// Helper function to parse CBOR diagnostic notation into CBOR objects
@@ -23,26 +25,25 @@ fn test_map_capture_key_value() {
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected_paths);
 
-    // Test with captures
+    // Test with captures using the proper rubric
     let (capture_paths, captures) = pattern.paths_with_captures(&cbor_data);
-    assert_actual_expected!(format_paths(&capture_paths), expected_paths);
-
-    // Verify captures
-    assert_eq!(captures.len(), 2);
-    assert!(captures.contains_key("key"));
-    assert!(captures.contains_key("value"));
-    let key_captured = &captures["key"];
-    let value_captured = &captures["value"];
-    assert_eq!(key_captured.len(), 1);
-    assert_eq!(value_captured.len(), 1);
-    // Map captures include path from map to element
-    assert_eq!(
-        key_captured[0],
-        vec![cbor(r#"{"name": "Alice"}"#), cbor(r#""name""#)]
-    );
-    assert_eq!(
-        value_captured[0],
-        vec![cbor(r#"{"name": "Alice"}"#), cbor(r#""Alice""#)]
+    #[rustfmt::skip]
+    let expected_with_captures = indoc! {r#"
+        @key
+            {"name": "Alice"}
+                "name"
+        @value
+            {"name": "Alice"}
+                "Alice"
+        {"name": "Alice"}
+    "#}.trim();
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &capture_paths,
+            &captures,
+            dcbor_pattern::FormatPathsOpts::default()
+        ),
+        expected_with_captures
     );
 }
 
@@ -56,31 +57,29 @@ fn test_map_capture_multiple_entries() {
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
     #[rustfmt::skip]
-    let expected_paths = indoc! {r#"
+    let expected_with_captures = indoc! {r#"
+        @age_key
+            {"age": 30, "name": "Bob"}
+                "age"
+        @age_val
+            {"age": 30, "name": "Bob"}
+                30
+        @name_key
+            {"age": 30, "name": "Bob"}
+                "name"
+        @name_val
+            {"age": 30, "name": "Bob"}
+                "Bob"
         {"age": 30, "name": "Bob"}
     "#}.trim();
-    assert_actual_expected!(format_paths(&paths), expected_paths);
-
-    // Verify captures
-    assert_eq!(captures.len(), 4);
-    assert!(captures.contains_key("name_key"));
-    assert!(captures.contains_key("name_val"));
-    assert!(captures.contains_key("age_key"));
-    assert!(captures.contains_key("age_val"));
-    let map_data = cbor(r#"{"name": "Bob", "age": 30}"#);
-    assert_eq!(
-        captures["name_key"][0],
-        vec![map_data.clone(), cbor(r#""name""#)]
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &paths,
+            &captures,
+            dcbor_pattern::FormatPathsOpts::default()
+        ),
+        expected_with_captures
     );
-    assert_eq!(
-        captures["name_val"][0],
-        vec![map_data.clone(), cbor(r#""Bob""#)]
-    );
-    assert_eq!(
-        captures["age_key"][0],
-        vec![map_data.clone(), cbor(r#""age""#)]
-    );
-    assert_eq!(captures["age_val"][0], vec![map_data, cbor("30")]);
 }
 
 #[test]
@@ -91,19 +90,19 @@ fn test_map_capture_value_only() {
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
     #[rustfmt::skip]
-    let expected_paths = indoc! {r#"
+    let expected_with_captures = indoc! {r#"
+        @status
+            {"status": "active"}
+                "active"
         {"status": "active"}
     "#}.trim();
-    assert_actual_expected!(format_paths(&paths), expected_paths);
-
-    // Verify single capture
-    assert_eq!(captures.len(), 1);
-    assert!(captures.contains_key("status"));
-    let captured_paths = &captures["status"];
-    assert_eq!(captured_paths.len(), 1);
-    assert_eq!(
-        captured_paths[0],
-        vec![cbor(r#"{"status": "active"}"#), cbor(r#""active""#)]
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &paths,
+            &captures,
+            dcbor_pattern::FormatPathsOpts::default()
+        ),
+        expected_with_captures
     );
 }
 
@@ -115,21 +114,23 @@ fn test_map_capture_with_any_pattern() {
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
     #[rustfmt::skip]
-    let expected_paths = indoc! {r#"
+    let expected_with_captures = indoc! {r#"
+        @any_key
+            {"hello": [1, 2, 3]}
+                "hello"
+        @any_value
+            {"hello": [1, 2, 3]}
+                [1, 2, 3]
         {"hello": [1, 2, 3]}
     "#}.trim();
-    assert_actual_expected!(format_paths(&paths), expected_paths);
-
-    // Verify captures
-    assert_eq!(captures.len(), 2);
-    assert!(captures.contains_key("any_key"));
-    assert!(captures.contains_key("any_value"));
-    let map_data = cbor(r#"{"hello": [1, 2, 3]}"#);
-    assert_eq!(
-        captures["any_key"][0],
-        vec![map_data.clone(), cbor(r#""hello""#)]
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &paths,
+            &captures,
+            dcbor_pattern::FormatPathsOpts::default()
+        ),
+        expected_with_captures
     );
-    assert_eq!(captures["any_value"][0], vec![map_data, cbor("[1, 2, 3]")]);
 }
 
 #[test]
@@ -140,20 +141,19 @@ fn test_map_capture_nested() {
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
     #[rustfmt::skip]
-    let expected_paths = indoc! {r#"
+    let expected_with_captures = indoc! {r#"
+        @inner
+            {"data": [42, 100]}
+                [42, 100]
         {"data": [42, 100]}
     "#}.trim();
-    assert_actual_expected!(format_paths(&paths), expected_paths);
-
-    // Verify captures
-    assert_eq!(captures.len(), 1);
-
-    assert!(captures.contains_key("inner"));
-    let inner_captured = &captures["inner"];
-    assert_eq!(inner_captured.len(), 1);
-    assert_eq!(
-        inner_captured[0],
-        vec![cbor(r#"{"data": [42, 100]}"#), cbor("[42, 100]")]
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &paths,
+            &captures,
+            dcbor_pattern::FormatPathsOpts::default()
+        ),
+        expected_with_captures
     );
 }
 
