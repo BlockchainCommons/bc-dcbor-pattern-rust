@@ -118,8 +118,6 @@ fn test_array_pattern_with_multiple_elements() {
             [42, 100, 200]
                 42
         [42, 100, 200]
-        [42, 100, 200]
-        [42, 100, 200]
     "#}.trim();
     assert_actual_expected!(
         format_paths_with_captures(
@@ -153,7 +151,6 @@ fn test_array_pattern_nested_structure() {
             [[42], [100]]
                 [42]
         [[42], [100]]
-        [[42], [100]]
     "#}.trim();
     assert_actual_expected!(
         format_paths_with_captures(
@@ -177,9 +174,6 @@ fn test_array_pattern_specific_value_matching() {
         @specific
             [42, 100, 42]
                 42
-            [42, 100, 42]
-                42
-        [42, 100, 42]
         [42, 100, 42]
     "#}.trim();
     assert_actual_expected!(
@@ -237,12 +231,9 @@ fn test_array_pattern_mixed_types() {
         [42, "hello", true, [1, 2]]
             true
         [42, "hello", true, [1, 2]]
-        [42, "hello", true, [1, 2]]
             "hello"
         [42, "hello", true, [1, 2]]
-        [42, "hello", true, [1, 2]]
             42
-        [42, "hello", true, [1, 2]]
     "#}.trim();
     assert_actual_expected!(
         format_paths_with_captures(

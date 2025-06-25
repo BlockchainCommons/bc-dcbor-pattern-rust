@@ -2,7 +2,7 @@
 //!
 //! The VM runs byte-code produced by `Pattern::compile` methods.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use dcbor::prelude::*;
 
@@ -487,9 +487,23 @@ pub fn run(
     let mut results = Vec::new();
     run_thread(prog, start, &mut results);
 
-    let paths = results.iter().map(|(path, _)| path.clone()).collect();
+    // Deduplicate paths while preserving original order
+    let mut seen_paths = HashSet::new();
+    let paths: Vec<Path> = results
+        .iter()
+        .filter_map(|(path, _)| {
+            if seen_paths.contains(path) {
+                None // Already seen, skip
+            } else {
+                seen_paths.insert(path.clone());
+                Some(path.clone()) // First occurrence, keep
+            }
+        })
+        .collect();
 
     // Build capture map from capture names and results
+    // Collect all captured paths from all threads, then deduplicate per capture
+    // while preserving order
     let mut captures = HashMap::new();
     for (i, name) in prog.capture_names.iter().enumerate() {
         let mut captured_paths = Vec::new();
@@ -498,8 +512,23 @@ pub fn run(
                 captured_paths.extend(capture_group.clone());
             }
         }
+
+        // Deduplicate captured paths for this capture name while preserving
+        // order
         if !captured_paths.is_empty() {
-            captures.insert(name.clone(), captured_paths);
+            let mut seen_capture_paths = HashSet::new();
+            let deduplicated_captured_paths: Vec<Path> = captured_paths
+                .into_iter()
+                .filter(|path| {
+                    if seen_capture_paths.contains(path) {
+                        false // Already seen, skip
+                    } else {
+                        seen_capture_paths.insert(path.clone());
+                        true // First occurrence, keep
+                    }
+                })
+                .collect();
+            captures.insert(name.clone(), deduplicated_captured_paths);
         }
     }
 
