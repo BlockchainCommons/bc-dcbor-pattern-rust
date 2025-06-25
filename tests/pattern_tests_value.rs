@@ -2,7 +2,7 @@ mod common;
 
 use dcbor::{Date, prelude::*};
 use dcbor_parse::parse_dcbor_item;
-use dcbor_pattern::{format_paths, Matcher, Pattern};
+use dcbor_pattern::{Matcher, Pattern, format_paths};
 use indoc::indoc;
 
 /// Helper function to parse CBOR diagnostic notation into CBOR objects
@@ -14,38 +14,25 @@ fn test_bool_pattern_any() {
 
     // Should match true
     let true_cbor = cbor("true");
-    assert!(pattern.matches(&true_cbor));
     let paths = pattern.paths(&true_cbor);
-    // NO LONGER NECESSARY
-    // assert_eq!(paths.len(), 1);
-    // assert_eq!(paths[0].len(), 1);
-    // assert_eq!(paths[0][0], true_cbor);
-
     let expected = indoc! {r#"
         true
-    "#}.trim();
+    "#}
+    .trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Should match false
     let false_cbor = cbor("false");
-    assert!(pattern.matches(&false_cbor));
     let paths = pattern.paths(&false_cbor);
-    // NO LONGER NECESSARY
-    // assert_eq!(paths.len(), 1);
-    // assert_eq!(paths[0].len(), 1);
-    // assert_eq!(paths[0][0], false_cbor);
-
     let expected = indoc! {r#"
         false
-    "#}.trim();
+    "#}
+    .trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match non-boolean
     let number_cbor = cbor("42");
     assert!(!pattern.matches(&number_cbor));
-    // REDUNDANT
-    // let paths = pattern.paths(&number_cbor);
-    // assert_eq!(paths.len(), 0);
 }
 
 #[test]
@@ -58,13 +45,25 @@ fn test_bool_pattern_specific() {
     let number_cbor = cbor("42");
 
     // true pattern tests
-    assert!(true_pattern.matches(&true_cbor));
+    let paths = true_pattern.paths(&true_cbor);
+    let expected = indoc! {r#"
+        true
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
     assert!(!true_pattern.matches(&false_cbor));
     assert!(!true_pattern.matches(&number_cbor));
 
     // false pattern tests
     assert!(!false_pattern.matches(&true_cbor));
-    assert!(false_pattern.matches(&false_cbor));
+    let paths = false_pattern.paths(&false_cbor);
+    let expected = indoc! {r#"
+        false
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
     assert!(!false_pattern.matches(&number_cbor));
 }
 
@@ -81,24 +80,24 @@ fn test_text_pattern_any() {
 
     // Should match any text
     let hello_cbor = cbor(r#""Hello""#);
-    assert!(pattern.matches(&hello_cbor));
     let paths = pattern.paths(&hello_cbor);
-    assert_eq!(paths.len(), 1);
-    assert_eq!(paths[0].len(), 1);
-    assert_eq!(paths[0][0], hello_cbor);
+    let expected = indoc! {r#"
+        "Hello"
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     let empty_cbor = cbor(r#""""#);
-    assert!(pattern.matches(&empty_cbor));
     let paths = pattern.paths(&empty_cbor);
-    assert_eq!(paths.len(), 1);
-    assert_eq!(paths[0].len(), 1);
-    assert_eq!(paths[0][0], empty_cbor);
+    let expected = indoc! {r#"
+        ""
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match non-text
     let number_cbor = cbor("42");
     assert!(!pattern.matches(&number_cbor));
-    let paths = pattern.paths(&number_cbor);
-    assert_eq!(paths.len(), 0);
 }
 
 #[test]
@@ -111,13 +110,25 @@ fn test_text_pattern_specific() {
     let number_cbor = cbor("42");
 
     // hello pattern tests
-    assert!(hello_pattern.matches(&hello_cbor));
+    let paths = hello_pattern.paths(&hello_cbor);
+    let expected = indoc! {r#"
+        "Hello"
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
     assert!(!hello_pattern.matches(&world_cbor));
     assert!(!hello_pattern.matches(&number_cbor));
 
     // world pattern tests
     assert!(!world_pattern.matches(&hello_cbor));
-    assert!(world_pattern.matches(&world_cbor));
+    let paths = world_pattern.paths(&world_cbor);
+    let expected = indoc! {r#"
+        "World"
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
     assert!(!world_pattern.matches(&number_cbor));
 }
 
@@ -132,11 +143,12 @@ fn test_text_pattern_regex() {
     let number_cbor = cbor("42");
 
     // Should match pure digits
-    assert!(digits_pattern.matches(&digits_cbor));
     let paths = digits_pattern.paths(&digits_cbor);
-    assert_eq!(paths.len(), 1);
-    assert_eq!(paths[0].len(), 1);
-    assert_eq!(paths[0][0], digits_cbor);
+    let expected = indoc! {r#"
+        "12345"
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match letters, mixed content, or non-text
     assert!(!digits_pattern.matches(&letters_cbor));
@@ -160,25 +172,34 @@ fn test_number_pattern_any() {
 
     // Should match integers
     let int_cbor = cbor("42");
-    assert!(pattern.matches(&int_cbor));
     let paths = pattern.paths(&int_cbor);
-    assert_eq!(paths.len(), 1);
-    assert_eq!(paths[0].len(), 1);
-    assert_eq!(paths[0][0], int_cbor);
+    let expected = indoc! {r#"
+        42
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should match floats
     let float_cbor = cbor("3.2222");
-    assert!(pattern.matches(&float_cbor));
+    let paths = pattern.paths(&float_cbor);
+    let expected = indoc! {r#"
+        3.2222
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should match negative numbers
     let neg_cbor = cbor("-5");
-    assert!(pattern.matches(&neg_cbor));
+    let paths = pattern.paths(&neg_cbor);
+    let expected = indoc! {r#"
+        -5
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match non-numbers
     let text_cbor = cbor(r#""42""#);
     assert!(!pattern.matches(&text_cbor));
-    let paths = pattern.paths(&text_cbor);
-    assert_eq!(paths.len(), 0);
 }
 
 #[test]
@@ -192,14 +213,26 @@ fn test_number_pattern_specific() {
     let text_cbor = cbor(r#""42""#);
 
     // int pattern tests
-    assert!(int_pattern.matches(&int_cbor));
+    let paths = int_pattern.paths(&int_cbor);
+    let expected = indoc! {r#"
+        42
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
     assert!(!int_pattern.matches(&float_cbor));
     assert!(!int_pattern.matches(&different_int_cbor));
     assert!(!int_pattern.matches(&text_cbor));
 
     // float pattern tests
     assert!(!float_pattern.matches(&int_cbor));
-    assert!(float_pattern.matches(&float_cbor));
+    let paths = float_pattern.paths(&float_cbor);
+    let expected = indoc! {r#"
+        3.2222
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
     assert!(!float_pattern.matches(&text_cbor));
 }
 
@@ -215,9 +248,26 @@ fn test_number_pattern_range() {
     let text_cbor = cbor(r#""15""#);
 
     // Should match numbers in range
-    assert!(range_pattern.matches(&in_range_cbor));
-    assert!(range_pattern.matches(&boundary_low_cbor));
-    assert!(range_pattern.matches(&boundary_high_cbor));
+    let paths = range_pattern.paths(&in_range_cbor);
+    let expected = indoc! {r#"
+        15
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let paths = range_pattern.paths(&boundary_low_cbor);
+    let expected = indoc! {r#"
+        10
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let paths = range_pattern.paths(&boundary_high_cbor);
+    let expected = indoc! {r#"
+        20
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match numbers outside range
     assert!(!range_pattern.matches(&below_range_cbor));
@@ -238,18 +288,33 @@ fn test_number_pattern_comparisons() {
 
     // Greater than tests
     assert!(!gt_pattern.matches(&equal_cbor));
-    assert!(gt_pattern.matches(&greater_cbor));
+    let paths = gt_pattern.paths(&greater_cbor);
+    let expected = indoc! {r#"
+        15
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
     assert!(!gt_pattern.matches(&lesser_cbor));
 
     // Greater than or equal tests
-    assert!(gte_pattern.matches(&equal_cbor));
+    let paths = gte_pattern.paths(&equal_cbor);
+    let expected = indoc! {r#"
+        10
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
     assert!(gte_pattern.matches(&greater_cbor));
     assert!(!gte_pattern.matches(&lesser_cbor));
 
     // Less than tests
     assert!(!lt_pattern.matches(&equal_cbor));
     assert!(!lt_pattern.matches(&greater_cbor));
-    assert!(lt_pattern.matches(&lesser_cbor));
+    let paths = lt_pattern.paths(&lesser_cbor);
+    let expected = indoc! {r#"
+        5
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Less than or equal tests
     assert!(lte_pattern.matches(&equal_cbor));
@@ -266,7 +331,12 @@ fn test_number_pattern_nan() {
     let text_cbor = cbor(r#""NaN""#);
 
     // Should match NaN
-    assert!(nan_pattern.matches(&nan_cbor));
+    let paths = nan_pattern.paths(&nan_cbor);
+    let expected = indoc! {r#"
+        NaN
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match regular numbers or text
     assert!(!nan_pattern.matches(&number_cbor));
@@ -301,24 +371,24 @@ fn test_byte_string_pattern_any() {
 
     // Should match any byte string
     let cbor_bytes = cbor("h'01020304'");
-    assert!(pattern.matches(&cbor_bytes));
     let paths = pattern.paths(&cbor_bytes);
-    assert_eq!(paths.len(), 1);
-    assert_eq!(paths[0].len(), 1);
-    assert_eq!(paths[0][0], cbor_bytes);
+    let expected = indoc! {r#"
+        h'01020304'
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     let empty_cbor = cbor("h''");
-    assert!(pattern.matches(&empty_cbor));
     let paths = pattern.paths(&empty_cbor);
-    assert_eq!(paths.len(), 1);
-    assert_eq!(paths[0].len(), 1);
-    assert_eq!(paths[0][0], empty_cbor);
+    let expected = indoc! {r#"
+        h''
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match non-byte-string
     let text_cbor = cbor(r#""hello""#);
     assert!(!pattern.matches(&text_cbor));
-    let paths = pattern.paths(&text_cbor);
-    assert_eq!(paths.len(), 0);
 }
 
 #[test]
@@ -331,13 +401,25 @@ fn test_byte_string_pattern_specific() {
     let text_cbor = cbor(r#""hello""#);
 
     // exact pattern tests
-    assert!(exact_pattern.matches(&cbor_bytes));
+    let paths = exact_pattern.paths(&cbor_bytes);
+    let expected = indoc! {r#"
+        h'01020304'
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
     assert!(!exact_pattern.matches(&different_cbor));
     assert!(!exact_pattern.matches(&text_cbor));
 
     // different pattern tests
     assert!(!different_pattern.matches(&cbor_bytes));
-    assert!(different_pattern.matches(&different_cbor));
+    let paths = different_pattern.paths(&different_cbor);
+    let expected = indoc! {r#"
+        h'0506'
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
     assert!(!different_pattern.matches(&text_cbor));
 }
 
@@ -353,11 +435,12 @@ fn test_byte_string_pattern_regex() {
     let text_cbor = cbor(r#""12345""#);
 
     // Should match byte strings with digits
-    assert!(digits_pattern.matches(&digits_cbor));
     let paths = digits_pattern.paths(&digits_cbor);
-    assert_eq!(paths.len(), 1);
-    assert_eq!(paths[0].len(), 1);
-    assert_eq!(paths[0][0], digits_cbor);
+    let expected = indoc! {r#"
+        h'3132333435'
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match letters, mixed content, or text strings
     assert!(!digits_pattern.matches(&letters_cbor));
@@ -372,11 +455,21 @@ fn test_byte_string_pattern_binary_data() {
     // Test with actual binary data (not text)
     let binary_cbor = cbor("h'00010203fffefd'");
 
-    assert!(pattern.matches(&binary_cbor));
+    let paths = pattern.paths(&binary_cbor);
+    let expected = indoc! {r#"
+        h'00010203fffefd'
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     let exact_pattern =
         Pattern::byte_string(vec![0x00, 0x01, 0x02, 0x03, 0xFF, 0xFE, 0xFD]);
-    assert!(exact_pattern.matches(&binary_cbor));
+    let paths = exact_pattern.paths(&binary_cbor);
+    let expected = indoc! {r#"
+        h'00010203fffefd'
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     let different_pattern = Pattern::byte_string(vec![0x00, 0x01, 0x02]);
     assert!(!different_pattern.matches(&binary_cbor));
@@ -385,7 +478,12 @@ fn test_byte_string_pattern_binary_data() {
     let starts_with_zero_regex = regex::bytes::Regex::new(r"^\x00").unwrap();
     let starts_with_zero_pattern =
         Pattern::byte_string_regex(starts_with_zero_regex);
-    assert!(starts_with_zero_pattern.matches(&binary_cbor));
+    let paths = starts_with_zero_pattern.paths(&binary_cbor);
+    let expected = indoc! {r#"
+        h'00010203fffefd'
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Test regex that doesn't match
     let starts_with_one_regex = regex::bytes::Regex::new(r"^\x01").unwrap();
@@ -414,17 +512,16 @@ fn test_date_pattern_any() {
     // Should match any date
     let date = Date::from_ymd(2023, 12, 25);
     let date_cbor = date.to_cbor();
-    assert!(pattern.matches(&date_cbor));
     let paths = pattern.paths(&date_cbor);
-    assert_eq!(paths.len(), 1);
-    assert_eq!(paths[0].len(), 1);
-    assert_eq!(paths[0][0], date_cbor);
+    let expected = indoc! {r#"
+        1(1703462400)
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match non-date
     let text_cbor = cbor(r#""2023-12-25""#);
     assert!(!pattern.matches(&text_cbor));
-    let paths = pattern.paths(&text_cbor);
-    assert_eq!(paths.len(), 0);
 
     let number_cbor = cbor("1703462400"); // Unix timestamp for 2023-12-25
     assert!(!pattern.matches(&number_cbor));
@@ -437,7 +534,12 @@ fn test_date_pattern_specific() {
 
     // Should match the specific date
     let date_cbor = date.to_cbor();
-    assert!(pattern.matches(&date_cbor));
+    let paths = pattern.paths(&date_cbor);
+    let expected = indoc! {r#"
+        1(1703462400)
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match a different date
     let other_date = Date::from_ymd(2024, 1, 1);
@@ -458,15 +560,30 @@ fn test_date_pattern_range() {
     // Should match date within range
     let middle_date = Date::from_ymd(2023, 12, 25);
     let middle_date_cbor = middle_date.to_cbor();
-    assert!(pattern.matches(&middle_date_cbor));
+    let paths = pattern.paths(&middle_date_cbor);
+    let expected = indoc! {r#"
+        1(1703462400)
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should match date at start of range
     let start_date_cbor = start_date.to_cbor();
-    assert!(pattern.matches(&start_date_cbor));
+    let paths = pattern.paths(&start_date_cbor);
+    let expected = indoc! {r#"
+        1(1703030400)
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should match date at end of range
     let end_date_cbor = end_date.to_cbor();
-    assert!(pattern.matches(&end_date_cbor));
+    let paths = pattern.paths(&end_date_cbor);
+    let expected = indoc! {r#"
+        1(1703894400)
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match date before range
     let early_date = Date::from_ymd(2023, 12, 15);
@@ -486,12 +603,22 @@ fn test_date_pattern_earliest() {
 
     // Should match date equal to earliest
     let earliest_date_cbor = earliest_date.to_cbor();
-    assert!(pattern.matches(&earliest_date_cbor));
+    let paths = pattern.paths(&earliest_date_cbor);
+    let expected = indoc! {r#"
+        1(1703030400)
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should match date after earliest
     let later_date = Date::from_ymd(2023, 12, 25);
     let later_date_cbor = later_date.to_cbor();
-    assert!(pattern.matches(&later_date_cbor));
+    let paths = pattern.paths(&later_date_cbor);
+    let expected = indoc! {r#"
+        1(1703462400)
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match date before earliest
     let earlier_date = Date::from_ymd(2023, 12, 15);
@@ -506,12 +633,22 @@ fn test_date_pattern_latest() {
 
     // Should match date equal to latest
     let latest_date_cbor = latest_date.to_cbor();
-    assert!(pattern.matches(&latest_date_cbor));
+    let paths = pattern.paths(&latest_date_cbor);
+    let expected = indoc! {r#"
+        1(1703894400)
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should match date before latest
     let earlier_date = Date::from_ymd(2023, 12, 25);
     let earlier_date_cbor = earlier_date.to_cbor();
-    assert!(pattern.matches(&earlier_date_cbor));
+    let paths = pattern.paths(&earlier_date_cbor);
+    let expected = indoc! {r#"
+        1(1703462400)
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match date after latest
     let later_date = Date::from_ymd(2024, 1, 5);
@@ -527,7 +664,12 @@ fn test_date_pattern_iso8601() {
 
     // Should match date with matching ISO string
     let date_cbor = date.to_cbor();
-    assert!(pattern.matches(&date_cbor));
+    let paths = pattern.paths(&date_cbor);
+    let expected = indoc! {r#"
+        1(1703462400)
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match date with different ISO string
     let other_date = Date::from_ymd(2024, 1, 1);
@@ -544,7 +686,12 @@ fn test_date_pattern_regex() {
     // Should match date in 2023
     let date_2023 = Date::from_ymd(2023, 12, 25);
     let date_2023_cbor = date_2023.to_cbor();
-    assert!(pattern.matches(&date_2023_cbor));
+    let paths = pattern.paths(&date_2023_cbor);
+    let expected = indoc! {r#"
+        1(1703462400)
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match date in 2024
     let date_2024 = Date::from_ymd(2024, 1, 1);
@@ -556,7 +703,12 @@ fn test_date_pattern_regex() {
     let december_pattern = Pattern::date_regex(december_regex);
 
     // Should match December date
-    assert!(december_pattern.matches(&date_2023_cbor));
+    let paths = december_pattern.paths(&date_2023_cbor);
+    let expected = indoc! {r#"
+        1(1703462400)
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match January date
     let january_date = Date::from_ymd(2023, 1, 15);
@@ -571,16 +723,31 @@ fn test_date_pattern_with_time() {
     let pattern = Pattern::any_date();
 
     let datetime_cbor = datetime.to_cbor();
-    assert!(pattern.matches(&datetime_cbor));
+    let paths = pattern.paths(&datetime_cbor);
+    let expected = indoc! {r#"
+        1(1703462400)
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Test specific time matching
     let specific_pattern = Pattern::date(datetime.clone());
-    assert!(specific_pattern.matches(&datetime_cbor));
+    let paths = specific_pattern.paths(&datetime_cbor);
+    let expected = indoc! {r#"
+        1(1703462400)
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Test with fractional seconds
     let datetime_with_millis = Date::from_timestamp(1703462400.123);
     let datetime_with_millis_cbor = datetime_with_millis.to_cbor();
-    assert!(pattern.matches(&datetime_with_millis_cbor));
+    let paths = pattern.paths(&datetime_with_millis_cbor);
+    let expected = indoc! {r#"
+        1(1703462400.123)
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 }
 
 #[test]
@@ -625,37 +792,28 @@ fn test_null_pattern() {
 
     // Should match null
     let null_cbor = cbor("null");
-    assert!(pattern.matches(&null_cbor));
     let paths = pattern.paths(&null_cbor);
-    assert_eq!(paths.len(), 1);
-    assert_eq!(paths[0].len(), 1);
-    assert_eq!(paths[0][0], null_cbor);
+    let expected = indoc! {r#"
+        null
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match non-null values
     let true_cbor = cbor("true");
     assert!(!pattern.matches(&true_cbor));
-    let paths = pattern.paths(&true_cbor);
-    assert_eq!(paths.len(), 0);
 
     let false_cbor = cbor("false");
     assert!(!pattern.matches(&false_cbor));
-    let paths = pattern.paths(&false_cbor);
-    assert_eq!(paths.len(), 0);
 
     let number_cbor = cbor("42");
     assert!(!pattern.matches(&number_cbor));
-    let paths = pattern.paths(&number_cbor);
-    assert_eq!(paths.len(), 0);
 
     let text_cbor = cbor(r#""hello""#);
     assert!(!pattern.matches(&text_cbor));
-    let paths = pattern.paths(&text_cbor);
-    assert_eq!(paths.len(), 0);
 
     let array_cbor = cbor("[1, 2, 3]");
     assert!(!pattern.matches(&array_cbor));
-    let paths = pattern.paths(&array_cbor);
-    assert_eq!(paths.len(), 0);
 }
 
 #[test]
@@ -669,39 +827,40 @@ fn test_known_value_pattern_any() {
 
     // Test with known values represented as tagged values with tag 40000
     let known_value_cbor = cbor("'1'"); // This represents known_values::IS_A as 40000(1)
-    assert!(pattern.matches(&known_value_cbor));
     let paths = pattern.paths(&known_value_cbor);
-    assert_eq!(paths.len(), 1);
-    assert_eq!(paths[0].len(), 1);
-    assert_eq!(paths[0][0], known_value_cbor);
+    let expected = indoc! {r#"
+        40000(1)
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Test with another known value
     let date_value_cbor = cbor("'16'"); // This represents known_values::DATE as 40000(16)
-    assert!(pattern.matches(&date_value_cbor));
     let paths = pattern.paths(&date_value_cbor);
-    assert_eq!(paths.len(), 1);
+    let expected = indoc! {r#"
+        40000(16)
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Test with custom known value
     let custom_value_cbor = cbor("'12345'");
-    assert!(pattern.matches(&custom_value_cbor));
     let paths = pattern.paths(&custom_value_cbor);
-    assert_eq!(paths.len(), 1);
+    let expected = indoc! {r#"
+        40000(12345)
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match plain unsigned integers (these are NOT known values)
     let plain_int_cbor = cbor("1");
     assert!(!pattern.matches(&plain_int_cbor));
-    let paths = pattern.paths(&plain_int_cbor);
-    assert_eq!(paths.len(), 0);
 
     let text_cbor = cbor(r#""hello""#);
     assert!(!pattern.matches(&text_cbor));
-    let paths = pattern.paths(&text_cbor);
-    assert_eq!(paths.len(), 0);
 
     let negative_cbor = cbor("-1");
     assert!(!pattern.matches(&negative_cbor));
-    let paths = pattern.paths(&negative_cbor);
-    assert_eq!(paths.len(), 0);
 }
 
 #[test]
@@ -719,7 +878,13 @@ fn test_known_value_pattern_specific() {
     let text_cbor = cbor(r#""hello""#);
 
     // is_a pattern tests
-    assert!(is_a_pattern.matches(&is_a_cbor));
+    let paths = is_a_pattern.paths(&is_a_cbor);
+    let expected = indoc! {r#"
+        40000(1)
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
     assert!(!is_a_pattern.matches(&date_cbor));
     assert!(!is_a_pattern.matches(&other_cbor));
     assert!(!is_a_pattern.matches(&plain_int_cbor)); // Should NOT match plain integers
@@ -727,19 +892,16 @@ fn test_known_value_pattern_specific() {
 
     // date pattern tests
     assert!(!date_pattern.matches(&is_a_cbor));
-    assert!(date_pattern.matches(&date_cbor));
+    let paths = date_pattern.paths(&date_cbor);
+    let expected = indoc! {r#"
+        40000(16)
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
     assert!(!date_pattern.matches(&other_cbor));
     assert!(!date_pattern.matches(&plain_int_cbor)); // Should NOT match plain integers
     assert!(!date_pattern.matches(&text_cbor));
-
-    // Test paths for matching case
-    let paths = is_a_pattern.paths(&is_a_cbor);
-    assert_eq!(paths.len(), 1);
-    assert_eq!(paths[0], vec![is_a_cbor]);
-
-    // Test paths for non-matching case
-    let paths = is_a_pattern.paths(&date_cbor);
-    assert_eq!(paths.len(), 0);
 }
 
 #[test]
@@ -755,7 +917,13 @@ fn test_known_value_pattern_named() {
     let text_cbor = cbor(r#""hello""#);
 
     // is_a pattern tests
-    assert!(is_a_pattern.matches(&is_a_cbor));
+    let paths = is_a_pattern.paths(&is_a_cbor);
+    let expected = indoc! {r#"
+        40000(1)
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
     assert!(!is_a_pattern.matches(&date_cbor));
     assert!(!is_a_pattern.matches(&other_cbor));
     assert!(!is_a_pattern.matches(&plain_int_cbor)); // Should NOT match plain integers
@@ -763,7 +931,13 @@ fn test_known_value_pattern_named() {
 
     // date pattern tests
     assert!(!date_pattern.matches(&is_a_cbor));
-    assert!(date_pattern.matches(&date_cbor));
+    let paths = date_pattern.paths(&date_cbor);
+    let expected = indoc! {r#"
+        40000(16)
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
     assert!(!date_pattern.matches(&other_cbor));
     assert!(!date_pattern.matches(&plain_int_cbor)); // Should NOT match plain integers
     assert!(!date_pattern.matches(&text_cbor));
@@ -774,15 +948,6 @@ fn test_known_value_pattern_named() {
     assert!(!unknown_pattern.matches(&other_cbor));
     assert!(!unknown_pattern.matches(&plain_int_cbor));
     assert!(!unknown_pattern.matches(&text_cbor));
-
-    // Test paths for matching case
-    let paths = is_a_pattern.paths(&is_a_cbor);
-    assert_eq!(paths.len(), 1);
-    assert_eq!(paths[0], vec![is_a_cbor.clone()]);
-
-    // Test paths for non-matching case
-    let paths = date_pattern.paths(&is_a_cbor);
-    assert_eq!(paths.len(), 0);
 }
 
 #[test]
@@ -807,7 +972,13 @@ fn test_known_value_pattern_regex() {
     let text_cbor = cbor(r#""hello""#);
 
     // is pattern tests (should match IS_A which starts with "is")
-    assert!(is_pattern.matches(&is_a_cbor));
+    let paths = is_pattern.paths(&is_a_cbor);
+    let expected = indoc! {r#"
+        40000(1)
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
     assert!(!is_pattern.matches(&date_cbor));
     assert!(!is_pattern.matches(&note_cbor));
     assert!(!is_pattern.matches(&other_cbor));
@@ -816,8 +987,20 @@ fn test_known_value_pattern_regex() {
 
     // te pattern tests (should match DATE and NOTE which end with "te")
     assert!(!te_pattern.matches(&is_a_cbor));
-    assert!(te_pattern.matches(&date_cbor)); // "date" ends with "te"
-    assert!(te_pattern.matches(&note_cbor)); // "note" ends with "te"
+    let paths = te_pattern.paths(&date_cbor);
+    let expected = indoc! {r#"
+        40000(16)
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let paths = te_pattern.paths(&note_cbor);
+    let expected = indoc! {r#"
+        40000(4)
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
     assert!(!te_pattern.matches(&other_cbor));
     assert!(!te_pattern.matches(&plain_int_cbor)); // Should NOT match plain integers
     assert!(!te_pattern.matches(&text_cbor));
@@ -829,11 +1012,6 @@ fn test_known_value_pattern_regex() {
     assert!(!no_match_pattern.matches(&other_cbor));
     assert!(!no_match_pattern.matches(&plain_int_cbor));
     assert!(!no_match_pattern.matches(&text_cbor));
-
-    // Test paths for matching case
-    let paths = is_pattern.paths(&is_a_cbor);
-    assert_eq!(paths.len(), 1);
-    assert_eq!(paths[0], vec![is_a_cbor.clone()]);
 }
 
 #[test]
