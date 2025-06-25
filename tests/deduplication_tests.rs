@@ -1,7 +1,14 @@
+mod common;
+
+use dcbor_parse::parse_dcbor_item;
+use dcbor_pattern::{
+    FormatPathsOpts, Matcher, Pattern, format_paths_with_captures,
+};
+use indoc::indoc;
+
 #[cfg(test)]
 mod deduplication_tests {
-    use dcbor_parse::parse_dcbor_item;
-    use dcbor_pattern::{Matcher, Pattern};
+    use super::*;
 
     #[test]
     fn test_no_duplicate_paths_simple_array() {
@@ -11,80 +18,57 @@ mod deduplication_tests {
 
         let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
-        // Check for duplicates in paths
-        let mut unique_paths = std::collections::HashSet::new();
-        for path in &paths {
-            assert!(
-                unique_paths.insert(path.clone()),
-                "Found duplicate path: {:?}",
-                path
-            );
-        }
-
-        // Verify we have exactly one main path (the array itself)
-        assert_eq!(paths.len(), 1, "Should have exactly one path");
-
-        // Check for duplicates in captures
-        for (name, captured_paths) in &captures {
-            let mut unique_capture_paths = std::collections::HashSet::new();
-            for path in captured_paths {
-                assert!(
-                    unique_capture_paths.insert(path.clone()),
-                    "Found duplicate capture path for @{}: {:?}",
-                    name,
-                    path
-                );
-            }
-        }
-
-        // Verify captures are as expected
-        if let Some(item_captures) = captures.get("item") {
-            assert_eq!(item_captures.len(), 3, "Should capture all 3 numbers");
-        } else {
-            panic!("Should have 'item' captures");
-        }
+        let actual = format_paths_with_captures(
+            &paths,
+            &captures,
+            FormatPathsOpts::default(),
+        );
+        #[rustfmt::skip]
+        let expected = indoc! {r#"
+            @item
+                [42, 100, 200]
+                    200
+                [42, 100, 200]
+                    100
+                [42, 100, 200]
+                    42
+            [42, 100, 200]
+        "#}.trim();
+        assert_actual_expected!(actual, expected);
     }
 
     #[test]
     fn test_no_duplicate_paths_nested_array() {
         let nested_cbor = parse_dcbor_item(r#"[[42], [100]]"#).unwrap();
-        let nested_pattern = Pattern::parse("ARRAY(@outer_item(ARRAY(@inner_item(NUMBER))))").unwrap();
+        let nested_pattern =
+            Pattern::parse("ARRAY(@outer_item(ARRAY(@inner_item(NUMBER))))")
+                .unwrap();
 
-        let (nested_paths, nested_captures) = nested_pattern.paths_with_captures(&nested_cbor);
+        let (nested_paths, nested_captures) =
+            nested_pattern.paths_with_captures(&nested_cbor);
 
-        // Check for duplicates in nested paths
-        let mut unique_paths = std::collections::HashSet::new();
-        for path in &nested_paths {
-            assert!(
-                unique_paths.insert(path.clone()),
-                "Found duplicate nested path: {:?}",
-                path
-            );
-        }
-
-        // Verify we have exactly one main path (the outer array itself)
-        assert_eq!(nested_paths.len(), 1, "Should have exactly one nested path");
-
-        // Check for duplicates in nested captures
-        for (name, captured_paths) in &nested_captures {
-            let mut unique_capture_paths = std::collections::HashSet::new();
-            for path in captured_paths {
-                assert!(
-                    unique_capture_paths.insert(path.clone()),
-                    "Found duplicate nested capture path for @{}: {:?}",
-                    name,
-                    path
-                );
-            }
-        }
-
-        // Verify captures are as expected
-        if let Some(outer_captures) = nested_captures.get("outer_item") {
-            assert_eq!(outer_captures.len(), 2, "Should capture both inner arrays");
-        }
-        if let Some(inner_captures) = nested_captures.get("inner_item") {
-            assert_eq!(inner_captures.len(), 2, "Should capture both numbers");
-        }
+        let actual = format_paths_with_captures(
+            &nested_paths,
+            &nested_captures,
+            FormatPathsOpts::default(),
+        );
+        #[rustfmt::skip]
+        let expected = indoc! {r#"
+            @inner_item
+                [[42], [100]]
+                    [100]
+                        100
+                [[42], [100]]
+                    [42]
+                        42
+            @outer_item
+                [[42], [100]]
+                    [100]
+                [[42], [100]]
+                    [42]
+            [[42], [100]]
+        "#}.trim();
+        assert_actual_expected!(actual, expected);
     }
 
     #[test]
@@ -95,33 +79,18 @@ mod deduplication_tests {
 
         let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
-        // Check for duplicates in paths
-        let mut unique_paths = std::collections::HashSet::new();
-        for path in &paths {
-            assert!(
-                unique_paths.insert(path.clone()),
-                "Found duplicate path: {:?}",
-                path
-            );
-        }
-
-        // Check for duplicates in captures
-        for (name, captured_paths) in &captures {
-            let mut unique_capture_paths = std::collections::HashSet::new();
-            for path in captured_paths {
-                assert!(
-                    unique_capture_paths.insert(path.clone()),
-                    "Found duplicate capture path for @{}: {:?}",
-                    name,
-                    path
-                );
-            }
-        }
-
-        // With duplicate values 42, we should only get one captured path since both instances
-        // of 42 create identical paths [array, 42]
-        if let Some(specific_captures) = captures.get("specific") {
-            assert_eq!(specific_captures.len(), 1, "Should deduplicate identical paths to 42");
-        }
+        let actual = format_paths_with_captures(
+            &paths,
+            &captures,
+            FormatPathsOpts::default(),
+        );
+        #[rustfmt::skip]
+        let expected = indoc! {r#"
+            @specific
+                [42, 100, 42]
+                    42
+            [42, 100, 42]
+        "#}.trim();
+        assert_actual_expected!(actual, expected);
     }
 }
