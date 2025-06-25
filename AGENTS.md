@@ -248,103 +248,102 @@ These formatting differences don't affect pattern matching functionality, but th
 
 **Update**: All meta pattern tests in `pattern_tests_meta.rs` have been successfully updated to use `assert_actual_expected!()` with correct path comparisons. All 31 tests now pass with the actual output format. The above formatting issues remain as documentation-only concerns since the functionality works correctly.
 
-3. **Tagged Pattern Text Parsing Not Implemented**: The text parser does not currently support tagged pattern syntax. Patterns like `"TAGGED"`, `"TAGGED_TAG(1234)"`, etc. cause parsing errors with `UnrecognizedToken`. Tagged patterns must be created programmatically using `TaggedPattern::any()`, `TaggedPattern::with_tag()`, etc. This limitation affects the ability to create all structure patterns via text parsing.
+3. **Composite Pattern Text Parsing Limitations**: Patterns that take other patterns as parameters (like `ArrayPattern::with_elements(pattern)`, `MapPattern::with_key(pattern)`) work when the inner pattern can be parsed from text, but the outer structure pattern constructors themselves don't have text syntax equivalents.
 
-4. **Range Pattern Text Parsing Not Implemented**: Array and map patterns with length ranges (e.g., `ArrayPattern::with_length_range(1..=10)`, `MapPattern::with_length_range(2..=8)`) cannot be expressed in text syntax. These must be created programmatically.
+### 🚧 Advanced Composite Pattern Implementation Plan
 
-5. **Composite Pattern Text Parsing Limitations**: Patterns that take other patterns as parameters (like `ArrayPattern::with_elements(pattern)`, `MapPattern::with_key(pattern)`) work when the inner pattern can be parsed from text, but the outer structure pattern constructors themselves don't have text syntax equivalents.
+The following advanced composite patterns have been **pre-documented** in `PatternSyntax.md` and are ready for implementation:
 
-### 🚧 Missing Text Syntax Examples
+#### 🎯 Implementation Phase 1: Enhanced Array Pattern Support
 
-The following pattern syntax should be implemented to provide complete text parsing coverage:
-
-#### Tagged Patterns
+**Target Syntax** (documented in PatternSyntax.md):
 ```rust
-// Current: Must use programmatic API
-let pattern = TaggedPattern::any();
-let pattern = TaggedPattern::with_tag(Tag::new(1234, "test"));
-let pattern = TaggedPattern::with_content(Pattern::text("content"));
-
-// Proposed text syntax:
-let pattern = parse("TAGGED");                    // Any tagged value
-let pattern = parse("TAGGED(1234)");              // Specific tag number
-let pattern = parse("TAGGED(*, TEXT(\"content\"))"); // Any tag with specific content
-let pattern = parse("TAGGED(1234, TEXT(\"content\"))"); // Specific tag and content
+// Unified ARRAY(pattern) syntax supporting any pattern type:
+let pattern = parse("ARRAY(NUMBER(42))");                      // Single element
+let pattern = parse("ARRAY(TEXT(\"a\") > TEXT(\"b\") > TEXT(\"c\"))"); // Exact sequence
+let pattern = parse("ARRAY((ANY)*>NUMBER(42)>(ANY)*)");        // Element anywhere
+let pattern = parse("ARRAY(NUMBER(42)>(ANY)*)");               // Starting with element
+let pattern = parse("ARRAY((ANY)*>NUMBER(42))");               // Ending with element
 ```
 
-#### Range Patterns
-```rust
-// These syntaxes are ALREADY IMPLEMENTED:
-let pattern = parse("ARRAY({1,10})");            // Array length range - ✅ IMPLEMENTED!
-let pattern = parse("MAP({2,8})");               // Map length range - ✅ IMPLEMENTED!
-let pattern = parse("ARRAY({1,})");              // Array minimum length - ✅ IMPLEMENTED!
-let pattern = parse("MAP({0,5})");               // Map maximum length - ✅ IMPLEMENTED!
-let pattern = parse("ARRAY({3})");               // Array exact length - ✅ IMPLEMENTED!
-let pattern = parse("MAP({5})");                 // Map exact length - ✅ IMPLEMENTED!
+**Implementation Tasks:**
+- [ ] Extend `array_parser.rs` to support the unified `ARRAY(pattern)` syntax
+- [ ] Implement parsing of sequence patterns within array parentheses
+- [ ] Add support for complex nested patterns with repeat quantifiers
+- [ ] Add comprehensive tests for all array pattern variations
 
-// Note: These correspond to the documented syntax in PatternSyntax.md:
-// - ARRAY ( { n } ) - exactly n elements
-// - ARRAY ( { n , m } ) - between n and m elements
-// - ARRAY ( { n , } ) - at least n elements
-// - MAP ( { n , m } ) - between n and m entries
+#### 🎯 Implementation Phase 2: Enhanced Map Pattern Support
+
+**Target Syntax** (documented in PatternSyntax.md):
+```rust
+// Unified MAP(pattern: pattern, ...) syntax:
+let pattern = parse("MAP(TEXT(\"key\"):ANY)");                 // Single key-value constraint
+let pattern = parse("MAP(ANY:TEXT(\"value\"))");               // Value constraint
+let pattern = parse("MAP(TEXT(\"name\"):TEXT, TEXT(\"age\"):NUMBER)"); // Multiple constraints
 ```
 
-#### Composite Structure Patterns
-```rust
-// Current: Must use programmatic API
-let element_pattern = Pattern::number(42);
-let pattern = ArrayPattern::with_elements(element_pattern);
-let key_pattern = Pattern::text("key");
-let pattern = MapPattern::with_key(key_pattern);
+**Implementation Tasks:**
+- [ ] Extend `map_parser.rs` to support the unified `MAP(pattern: pattern, ...)` syntax
+- [ ] Implement parsing of complex key and value patterns
+- [ ] Add support for multiple key-value constraints
+- [ ] Add comprehensive tests for all map pattern variations
 
-// Proposed text syntax using existing sequence and repeat patterns:
-let pattern = parse("ARRAY((ANY)*>NUMBER(42)>(ANY)*)"); // Array containing 42 anywhere
-let pattern = parse("ARRAY(NUMBER(42)>(ANY)*)");        // Array starting with 42
-let pattern = parse("ARRAY((ANY)*>NUMBER(42))");        // Array ending with 42
-let pattern = parse("MAP(TEXT(\"key\"):ANY)");          // Map with specific key (if supported)
-let pattern = parse("MAP(ANY:TEXT(\"value\"))");        // Map with specific value (if supported)
+#### 🎯 Implementation Phase 3: Advanced Nested Patterns
+
+**Target Syntax** (documented in PatternSyntax.md):
+```rust
+// Complex nested structure patterns using unified syntax:
+let pattern = parse("TAG(100, ARRAY(TEXT(\"target\")))");      // Simple nested
+let pattern = parse("TAG(100, ARRAY((ANY)*>TEXT(\"target\")>(ANY)*))"); // Complex nested
+let pattern = parse("MAP(TEXT(\"users\"):ARRAY({3,}))");       // Map with array constraints
+let pattern = parse("ARRAY(MAP(TEXT(\"id\"):NUMBER) > (ANY)*)"); // Array starting with maps
 ```
 
-#### Advanced Composite Patterns
-```rust
-// Current: Complex programmatic construction
-let inner = Pattern::text("target");
-let array_pattern = ArrayPattern::with_elements(inner);
-let tagged_pattern = TaggedPattern::with_content(Pattern::Structure(array_pattern.into()));
+**Implementation Tasks:**
+- [ ] Verify nested pattern parsing works correctly across all parsers
+- [ ] Test complex nesting scenarios with unified syntax
+- [ ] Optimize VM instructions for deeply nested patterns
+- [ ] Add performance tests for complex nested patterns
 
-// Proposed text syntax using existing sequence and repeat patterns:
-let pattern = parse("TAGGED(100, ARRAY((ANY)*>TEXT(\"target\")>(ANY)*))");
-let pattern = parse("MAP(TEXT(\"users\"):ARRAY({3,}))"); // Map with array of min 3 users (if supported)
-let pattern = parse("ARRAY((MAP(TEXT(\"id\"):NUMBER)>(ANY)*)"); // Array starting with objects having id numbers
-```
+#### 🔧 Technical Implementation Notes
 
-#### Date and Known Value Extensions
-```rust
-// These syntaxes are ALREADY IMPLEMENTED:
-let pattern = parse("DATE(2023-01-01...2023-12-31)"); // Date range - ✅ IMPLEMENTED!
-let pattern = parse("DATE(/^2023-/)");                // Date regex - ✅ IMPLEMENTED!
-let pattern = parse("KNOWN(/^is.*/)");                // Known value regex - ✅ IMPLEMENTED!
+**Unified Syntax Approach:**
+- `ARRAY(pattern)` replaces multiple fragmented syntax variations
+- `MAP(pattern: pattern, ...)` is already well-defined and consistent
+- All patterns can contain sequences, repeats, and complex nested structures
+- Focus on parser enhancements rather than new syntax definitions
 
-// Still proposed (not yet implemented):
-// (None - the above examples were the main missing features)
-```
+**VM Considerations:**
+- Current VM supports all necessary instruction types for unified syntax
+- Array patterns with sequences will use existing SequenceStart/SequenceNext instructions
+- Map key-value constraints will use existing MapKey/MapValue navigation
+- No new VM instructions required - unified syntax leverages existing infrastructure
 
-These syntax additions would enable:
-- **Complete text-based pattern construction**: All patterns expressible as text
-- **Better composability**: Complex nested patterns in readable syntax
-- **Enhanced testing**: All test patterns could use the `parse()` helper
-- **Improved documentation**: Examples could show text syntax instead of API calls
+**Testing Strategy:**
+- Add parsing tests for unified `ARRAY(pattern)` and `MAP(pattern: pattern, ...)` syntax
+- Test all documented examples from PatternSyntax.md
+- Add matching tests with real CBOR data for each pattern variation
+- Verify round-trip parsing (parse → display → parse) for complex patterns
+- Performance testing for deeply nested composite patterns
 
 ### 🎯 Next Steps
-This crate is **production ready**. Potential future enhancements could include:
+
+The `dcbor-pattern` crate core functionality is **production ready**. The next development phase focuses on **implementing the unified advanced pattern syntax**:
+
+**Priority 1: Unified Pattern Syntax Implementation**
+- Implement the simplified unified syntax documented in `PatternSyntax.md`
+- Extend `array_parser.rs` to support `ARRAY(pattern)` with sequences and repeats
+- Enhance `map_parser.rs` to support complex key-value patterns
+- Add comprehensive test coverage for all documented syntax variations
+- Maintain backward compatibility with existing pattern API
+
+**Priority 2: Enhanced Capabilities**
 - Performance optimizations for large dCBOR documents
 - Additional pattern types if new use cases emerge
 - Integration with other Blockchain Commons tools
-- **Implementation of missing text syntax** (see examples in "Missing Text Syntax Examples" section):
-  - Tagged pattern syntax (`TAGGED`, `TAGGED(tag)`, etc.)
-  - Range pattern syntax (`ARRAY({1..10})`, `MAP({2..8})`, etc.)
-  - Composite pattern syntax (`ARRAY(*, pattern, *)`, `MAP(key, value)`, etc.)
-  - Extended date and known value syntax
+
+**Development Focus:**
+The implementation work will focus on **parser enhancements for unified syntax** rather than core pattern functionality, as the underlying VM and pattern matching infrastructure is complete and supports all necessary operations. The simplified documentation approach reduces implementation complexity significantly.
 
 ### 📝 Recent Test Improvements (December 2024)
 

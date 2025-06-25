@@ -99,8 +99,14 @@ Structure patterns match parts of dCBOR items.
         - Matches an array with between `n` and `m` elements, inclusive.
     - `ARRAY ( { n , } )`
         - Matches an array with at least `n` elements.
-    - `ARRAY(pattern > pattern > pattern)`
-        - Matches if the specified patterns match the array's elements in sequence order.
+    - `ARRAY ( pattern )`
+        - Matches an array where the elements match the specified pattern. The pattern can be a simple pattern, a sequence of patterns, or patterns with repeat quantifiers.
+        - Examples:
+            - `ARRAY ( NUMBER(42) )` - Array containing exactly one element: the number 42
+            - `ARRAY ( TEXT("a") > TEXT("b") > TEXT("c") )` - Array containing exactly ["a", "b", "c"] in sequence
+            - `ARRAY ( ( ANY )* > NUMBER(42) > ( ANY )* )` - Array containing 42 anywhere within it
+            - `ARRAY ( NUMBER(42) > ( ANY )* )` - Array starting with 42, followed by any elements
+            - `ARRAY ( ( ANY )* > NUMBER(42) )` - Array ending with 42, preceded by any elements
 - Map
     - `MAP`
         - Matches any map.
@@ -114,11 +120,11 @@ Structure patterns match parts of dCBOR items.
     - `TAG`
         - Matches any CBOR tagged value.
     - `TAG ( value, pattern )`
-        - Matches the specified CBOR tagged value. This is a u64 value, formatted as a bare integer with no delimiters apart from the enclosing parentheses.
+        - Matches the specified CBOR tagged value with content that matches the given pattern. The tag value is a u64 value, formatted as a bare integer with no delimiters apart from the enclosing parentheses.
     - `TAG ( name, pattern )`
-        - Matches the CBOR tagged value with the specified name. It is formatted as a bare alphanumeric string (including hyphens and underscores) with no delimiters apart from the enclosing parentheses.
+        - Matches the CBOR tagged value with the specified name and content that matches the given pattern. The tag name is formatted as a bare alphanumeric string (including hyphens and underscores) with no delimiters apart from the enclosing parentheses.
     - `TAG ( /regex/, pattern )`
-        - Matches a CBOR tagged value with a name that matches the specified regex.
+        - Matches a CBOR tagged value with a name that matches the specified regex and content that matches the given pattern.
 
 ## Meta Patterns
 
@@ -164,3 +170,18 @@ Precedence: Repeat has the highest precedence, followed by And, Not, Sequence, a
 - Search
     - `SEARCH ( pattern )`
       - Visits every node in the CBOR tree, matching the specified pattern against each node.
+- Sequence
+    - `pattern > pattern > pattern`
+        - Matches if the specified patterns match in sequence, with no other nodes in between.
+
+## Advanced Composite Patterns
+
+The following patterns show examples of combining structure patterns with meta patterns to create complex matching expressions:
+
+- Nested Structure Patterns
+    - `TAG ( value , ARRAY ( pattern ) )`
+        - Matches a tagged value containing an array with the specified pattern. The pattern can be simple patterns, sequences, or patterns with repeat quantifiers.
+    - `MAP ( pattern : ARRAY ( { n , } ) )`
+        - Matches a map where the specified key pattern maps to an array with at least `n` elements.
+    - `ARRAY ( MAP ( pattern : pattern ) > ( pattern )* )`
+        - Matches an array starting with a map that contains the specified key-value pattern, followed by any other elements.
