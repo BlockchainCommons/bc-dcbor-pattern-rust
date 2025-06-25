@@ -1,7 +1,10 @@
 mod common;
 
 use dcbor_parse::parse_dcbor_item;
-use dcbor_pattern::{Matcher, Pattern, Result, format_paths};
+use dcbor_pattern::{
+    FormatPathsOpts, Matcher, Pattern, Result, format_paths,
+    format_paths_with_captures,
+};
 use indoc::indoc;
 
 /// Helper function to parse CBOR diagnostic notation into CBOR objects
@@ -38,21 +41,22 @@ fn test_simple_pattern_with_capture() -> Result<()> {
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected_paths);
 
-    // Test paths with captures
+    // Test paths with captures using the proper rubric
     let (vm_paths, captures) = pattern.paths_with_captures(&cbor_data);
     #[rustfmt::skip]
-    let expected_vm_paths = indoc! {r#"
+    let expected = indoc! {r#"
+        @num
+            42
         42
     "#}.trim();
-    assert_actual_expected!(format_paths(&vm_paths), expected_vm_paths);
-
-    // Verify capture is present
-    assert_eq!(captures.len(), 1);
-    assert!(captures.contains_key("num"));
-    let captured_paths = &captures["num"];
-    assert_eq!(captured_paths.len(), 1);
-    // Simple capture just contains the element itself
-    assert_eq!(captured_paths[0], vec![cbor_data]);
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &vm_paths,
+            &captures,
+            FormatPathsOpts::default()
+        ),
+        expected
+    );
 
     Ok(())
 }
@@ -79,20 +83,21 @@ fn test_vm_compilation_and_execution() -> Result<()> {
     let cbor_data = cbor("42");
     let (vm_paths, vm_captures) = dcbor_pattern::run(&program, &cbor_data);
 
-    // Verify VM execution results
+    // Verify VM execution results using the proper rubric
     #[rustfmt::skip]
-    let expected_vm_paths = indoc! {r#"
+    let expected = indoc! {r#"
+        @num
+            42
         42
     "#}.trim();
-    assert_actual_expected!(format_paths(&vm_paths), expected_vm_paths);
-
-    // Verify captures
-    assert_eq!(vm_captures.len(), 1);
-    assert!(vm_captures.contains_key("num"));
-    let captured_paths = &vm_captures["num"];
-    assert_eq!(captured_paths.len(), 1);
-    // Simple capture just contains the element itself
-    assert_eq!(captured_paths[0], vec![cbor_data]);
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &vm_paths,
+            &vm_captures,
+            FormatPathsOpts::default()
+        ),
+        expected
+    );
 
     Ok(())
 }
@@ -105,16 +110,19 @@ fn test_capture_with_array_pattern() -> Result<()> {
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
     #[rustfmt::skip]
-    let expected_paths = indoc! {r#"
+    let expected = indoc! {r#"
+        @arr
+            [42]
         [42]
     "#}.trim();
-    assert_actual_expected!(format_paths(&paths), expected_paths);
-
-    assert_eq!(captures.len(), 1);
-    assert!(captures.contains_key("arr"));
-    let captured_paths = &captures["arr"];
-    assert_eq!(captured_paths.len(), 1);
-    assert_eq!(captured_paths[0], vec![cbor_data]);
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &paths,
+            &captures,
+            FormatPathsOpts::default()
+        ),
+        expected
+    );
 
     Ok(())
 }
@@ -127,25 +135,22 @@ fn test_capture_with_nested_pattern() -> Result<()> {
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
     #[rustfmt::skip]
-    let expected_paths = indoc! {r#"
+    let expected = indoc! {r#"
+        @inner
+            [42]
+                42
+        @outer
+            [42]
         [42]
     "#}.trim();
-    assert_actual_expected!(format_paths(&paths), expected_paths);
-
-    assert_eq!(captures.len(), 2);
-
-    // Check outer capture
-    assert!(captures.contains_key("outer"));
-    let outer_captured = &captures["outer"];
-    assert_eq!(outer_captured.len(), 1);
-    assert_eq!(outer_captured[0], vec![cbor("[42]")]);
-
-    // Check inner capture
-    assert!(captures.contains_key("inner"));
-    let inner_captured = &captures["inner"];
-    assert_eq!(inner_captured.len(), 1);
-    // Inner capture includes the path from the root: [array, 42]
-    assert_eq!(inner_captured[0], vec![cbor("[42]"), cbor("42")]);
+    assert_actual_expected!(
+        format_paths_with_captures(
+            &paths,
+            &captures,
+            FormatPathsOpts::default()
+        ),
+        expected
+    );
 
     Ok(())
 }
