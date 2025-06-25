@@ -4,8 +4,8 @@ use crate::{Error, Pattern, Result};
 /// Parse a capture pattern of the form `@name(pattern)`.
 ///
 /// This function is called when a `GroupName` token is encountered.
-/// It expects the next token to be an opening parenthesis, followed by a pattern,
-/// followed by a closing parenthesis.
+/// It expects the next token to be an opening parenthesis, followed by a
+/// pattern, followed by a closing parenthesis.
 ///
 /// Examples:
 /// - `@count(NUMBER)` - captures any number with the name "count"
@@ -19,7 +19,9 @@ pub(crate) fn parse_capture(
         Some(Ok(Token::ParenOpen)) => {
             let pattern = parse_or(lexer)?;
             match lexer.next() {
-                Some(Ok(Token::ParenClose)) => Ok(Pattern::capture(name, pattern)),
+                Some(Ok(Token::ParenClose)) => {
+                    Ok(Pattern::capture(name, pattern))
+                }
                 Some(Ok(token)) => {
                     Err(Error::UnexpectedToken(Box::new(token), lexer.span()))
                 }
@@ -27,7 +29,9 @@ pub(crate) fn parse_capture(
                 None => Err(Error::ExpectedCloseParen(lexer.span())),
             }
         }
-        Some(Ok(token)) => Err(Error::UnexpectedToken(Box::new(token), lexer.span())),
+        Some(Ok(token)) => {
+            Err(Error::UnexpectedToken(Box::new(token), lexer.span()))
+        }
         Some(Err(e)) => Err(e),
         None => Err(Error::UnexpectedEndOfInput),
     }

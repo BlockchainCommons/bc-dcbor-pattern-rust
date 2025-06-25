@@ -1,4 +1,3 @@
-
 /// A macro to assert that two values are equal, printing them if they are not,
 /// including newlines and indentation they may contain. This macro is useful
 /// for debugging tests where you want to see the actual and expected values
@@ -6,7 +5,8 @@
 /// where the output may be multi-line or contain significant whitespace.
 ///
 /// General usage pattern:
-/// - Run your test with this macro, and a dummy expected value so the test fails.
+/// - Run your test with this macro, and a dummy expected value so the test
+///   fails.
 /// - Observe the actual output printed to the console.
 /// - If it is not what you expected, adjust your test or the expected value.
 /// - Replace the dummy expected value with the correct one once you have

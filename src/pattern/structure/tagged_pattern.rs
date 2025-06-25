@@ -250,11 +250,16 @@ impl Matcher for TaggedPattern {
             TaggedPattern::WithTagNameRegex(_) => {
                 // No captures in tag name regex patterns
             }
-            TaggedPattern::WithTagNameAndContent { content_pattern, .. } => {
+            TaggedPattern::WithTagNameAndContent {
+                content_pattern, ..
+            } => {
                 // Collect captures from the content pattern
                 content_pattern.collect_capture_names(names);
             }
-            TaggedPattern::WithTagNameRegexAndContent { content_pattern, .. } => {
+            TaggedPattern::WithTagNameRegexAndContent {
+                content_pattern,
+                ..
+            } => {
                 // Collect captures from the content pattern
                 content_pattern.collect_capture_names(names);
             }

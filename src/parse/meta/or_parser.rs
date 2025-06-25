@@ -4,8 +4,8 @@ use crate::{Pattern, Result};
 /// Parse an OR pattern - the top-level pattern parser.
 ///
 /// This parser handles the OR operator (|) with left associativity.
-/// It collects all patterns separated by | tokens and creates a single OR pattern.
-/// If only one pattern is found, it returns that pattern directly.
+/// It collects all patterns separated by | tokens and creates a single OR
+/// pattern. If only one pattern is found, it returns that pattern directly.
 ///
 /// This is the entry point for the pattern parsing hierarchy:
 /// OR -> AND -> NOT -> PRIMARY (atomic patterns)

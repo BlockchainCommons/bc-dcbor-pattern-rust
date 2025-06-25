@@ -24,17 +24,29 @@ impl Matcher for StructurePattern {
         captures: &mut Vec<String>,
     ) {
         match self {
-            StructurePattern::Array(pattern) => pattern.compile(code, literals, captures),
-            StructurePattern::Map(pattern) => pattern.compile(code, literals, captures),
-            StructurePattern::Tagged(pattern) => pattern.compile(code, literals, captures),
+            StructurePattern::Array(pattern) => {
+                pattern.compile(code, literals, captures)
+            }
+            StructurePattern::Map(pattern) => {
+                pattern.compile(code, literals, captures)
+            }
+            StructurePattern::Tagged(pattern) => {
+                pattern.compile(code, literals, captures)
+            }
         }
     }
 
     fn collect_capture_names(&self, names: &mut Vec<String>) {
         match self {
-            StructurePattern::Array(pattern) => pattern.collect_capture_names(names),
-            StructurePattern::Map(pattern) => pattern.collect_capture_names(names),
-            StructurePattern::Tagged(pattern) => pattern.collect_capture_names(names),
+            StructurePattern::Array(pattern) => {
+                pattern.collect_capture_names(names)
+            }
+            StructurePattern::Map(pattern) => {
+                pattern.collect_capture_names(names)
+            }
+            StructurePattern::Tagged(pattern) => {
+                pattern.collect_capture_names(names)
+            }
         }
     }
 }

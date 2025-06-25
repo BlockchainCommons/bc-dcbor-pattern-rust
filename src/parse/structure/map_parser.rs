@@ -1,4 +1,4 @@
-use crate::{Error, Pattern, Result, parse::Token, MapPattern};
+use crate::{Error, MapPattern, Pattern, Result, parse::Token};
 
 /// Parse a MAP pattern.
 ///
@@ -25,20 +25,22 @@ pub(crate) fn parse_map(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
                             MapPattern::with_length(quantifier.min())
                         } else {
                             // Range: {n,m}
-                            MapPattern::with_length_range(quantifier.min()..=max)
+                            MapPattern::with_length_range(
+                                quantifier.min()..=max,
+                            )
                         }
                     } else {
                         // Open-ended range: {n,}
-                        MapPattern::with_length_range(quantifier.min()..=usize::MAX)
+                        MapPattern::with_length_range(
+                            quantifier.min()..=usize::MAX,
+                        )
                     };
 
                     // Expect closing parenthesis
                     match lexer.next() {
-                        Some(Ok(Token::ParenClose)) => {
-                            Ok(Pattern::Structure(
-                                crate::pattern::StructurePattern::Map(pattern)
-                            ))
-                        }
+                        Some(Ok(Token::ParenClose)) => Ok(Pattern::Structure(
+                            crate::pattern::StructurePattern::Map(pattern),
+                        )),
                         Some(Ok(token)) => Err(Error::UnexpectedToken(
                             Box::new(token),
                             lexer.span(),
@@ -56,17 +58,18 @@ pub(crate) fn parse_map(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
         }
         _ => {
             // No parentheses, just "MAP" - matches any map
-            Ok(Pattern::Structure(
-                crate::pattern::StructurePattern::Map(MapPattern::any())
-            ))
+            Ok(Pattern::Structure(crate::pattern::StructurePattern::Map(
+                MapPattern::any(),
+            )))
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use logos::Logos;
+
+    use super::*;
 
     #[test]
     fn test_parse_map_any() {

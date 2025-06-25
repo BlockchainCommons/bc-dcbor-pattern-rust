@@ -217,7 +217,9 @@ impl Matcher for NumberPattern {
         _captures: &mut Vec<String>,
     ) {
         let idx = literals.len();
-        literals.push(Pattern::Value(crate::pattern::ValuePattern::Number(self.clone())));
+        literals.push(Pattern::Value(crate::pattern::ValuePattern::Number(
+            self.clone(),
+        )));
         code.push(Instr::MatchPredicate(idx));
     }
 }
@@ -351,10 +353,7 @@ mod tests {
 
         // Test direct conversion using try_from_cbor
         assert_eq!(f64::try_from_cbor(&int_cbor).ok(), Some(42.0));
-        assert_eq!(
-            f64::try_from_cbor(&float_cbor).ok(),
-            Some(3.2222)
-        );
+        assert_eq!(f64::try_from_cbor(&float_cbor).ok(), Some(3.2222));
         assert_eq!(f64::try_from_cbor(&negative_cbor).ok(), Some(-10.0));
         assert_eq!(f64::try_from_cbor(&text_cbor).ok(), None);
     }

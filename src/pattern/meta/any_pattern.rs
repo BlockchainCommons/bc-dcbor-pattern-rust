@@ -8,15 +8,11 @@ pub struct AnyPattern;
 
 impl AnyPattern {
     /// Creates a new `AnyPattern`.
-    pub fn new() -> Self {
-        AnyPattern
-    }
+    pub fn new() -> Self { AnyPattern }
 }
 
 impl Default for AnyPattern {
-    fn default() -> Self {
-        Self::new()
-    }
+    fn default() -> Self { Self::new() }
 }
 
 impl Matcher for AnyPattern {

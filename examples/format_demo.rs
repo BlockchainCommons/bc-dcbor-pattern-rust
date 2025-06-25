@@ -1,6 +1,8 @@
 /// Example demonstrating the use of the format module
 use dcbor::prelude::*;
-use dcbor_pattern::{format_paths, format_paths_opt, FormatPathsOpts, PathElementFormat};
+use dcbor_pattern::{
+    FormatPathsOpts, PathElementFormat, format_paths, format_paths_opt,
+};
 
 fn main() {
     // Create some sample paths for demonstration
@@ -31,8 +33,7 @@ fn main() {
     println!("{}", format_paths_opt(&paths, opts));
 
     println!("\n=== Last element only ===");
-    let opts = FormatPathsOpts::new()
-        .last_element_only(true);
+    let opts = FormatPathsOpts::new().last_element_only(true);
     println!("{}", format_paths_opt(&paths, opts));
 
     println!("\n=== Truncated elements ===");
@@ -41,7 +42,6 @@ fn main() {
     println!("{}", format_paths_opt(&paths, opts));
 
     println!("\n=== No indentation ===");
-    let opts = FormatPathsOpts::new()
-        .indent(false);
+    let opts = FormatPathsOpts::new().indent(false);
     println!("{}", format_paths_opt(&paths, opts));
 }

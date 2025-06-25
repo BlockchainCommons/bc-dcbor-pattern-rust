@@ -31,7 +31,9 @@ impl Matcher for NullPattern {
         _captures: &mut Vec<String>,
     ) {
         let idx = literals.len();
-        literals.push(Pattern::Value(crate::pattern::ValuePattern::Null(self.clone())));
+        literals.push(Pattern::Value(crate::pattern::ValuePattern::Null(
+            self.clone(),
+        )));
         code.push(Instr::MatchPredicate(idx));
     }
 }

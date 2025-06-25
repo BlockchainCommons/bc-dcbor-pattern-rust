@@ -18,7 +18,9 @@ fn main() -> Result<(), Error> {
         50.to_cbor(),
     ];
 
-    let value_descriptions = ["5", "42", "-10", "3.2222", "NaN", "100", "0", "-1", "1.5", "50"];
+    let value_descriptions = [
+        "5", "42", "-10", "3.2222", "NaN", "100", "0", "-1", "1.5", "50",
+    ];
 
     // Test NUMBER - matches any number
     println!("Testing 'NUMBER' (any number):");

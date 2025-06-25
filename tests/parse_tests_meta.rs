@@ -106,7 +106,8 @@ fn test_parentheses_grouping_parsing() -> Result<()> {
     let pattern = Pattern::parse("(BOOL | TEXT) & NUMBER")?;
     // Should parse as: (BOOL | TEXT) & NUMBER
     assert!(matches!(pattern, Pattern::Meta(_)));
-    // The grouping should affect the parsing structure even if display doesn't show parens
+    // The grouping should affect the parsing structure even if display doesn't
+    // show parens
     assert!(!pattern.to_string().is_empty());
     Ok(())
 }
@@ -207,7 +208,8 @@ fn test_integration_with_value_patterns() -> Result<()> {
 
 #[test]
 fn test_complex_mixed_pattern() -> Result<()> {
-    let pattern = Pattern::parse("@result(BOOL | (TEXT & !NULL)) | @number(NUMBER)")?;
+    let pattern =
+        Pattern::parse("@result(BOOL | (TEXT & !NULL)) | @number(NUMBER)")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
     // The exact formatting might vary, just check it parses successfully
     assert!(!pattern.to_string().is_empty());
@@ -217,12 +219,13 @@ fn test_complex_mixed_pattern() -> Result<()> {
 /// Test functional correctness of precedence (not just parsing)
 #[test]
 fn test_precedence_functionality() -> Result<()> {
-    use dcbor_pattern::Matcher;
     use dcbor::CBOR;
+    use dcbor_pattern::Matcher;
 
     // Test that "BOOL | TEXT & NUMBER" is parsed as "BOOL | (TEXT & NUMBER)"
-    // This means a boolean should match, but for the right side, both TEXT and NUMBER would need to match
-    // (which is impossible, so only BOOL can match)
+    // This means a boolean should match, but for the right side, both TEXT and
+    // NUMBER would need to match (which is impossible, so only BOOL can
+    // match)
     let pattern = Pattern::parse("BOOL | TEXT & NUMBER")?;
 
     let bool_value = CBOR::from(true);
@@ -243,18 +246,20 @@ fn test_precedence_functionality() -> Result<()> {
 
 #[test]
 fn test_grouping_functionality() -> Result<()> {
-    use dcbor_pattern::Matcher;
     use dcbor::CBOR;
+    use dcbor_pattern::Matcher;
 
     // Test that "(BOOL | TEXT) & NUMBER" groups correctly
-    // This should never match anything since no value can be both (BOOL or TEXT) AND NUMBER
+    // This should never match anything since no value can be both (BOOL or
+    // TEXT) AND NUMBER
     let pattern = Pattern::parse("(BOOL | TEXT) & NUMBER")?;
 
     let bool_value = CBOR::from(true);
     let text_value = CBOR::from("hello");
     let number_value = CBOR::from(42);
 
-    // Nothing should match because no value can be in two different types simultaneously
+    // Nothing should match because no value can be in two different types
+    // simultaneously
     assert!(!pattern.matches(&bool_value));
     assert!(!pattern.matches(&text_value));
     assert!(!pattern.matches(&number_value));

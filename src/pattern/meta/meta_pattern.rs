@@ -1,7 +1,8 @@
 use dcbor::prelude::*;
 
 use super::{
-    AndPattern, AnyPattern, CapturePattern, NonePattern, NotPattern, OrPattern, RepeatPattern, SearchPattern
+    AndPattern, AnyPattern, CapturePattern, NonePattern, NotPattern, OrPattern,
+    RepeatPattern, SearchPattern,
 };
 use crate::pattern::{Matcher, Path, Pattern, vm::Instr};
 
@@ -52,9 +53,15 @@ impl Matcher for MetaPattern {
             MetaPattern::And(pattern) => pattern.compile(code, lits, captures),
             MetaPattern::Or(pattern) => pattern.compile(code, lits, captures),
             MetaPattern::Not(pattern) => pattern.compile(code, lits, captures),
-            MetaPattern::Repeat(pattern) => pattern.compile(code, lits, captures),
-            MetaPattern::Capture(pattern) => pattern.compile(code, lits, captures),
-            MetaPattern::Search(pattern) => pattern.compile(code, lits, captures),
+            MetaPattern::Repeat(pattern) => {
+                pattern.compile(code, lits, captures)
+            }
+            MetaPattern::Capture(pattern) => {
+                pattern.compile(code, lits, captures)
+            }
+            MetaPattern::Search(pattern) => {
+                pattern.compile(code, lits, captures)
+            }
         }
     }
 
@@ -65,9 +72,15 @@ impl Matcher for MetaPattern {
             MetaPattern::And(pattern) => pattern.collect_capture_names(names),
             MetaPattern::Or(pattern) => pattern.collect_capture_names(names),
             MetaPattern::Not(pattern) => pattern.collect_capture_names(names),
-            MetaPattern::Repeat(pattern) => pattern.collect_capture_names(names),
-            MetaPattern::Capture(pattern) => pattern.collect_capture_names(names),
-            MetaPattern::Search(pattern) => pattern.collect_capture_names(names),
+            MetaPattern::Repeat(pattern) => {
+                pattern.collect_capture_names(names)
+            }
+            MetaPattern::Capture(pattern) => {
+                pattern.collect_capture_names(names)
+            }
+            MetaPattern::Search(pattern) => {
+                pattern.collect_capture_names(names)
+            }
         }
     }
 

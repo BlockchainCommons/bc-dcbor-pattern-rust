@@ -1,9 +1,9 @@
 /// Provides an `Interval` type representing a range of usize values with a
 /// minimum and optional maximum.
 ///
-/// This module is used in the context of pattern matching for dCBOR items to
-/// represent cardinality specifications like `{n}`, `{n,m}`, or `{n,}` in
-/// pattern expressions.
+/// This module is used in the context of pattern matching for dCBOR items
+/// to represent cardinality specifications like `{n}`, `{n,m}`, or `{n,}`
+/// in pattern expressions.
 use std::ops::{Bound, RangeBounds};
 
 /// Represents an inclusive interval with a minimum value and an optional

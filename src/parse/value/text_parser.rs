@@ -17,14 +17,11 @@ pub(crate) fn parse_text(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
                     Some(Ok(Token::ParenClose)) => {
                         Ok(Pattern::text_regex(regex))
                     }
-                    Some(Ok(t)) => Err(Error::UnexpectedToken(
-                        Box::new(t),
-                        lexer.span(),
-                    )),
-                    Some(Err(e)) => Err(e),
-                    None => {
-                        Err(Error::ExpectedCloseParen(lexer.span()))
+                    Some(Ok(t)) => {
+                        Err(Error::UnexpectedToken(Box::new(t), lexer.span()))
                     }
+                    Some(Err(e)) => Err(e),
+                    None => Err(Error::ExpectedCloseParen(lexer.span())),
                 }
             } else {
                 // Parse as string literal
@@ -32,10 +29,9 @@ pub(crate) fn parse_text(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
                 lexer.bump(consumed);
                 match lexer.next() {
                     Some(Ok(Token::ParenClose)) => Ok(Pattern::text(value)),
-                    Some(Ok(t)) => Err(Error::UnexpectedToken(
-                        Box::new(t),
-                        lexer.span(),
-                    )),
+                    Some(Ok(t)) => {
+                        Err(Error::UnexpectedToken(Box::new(t), lexer.span()))
+                    }
                     Some(Err(e)) => Err(e),
                     None => Err(Error::ExpectedCloseParen(lexer.span())),
                 }
@@ -196,11 +192,13 @@ mod tests {
         assert_eq!(value, "hello");
         assert_eq!(consumed, 7);
 
-        let (value, consumed) = parse_string_literal(r#"  "hello world"  "#).unwrap();
+        let (value, consumed) =
+            parse_string_literal(r#"  "hello world"  "#).unwrap();
         assert_eq!(value, "hello world");
         assert_eq!(consumed, 17);
 
-        let (value, consumed) = parse_string_literal(r#""say \"hello\"""#).unwrap();
+        let (value, consumed) =
+            parse_string_literal(r#""say \"hello\"""#).unwrap();
         assert_eq!(value, r#"say "hello""#);
         assert_eq!(consumed, 15);
     }

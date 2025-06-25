@@ -87,7 +87,9 @@ impl Matcher for ByteStringPattern {
         _captures: &mut Vec<String>,
     ) {
         let idx = literals.len();
-        literals.push(Pattern::Value(crate::pattern::ValuePattern::ByteString(self.clone())));
+        literals.push(Pattern::Value(
+            crate::pattern::ValuePattern::ByteString(self.clone()),
+        ));
         code.push(Instr::MatchPredicate(idx));
     }
 }

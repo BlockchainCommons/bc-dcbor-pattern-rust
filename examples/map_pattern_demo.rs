@@ -1,10 +1,8 @@
-use dcbor_pattern::{Pattern, Matcher};
 use dcbor_parse::parse_dcbor_item;
+use dcbor_pattern::{Matcher, Pattern};
 
 /// Helper function to parse CBOR diagnostic notation into CBOR objects
-fn cbor(s: &str) -> dcbor::CBOR {
-    parse_dcbor_item(s).unwrap()
-}
+fn cbor(s: &str) -> dcbor::CBOR { parse_dcbor_item(s).unwrap() }
 
 fn main() {
     println!("MAP Pattern Parsing Demo");
@@ -17,12 +15,12 @@ fn main() {
 
     // Parse different MAP patterns and test them
     let patterns = vec![
-        "MAP",           // Any map
-        "MAP({0})",      // Empty map
-        "MAP({1})",      // Single item map
-        "MAP({3})",      // Three item map
-        "MAP({1,5})",    // Range: 1-5 items
-        "MAP({2,})",     // At least 2 items
+        "MAP",        // Any map
+        "MAP({0})",   // Empty map
+        "MAP({1})",   // Single item map
+        "MAP({3})",   // Three item map
+        "MAP({1,5})", // Range: 1-5 items
+        "MAP({2,})",  // At least 2 items
     ];
 
     for pattern_str in patterns {
@@ -36,7 +34,9 @@ fn main() {
     }
 
     println!("\nPattern round-trip test:");
-    for pattern_str in &["MAP", "MAP({0})", "MAP({3})", "MAP({2,8})", "MAP({5,})"] {
+    for pattern_str in
+        &["MAP", "MAP({0})", "MAP({3})", "MAP({2,8})", "MAP({5,})"]
+    {
         let pattern = Pattern::parse(pattern_str).unwrap();
         let displayed = pattern.to_string();
         println!("  {} -> {}", pattern_str, displayed);
