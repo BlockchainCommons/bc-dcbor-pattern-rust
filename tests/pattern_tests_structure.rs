@@ -64,25 +64,38 @@ fn test_array_pattern_with_length() {
     assert!(!pattern.matches(&not_array));
 }
 
-/// Test that ArrayPattern::WithElements matches arrays containing matching
-/// elements
+/// Test that ArrayPattern::WithElements matches arrays with exactly the
+/// specified pattern This implements the unified syntax: ARRAY(pattern) matches
+/// the array as a sequence
 #[test]
 fn test_array_pattern_with_elements() {
     let number_pattern = parse("NUMBER(42)");
     let pattern = ArrayPattern::with_elements(number_pattern);
 
-    // Should match array containing 42
-    let array = cbor("[1, 42, 3]");
-    let paths = pattern.paths(&array);
+    // Should match array with exactly one element: 42
+    let single_element = cbor("[42]");
+    let paths = pattern.paths(&single_element);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        [1, 42, 3]
+        [42]
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
+
+    // Should NOT match array containing 42 among other elements (unified
+    // syntax)
+    let multi_element = cbor("[1, 42, 3]");
+    assert!(
+        !pattern.matches(&multi_element),
+        "ARRAY(NUMBER(42)) should only match [42], not [1, 42, 3]"
+    );
 
     // Should not match array without 42
     let no_match = cbor("[1, 2, 3]");
     assert!(!pattern.matches(&no_match));
+
+    // Should not match empty array
+    let empty = cbor("[]");
+    assert!(!pattern.matches(&empty));
 }
 
 /// Test MapPattern::Any matches any map

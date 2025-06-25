@@ -48,15 +48,64 @@ impl Matcher for ArrayPattern {
                         vec![vec![cbor.clone()]]
                     }
                     ArrayPattern::WithElements(pattern) => {
-                        // Check if any elements match the pattern
-                        let mut result = Vec::new();
-                        for element in arr {
-                            if pattern.matches(element) {
-                                result.push(vec![cbor.clone()]);
-                                break; // Found at least one matching element
+                        // For unified syntax, the pattern should match against the array elements
+                        // as a sequence, not against any individual element.
+                        //
+                        // Examples:
+                        // - ARRAY(NUMBER(42)) should match [42] but not [1, 42, 3]
+                        // - ARRAY(TEXT("a") > TEXT("b")) should match ["a", "b"] but not ["a", "x", "b"]
+
+                        // Check if this is a simple single-element case
+                        use crate::pattern::{Pattern, MetaPattern};
+
+                        match pattern.as_ref() {
+                            // Simple case: single pattern should match array with exactly one element
+                            Pattern::Value(_) | Pattern::Structure(_) => {
+                                if arr.len() == 1 {
+                                    if pattern.matches(&arr[0]) {
+                                        vec![vec![cbor.clone()]]
+                                    } else {
+                                        vec![]
+                                    }
+                                } else {
+                                    vec![]
+                                }
+                            }
+
+                            // Complex case: sequences, repeats, etc.
+                            Pattern::Meta(MetaPattern::Sequence(seq_pattern)) => {
+                                // For sequences, we need to match each pattern against consecutive elements
+                                let patterns = seq_pattern.patterns();
+                                if patterns.len() == arr.len() {
+                                    // Check if each pattern matches the corresponding array element
+                                    for (i, element_pattern) in patterns.iter().enumerate() {
+                                        if !element_pattern.matches(&arr[i]) {
+                                            return vec![];
+                                        }
+                                    }
+                                    vec![vec![cbor.clone()]]
+                                } else {
+                                    vec![]
+                                }
+                            }
+
+                            // For other meta patterns (or, and, etc.), delegate to the pattern matcher
+                            // This handles cases like ARRAY(NUMBER | TEXT)
+                            _ => {
+                                // Check if the pattern matches the array as a whole sequence
+                                // For now, use a heuristic: if it's a simple meta pattern,
+                                // apply it to each element and require at least one match
+                                // This is not perfect but maintains some compatibility
+                                let mut result = Vec::new();
+                                for element in arr {
+                                    if pattern.matches(element) {
+                                        result.push(vec![cbor.clone()]);
+                                        break;
+                                    }
+                                }
+                                result
                             }
                         }
-                        result
                     }
                     ArrayPattern::WithLength(target_length) => {
                         if arr.len() == *target_length {
@@ -118,7 +167,7 @@ impl std::fmt::Display for ArrayPattern {
         match self {
             ArrayPattern::Any => write!(f, "ARRAY"),
             ArrayPattern::WithElements(pattern) => {
-                write!(f, "ARRAY_ELEM({})", pattern)
+                write!(f, "ARRAY({})", pattern)
             }
             ArrayPattern::WithLength(length) => {
                 write!(f, "ARRAY({{{}}})", length)
