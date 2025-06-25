@@ -76,7 +76,13 @@ This crate is focused on deterministic CBOR (dCBOR) patterns, while `bc-envelope
 
 ## Current Status
 
-The `dcbor-pattern` crate is **COMPLETE**!
+The `dcbor-pattern` crate is **NEARLY COMPLETE** with **ONE CRITICAL LIMITATION**!
+
+**🚨 CRITICAL LIMITATION - Repeat Patterns in Array Matching:**
+- **Issue**: `ARRAY((ANY)*>NUMBER(42)>(ANY)*)` produces incorrect matching results
+- **Impact**: Core unified syntax functionality documented in `PatternSyntax.md` is broken
+- **Status**: Infrastructure exists (repeat patterns, sequences work individually) but array integration is incomplete
+- **Priority**: **URGENT** - This blocks the primary unified syntax use cases
 
 **✅ FULLY IMPLEMENTED:**
 - ✅ **Complete Pattern Infrastructure**: All pattern types with working `Matcher` trait implementations
@@ -87,6 +93,8 @@ The `dcbor-pattern` crate is **COMPLETE**!
 - ✅ **All Meta Patterns**: 8/8 meta pattern types fully implemented with parsing
 - ✅ **Main Pattern::parse**: Supports complete dCBOR pattern syntax including precedence
 - ✅ **Comprehensive Test Suite**: 305 passing tests across all modules
+- ✅ **Basic Array Unified Syntax**: `ARRAY(NUMBER(42))` and `ARRAY(TEXT("a") > TEXT("b"))` work correctly
+- ✅ **Repeat Pattern Infrastructure**: Can create and display `(ANY)*`, sequences with repeats
 
 **✅ COMPLETED IN THIS SESSION:**
 - ✅ **Sequence Parsing Implementation**: Complete implementation of sequence parsing support (`parse_sequence()` function)
@@ -282,8 +290,39 @@ let pattern = parse("ARRAY((ANY)*>NUMBER(42))");               // Ending with el
 - [x] **✅ COMPLETED**: Update `ArrayPattern::WithElements` matcher logic to match arrays as sequences
 - [x] **✅ COMPLETED**: Fix Display implementation for unified `ARRAY(pattern)` syntax
 - [x] **✅ COMPLETED**: Add comprehensive tests for unified array pattern syntax and matching behavior
-- [ ] Implement parsing of complex patterns with repeat quantifiers (e.g., `ARRAY((ANY)*>NUMBER(42)>(ANY)*)`)
+- [ ] **🚨 CRITICAL LIMITATION**: Implement repeat pattern support in `ArrayPattern::WithElements` matcher
+- [ ] **🚨 CRITICAL LIMITATION**: Integrate VM-based sequence matching for complex patterns with repeats
+- [ ] Add text parsing support for complex repeat syntax (e.g., `ARRAY((ANY)*>NUMBER(42)>(ANY)*)`)
 - [ ] Add integration tests for advanced nested array patterns
+
+**🚨 Current Critical Limitation - Repeat Patterns in Arrays:**
+
+**Status**: The infrastructure exists but array matching is **incomplete**
+
+**What Works:**
+- ✅ Creating repeat patterns programmatically: `Pattern::repeat(Pattern::any(), Quantifier::new(0..=usize::MAX, Reluctance::Greedy))`
+- ✅ Creating sequences with repeats: `Pattern::sequence(vec![any_star, Pattern::number(42), any_star])`
+- ✅ Display formatting: `ARRAY((ANY){0,18446744073709551615}>NUMBER(42)>(ANY){0,18446744073709551615})`
+- ✅ Parser accepts complex pattern syntax
+- ✅ Simple patterns work: `ARRAY(NUMBER(42))` matches `[42]` exactly
+- ✅ Simple sequences work: `ARRAY(TEXT("a") > TEXT("b"))` matches `["a", "b"]` exactly
+
+**What Doesn't Work:**
+- ❌ **Array matching with repeat patterns**: `ARRAY((ANY)*>NUMBER(42)>(ANY)*)` produces wrong results:
+  - `[42]` → ❌ NO MATCH (should be ✅ MATCH)
+  - `[1, 42]` → ❌ NO MATCH (should be ✅ MATCH)
+  - `[42, 1]` → ❌ NO MATCH (should be ✅ MATCH)
+  - `[1, 42, 3]` → ✅ MATCH (accidental, wrong reason)
+  - `[]` → ❌ NO MATCH (should be ✅ MATCH since `(ANY)*` allows zero)
+
+**Root Cause**: `ArrayPattern::WithElements` matcher falls back to legacy "any element matching" logic for sequences containing repeat patterns, instead of proper sequence evaluation.
+
+**Required Implementation**:
+1. **Extend `ArrayPattern::WithElements` matcher** to handle `Pattern::Meta(MetaPattern::Repeat(_))` within sequences
+2. **Integrate VM-based matching** for complex sequence patterns that require backtracking and quantifier evaluation
+3. **Add sequence matching logic** that can handle patterns like `(ANY)*>NUMBER(42)>(ANY)*` against array element sequences
+
+**Priority**: **HIGH** - This blocks the core unified syntax functionality documented in `PatternSyntax.md`
 
 #### 🎯 Implementation Phase 2: Enhanced Map Pattern Support
 
@@ -304,7 +343,7 @@ let pattern = parse("MAP(TEXT(\"name\"):TEXT, TEXT(\"age\"):NUMBER)"); // Multip
 **Implementation Tasks:**
 - [x] **✅ COMPLETED**: Add `Pattern::any_map()` convenience method to main Pattern impl
 - [ ] **⚠️ ENHANCEMENT NEEDED**: Extend `MapPattern` to support multiple key-value constraints simultaneously
-- [ ] Extend `map_parser.rs` to support the unified `MAP(pattern: pattern, ...)` syntax with multiple constraints
+- [ ] Extend `map_parser.rs` to support the unified `MAP(pattern:pattern,...)` syntax with multiple constraints
 - [ ] Implement parsing of complex key and value patterns
 - [ ] Add comprehensive tests for all map pattern variations
 
@@ -330,103 +369,76 @@ let pattern = parse("ARRAY(MAP(TEXT(\"id\"):NUMBER) > (ANY)*)"); // Array starti
 - [ ] Optimize VM instructions for deeply nested patterns
 - [ ] Add performance tests for complex nested patterns
 
-#### 🔧 Technical Implementation Notes
+#### 🚨 Critical Issue: Array Pattern Repeat Matching Implementation Guide
 
-**Missing Core APIs Identified:**
-- [x] **✅ COMPLETED**: `SequencePattern` implementation is completely missing from the meta pattern system
-- [x] **✅ COMPLETED**: No programmatic way to create sequence patterns (e.g., `Pattern::sequence(vec![a, b, c])`)
-- [x] **✅ COMPLETED**: Structure pattern convenience methods in main `Pattern` impl:
-  - [x] `Pattern::any_array()`
-  - [x] `Pattern::any_map()`
-  - [x] `Pattern::any_tagged()`
-- [ ] **⚠️ ENHANCEMENT**: `MapPattern` needs support for multiple simultaneous key-value constraints
+**Problem**: The `ArrayPattern::WithElements` matcher in `src/pattern/structure/array_pattern.rs` doesn't properly handle sequences containing repeat patterns.
 
-**Unified Syntax Approach:**
-- ✅ `ARRAY(pattern)` unified syntax **IMPLEMENTED** - replaces multiple fragmented syntax variations
-  - **✅ COMPLETED**: Parser support for `ARRAY(pattern)` syntax with automatic distinction from quantifier syntax
-  - **✅ COMPLETED**: Matcher logic correctly treats pattern as sequence match against array elements
-  - **✅ COMPLETED**: `ARRAY(NUMBER(42))` matches `[42]` exactly, not `[1, 42, 3]` (correct unified behavior)
-  - **✅ COMPLETED**: `ARRAY(TEXT("a") > TEXT("b"))` matches `["a", "b"]` exactly (sequence support)
-  - **✅ COMPLETED**: All existing tests updated and passing with new behavior
-- `MAP(pattern: pattern, ...)` is already well-defined and consistent
-- All patterns can contain sequences, repeats, and complex nested structures
-- Focus on parser enhancements rather than new syntax definitions
+**Current Faulty Logic** (lines ~50-105 in array_pattern.rs):
+```rust
+Pattern::Meta(MetaPattern::Sequence(seq_pattern)) => {
+    // Only handles simple sequences without repeats
+    let patterns = seq_pattern.patterns();
+    if patterns.len() == arr.len() { /* simple matching */ }
+}
+_ => {
+    // Falls back to legacy "any element matching" for repeat patterns
+    // This is WRONG for unified syntax
+}
+```
 
-**VM Considerations:**
-- Current VM supports all necessary instruction types for unified syntax
-- ✅ Array patterns with sequences will use existing array element navigation
-- ✅ Map key-value constraints will use existing MapKey/MapValue navigation
-- [x] **✅ COMPLETED**: Sequence pattern compilation generates proper VM instructions
-- No new VM instructions required - unified syntax leverages existing infrastructure
+**Required Implementation**:
 
-**Testing Strategy:**
-- Add parsing tests for unified `ARRAY(pattern)` and `MAP(pattern: pattern, ...)` syntax
-- Test all documented examples from PatternSyntax.md
-- Add matching tests with real CBOR data for each pattern variation
-- Verify round-trip parsing (parse → display → parse) for complex patterns
-- Performance testing for deeply nested composite patterns
+1. **Add Repeat Pattern Case**:
+   ```rust
+   Pattern::Meta(MetaPattern::Repeat(repeat_pattern)) => {
+       // Handle single repeat patterns like (ANY)*
+   }
+   ```
 
-### 🚀 Development Guidance for Unified Syntax Implementation
+2. **Handle Complex Sequences**:
+   - Sequences containing repeat patterns need VM-based evaluation
+   - Cannot use simple length comparison like `patterns.len() == arr.len()`
+   - Must support patterns like `(ANY)*>NUMBER(42)>(ANY)*`
 
-#### 🔒 Critical Implementation Requirements (NEVER Break These)
+3. **Integration Options**:
+   - **Option A**: Implement sequence matching logic directly in matcher
+   - **Option B**: Delegate complex cases to VM compilation and execution
+   - **Option C**: Create specialized sequence evaluator for array contexts
 
-**Code Quality Standards:**
-- **ALL existing tests must continue to pass** - Never break existing functionality
-- **Always run `cargo test && cargo clippy`** before declaring any task complete
-- **Use idiomatic Rust** - Follow safety, performance, and best practices from coding instructions
-- **Follow existing code patterns** - Study and mimic the implementation style in the codebase
-- **Maintain backward compatibility** - All existing APIs must continue to work
+4. **Test-Driven Development**:
+   - Use the existing `test_repeat_pattern_support()` test as validation
+   - Target behavior: `ARRAY((ANY)*>NUMBER(42)>(ANY)*)` should match any array containing 42
 
-**Development Standards:**
-- **Add comprehensive tests** - Every new feature needs both unit and integration tests
-- **Update documentation** - If changes affect public APIs, update relevant documentation
-- **Incremental implementation** - Complete one logical task at a time, verify it works, then stop for review. Don't move to the next task in the same turn.
+**Files to Modify**:
+- **Primary**: `src/pattern/structure/array_pattern.rs` (ArrayPattern::WithElements matcher)
+- **Supporting**: Possibly `src/pattern/vm.rs` if VM integration is chosen
+- **Tests**: `src/parse/structure/array_parser.rs` (existing test documents the issue)
 
-#### 📋 Implementation Task Selection Strategy
-
-**Task Priority Order:**
-1. **Parser Enhancements Second** - Extend array_parser.rs for unified ARRAY(pattern) syntax, extend map_parser.rs for MAP(pattern:pattern,...) syntax
-2. **Parser Enhancements Second** - Extend array_parser.rs and map_parser.rs for unified syntax
-3. **Comprehensive Testing Third** - Add tests for all documented syntax variations
-
-**Phase-Based Approach:**
-- **Phase 1**: Enhanced Array Pattern Support (SequencePattern ✅ COMPLETED, sequence parsing ✅ COMPLETED, array parser)
-- **Phase 2**: Enhanced Map Pattern Support (multiple constraints, convenience methods ✅ COMPLETED)
-- **Phase 3**: Advanced Nested Patterns (testing complex scenarios, performance optimization)
-
-#### 🗂️ Key Implementation Files & Their Roles
-
-**Core Pattern APIs (Add missing methods here):**
-- `src/pattern/pattern_impl.rs` - Main Pattern API, ✅ COMPLETED: Pattern::any_array(), Pattern::any_map(), Pattern::any_tagged(), Pattern::sequence()
-- `src/pattern/meta/meta_pattern.rs` - ✅ COMPLETED: SequencePattern added to MetaPattern enum
-- `src/pattern/meta/sequence_pattern.rs` - ✅ COMPLETED: SequencePattern implementation
-
-**Parser Enhancement Files:**
-- `src/parse/structure/array_parser.rs` - Extend for unified ARRAY(pattern) syntax
-- `src/parse/structure/map_parser.rs` - Extend for MAP(pattern:pattern,...) syntax with multiple constraints
-- `src/parse/meta/` - Add sequence parsing support if needed
-
-**Reference Documentation:**
-- `AGENTS.md` - Complete development plan and API gap analysis
-- `docs/PatternSyntax.md` - Target syntax specification and examples
-- Existing test files - Study patterns for implementing comprehensive test coverage
-
-#### 🎯 Implementation Success Criteria
-
-**Functional Requirements:**
+**Success Criteria**:
 - All existing tests continue to pass
-- New functionality has comprehensive test coverage (unit + integration)
-- Code passes `cargo clippy` with zero warnings
-- All documented syntax examples in PatternSyntax.md work correctly
+- `test_repeat_pattern_support()` shows correct matching behavior
+- `ARRAY((ANY)*>NUMBER(42)>(ANY)*)` matches arrays: `[42]`, `[1,42]`, `[42,1]`, `[1,42,3]`, `[]` (if zero matches allowed)
 
-**Quality Requirements:**
-- Implementation follows existing code patterns and architecture
-- Changes are backwards compatible with existing programmatic API
-- Documentation is updated for any public API changes
-- Progress measurably advances toward unified syntax goals
+## 🎯 Next Developer Action Items
 
-**Architecture Constraints:**
-- Leverage existing VM instructions - no new instruction types needed
-- Focus on parser enhancements, not core pattern matching logic
-- Maintain separation between value/structure/meta pattern categories
-- Use existing quantifier and VM infrastructure
+**Immediate Priority** (blocks core functionality):
+
+1. **Fix `ArrayPattern::WithElements` Repeat Matching** (`src/pattern/structure/array_pattern.rs`)
+   - **Current Issue**: Line ~95+ fallback logic is wrong for sequences with repeats
+   - **Required**: Add proper case for `Pattern::Meta(MetaPattern::Repeat(_))` within sequences
+   - **Test**: Run `cargo test test_repeat_pattern_support -- --nocapture` to see current failures
+   - **Goal**: Make `ARRAY((ANY)*>NUMBER(42)>(ANY)*)` correctly match any array containing 42
+
+2. **Add Text Parsing Support** for complex repeat syntax like `(ANY)*`
+   - **Test**: Try `Pattern::parse("ARRAY((ANY)*>NUMBER(42)>(ANY)*)")` - this may not parse correctly yet
+   - **Required**: Ensure repeat pattern parsing works within array parentheses
+
+**Future Priority**:
+
+3. **Map Pattern Multiple Constraints** - Extend `MapPattern` for `MAP(key1:val1, key2:val2, ...)`
+4. **Advanced Integration Testing** - Test nested patterns and performance
+
+**Validation**:
+- All existing tests must continue passing: `cargo test --quiet`
+- Code quality check: `cargo clippy --quiet`
+- New functionality verification: The test case output should change from current wrong behavior to correct matching
