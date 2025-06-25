@@ -1,3 +1,5 @@
+//! # dCBOR Pattern Matching
+
 mod error;
 mod format;
 mod interval;
