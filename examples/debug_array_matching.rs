@@ -14,14 +14,14 @@ where
     let result = Arc::new(Mutex::new(None));
     let result_clone = result.clone();
 
-    let handle = thread::spawn(move || {
+    let _handle = thread::spawn(move || {
         let test_result = test_fn();
         *result_clone.lock().unwrap() = Some(test_result);
     });
 
     let start = Instant::now();
     while start.elapsed() < Duration::from_secs(timeout_secs) {
-        if let Ok(mut guard) = result.try_lock() {
+        if let Ok(guard) = result.try_lock() {
             if let Some(res) = *guard {
                 println!("✅ {} completed: {}", test_name, res);
                 return res;

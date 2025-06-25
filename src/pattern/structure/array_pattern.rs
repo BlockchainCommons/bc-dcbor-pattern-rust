@@ -134,6 +134,7 @@ impl ArrayPattern {
     /// Backtracking algorithm to match sequence patterns against array
     /// elements. pattern_idx: current pattern index in the sequence
     /// element_idx: current element index in the array
+    #[allow(clippy::only_used_in_recursion)]
     fn backtrack_sequence_match(
         &self,
         patterns: &[Pattern],

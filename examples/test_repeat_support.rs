@@ -1,7 +1,7 @@
 // Temporary test file to check repeat pattern support
 
 use dcbor_parse::parse_dcbor_item;
-use dcbor_pattern::{Pattern, Quantifier, Reluctance};
+use dcbor_pattern::{Matcher, Pattern, Quantifier, Reluctance};
 
 fn main() {
     // Test 1: Can we create repeat patterns programmatically?
@@ -31,7 +31,7 @@ fn main() {
 
     // Test 4: Can we create ARRAY patterns with sequences containing repeats?
     let array_with_repeats =
-        Pattern::Structure(dcbor_pattern::pattern::StructurePattern::Array(
+        Pattern::Structure(dcbor_pattern::StructurePattern::Array(
             dcbor_pattern::ArrayPattern::with_elements(
                 sequence_with_repeats.clone(),
             ),
