@@ -328,7 +328,7 @@ impl Pattern {
         use logos::Logos;
 
         use crate::parse::{
-            Token, parse_array, parse_map,
+            Token, parse_array, parse_map, parse_tagged,
             value::{
                 parse_bool, parse_bytestring, parse_date, parse_digest,
                 parse_null, parse_number, parse_text,
@@ -346,6 +346,7 @@ impl Pattern {
             Some(Ok(Token::Map)) => parse_map(&mut lexer),
             Some(Ok(Token::Number)) => parse_number(&mut lexer),
             Some(Ok(Token::Null)) => parse_null(&mut lexer),
+            Some(Ok(Token::Tagged)) => parse_tagged(&mut lexer),
             Some(Ok(Token::Text)) => parse_text(&mut lexer),
             Some(Ok(token)) => {
                 Err(Error::UnexpectedToken(Box::new(token), lexer.span()))
