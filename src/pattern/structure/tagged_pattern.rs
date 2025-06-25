@@ -224,6 +224,42 @@ impl Matcher for TaggedPattern {
         ));
         code.push(Instr::MatchStructure(idx));
     }
+
+    fn collect_capture_names(&self, names: &mut Vec<String>) {
+        match self {
+            TaggedPattern::Any => {
+                // No captures in a simple any pattern
+            }
+            TaggedPattern::WithTag(_) => {
+                // No captures in tag-only patterns
+            }
+            TaggedPattern::WithTagSet(_) => {
+                // No captures in tag set patterns
+            }
+            TaggedPattern::WithContent(content_pattern) => {
+                // Collect captures from the content pattern
+                content_pattern.collect_capture_names(names);
+            }
+            TaggedPattern::WithTagAndContent { content_pattern, .. } => {
+                // Collect captures from the content pattern
+                content_pattern.collect_capture_names(names);
+            }
+            TaggedPattern::WithTagName(_) => {
+                // No captures in tag name patterns
+            }
+            TaggedPattern::WithTagNameRegex(_) => {
+                // No captures in tag name regex patterns
+            }
+            TaggedPattern::WithTagNameAndContent { content_pattern, .. } => {
+                // Collect captures from the content pattern
+                content_pattern.collect_capture_names(names);
+            }
+            TaggedPattern::WithTagNameRegexAndContent { content_pattern, .. } => {
+                // Collect captures from the content pattern
+                content_pattern.collect_capture_names(names);
+            }
+        }
+    }
 }
 
 impl std::fmt::Display for TaggedPattern {

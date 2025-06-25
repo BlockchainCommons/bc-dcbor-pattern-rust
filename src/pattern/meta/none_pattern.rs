@@ -31,6 +31,10 @@ impl Matcher for NonePattern {
         // thread
         code.push(Instr::Jump(usize::MAX));
     }
+
+    fn collect_capture_names(&self, _names: &mut Vec<String>) {
+        // NonePattern doesn't contain captures
+    }
 }
 
 impl std::fmt::Display for NonePattern {

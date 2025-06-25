@@ -72,6 +72,13 @@ impl Matcher for OrPattern {
         }
     }
 
+    fn collect_capture_names(&self, names: &mut Vec<String>) {
+        // Collect captures from all patterns
+        for pattern in self.patterns() {
+            pattern.collect_capture_names(names);
+        }
+    }
+
     fn is_complex(&self) -> bool {
         // The pattern is complex if it contains more than one pattern, or if
         // the one pattern is complex itself.

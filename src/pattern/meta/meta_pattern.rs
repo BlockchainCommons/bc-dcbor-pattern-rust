@@ -58,6 +58,19 @@ impl Matcher for MetaPattern {
         }
     }
 
+    fn collect_capture_names(&self, names: &mut Vec<String>) {
+        match self {
+            MetaPattern::Any(pattern) => pattern.collect_capture_names(names),
+            MetaPattern::None(pattern) => pattern.collect_capture_names(names),
+            MetaPattern::And(pattern) => pattern.collect_capture_names(names),
+            MetaPattern::Or(pattern) => pattern.collect_capture_names(names),
+            MetaPattern::Not(pattern) => pattern.collect_capture_names(names),
+            MetaPattern::Repeat(pattern) => pattern.collect_capture_names(names),
+            MetaPattern::Capture(pattern) => pattern.collect_capture_names(names),
+            MetaPattern::Search(pattern) => pattern.collect_capture_names(names),
+        }
+    }
+
     fn is_complex(&self) -> bool {
         match self {
             MetaPattern::Any(pattern) => pattern.is_complex(),

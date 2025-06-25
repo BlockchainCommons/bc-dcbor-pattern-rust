@@ -39,6 +39,14 @@ impl Matcher for NotPattern {
         code.push(Instr::NotMatch { pat_idx: idx });
     }
 
+    fn collect_capture_names(&self, names: &mut Vec<String>) {
+        // NOT patterns do not expose their inner pattern's captures
+        // since the semantics would be unclear - what does it mean to
+        // capture from a pattern that must NOT match?
+        // So we do nothing here.
+        let _ = names; // Suppress unused warning
+    }
+
     fn is_complex(&self) -> bool {
         // NOT patterns are always considered complex for display purposes
         true

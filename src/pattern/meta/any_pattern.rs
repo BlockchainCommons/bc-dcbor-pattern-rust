@@ -34,6 +34,10 @@ impl Matcher for AnyPattern {
         // Any pattern always matches - just save the current path
         code.push(Instr::Save);
     }
+
+    fn collect_capture_names(&self, _names: &mut Vec<String>) {
+        // AnyPattern doesn't contain captures
+    }
 }
 
 impl std::fmt::Display for AnyPattern {

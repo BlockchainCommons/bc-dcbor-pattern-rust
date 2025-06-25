@@ -57,6 +57,14 @@ impl Matcher for CapturePattern {
         code.push(Instr::CaptureEnd(capture_idx));
     }
 
+    fn collect_capture_names(&self, names: &mut Vec<String>) {
+        // Add this capture's name
+        names.push(self.name.clone());
+
+        // Recursively collect from the inner pattern
+        self.pattern.collect_capture_names(names);
+    }
+
     fn is_complex(&self) -> bool {
         // A capture pattern is complex if its inner pattern is complex
         self.pattern.is_complex()

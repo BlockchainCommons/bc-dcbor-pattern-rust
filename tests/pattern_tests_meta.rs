@@ -404,3 +404,153 @@ fn test_repeat_pattern_display_with_reluctance() {
 
     assert_eq!(possessive_pattern.to_string(), r#"(TEXT("test"))++"#);
 }
+
+#[test]
+fn test_search_pattern_basic() {
+    let pattern = Pattern::search(Pattern::number(42));
+
+    // Test with a flat CBOR value containing the number
+    assert!(pattern.matches(&cbor("42")));
+    assert!(!pattern.matches(&cbor("43")));
+
+    // Test with nested structure containing the number
+    assert!(pattern.matches(&cbor("[1, 42, 3]")));
+    assert!(pattern.matches(&cbor("{1: 42}")));
+    assert!(pattern.matches(&cbor("{\"key\": [1, 2, 42]}")));
+
+    // Test that it doesn't match when the value is not present
+    assert!(!pattern.matches(&cbor("[1, 2, 3]")));
+    assert!(!pattern.matches(&cbor("{1: 2}")));
+
+    // Display should show SEARCH(...)
+    assert_eq!(pattern.to_string(), "SEARCH(NUMBER(42))");
+}
+
+#[test]
+fn test_search_pattern_text() {
+    let pattern = Pattern::search(Pattern::text("hello"));
+
+    // Test with nested structures
+    assert!(pattern.matches(&cbor(r#"["hello", "world"]"#)));
+    assert!(pattern.matches(&cbor(r#"{"greeting": "hello"}"#)));
+    assert!(pattern.matches(&cbor(r#"[{"nested": ["hello"]}]"#)));
+
+    // Test that it doesn't match when the text is not present
+    assert!(!pattern.matches(&cbor(r#"["goodbye", "world"]"#)));
+
+    // Display should show SEARCH(...)
+    assert_eq!(pattern.to_string(), r#"SEARCH(TEXT("hello"))"#);
+}
+
+#[test]
+fn test_search_pattern_any() {
+    let pattern = Pattern::search(Pattern::any());
+
+    // Should match any CBOR value because ANY matches everything
+    assert!(pattern.matches(&cbor("42")));
+    assert!(pattern.matches(&cbor(r#""hello""#)));
+    assert!(pattern.matches(&cbor("[1, 2, 3]")));
+    assert!(pattern.matches(&cbor("{}")));
+
+    // Display should show SEARCH(ANY)
+    assert_eq!(pattern.to_string(), "SEARCH(ANY)");
+}
+
+#[test]
+fn test_search_pattern_complex() {
+    // Search for arrays containing the number 5
+    let pattern = Pattern::search(Pattern::number(5));
+
+    let test_data = cbor(r#"
+    {
+        "data": [
+            {"values": [1, 2, 3]},
+            {"values": [4, 5, 6]},
+            {"other": "text"}
+        ],
+        "meta": {
+            "count": 5,
+            "items": [7, 8, 9]
+        }
+    }
+    "#);
+
+    // Should match because the structure contains the number 5 in multiple places
+    assert!(pattern.matches(&test_data));
+
+    // Check specific paths are found
+    let paths = pattern.paths(&test_data);
+    assert!(!paths.is_empty());
+}
+
+#[test]
+fn test_search_pattern_with_captures() {
+    // Create a search pattern that captures what it finds
+    let inner_pattern = Pattern::capture("found", Pattern::number(42));
+    let pattern = Pattern::search(inner_pattern);
+
+    // Test with a nested structure
+    let data = cbor("[1, {\"key\": 42}, 3]");
+    assert!(pattern.matches(&data));
+
+    // Display should show the capture in the search
+    assert_eq!(pattern.to_string(), "SEARCH(@found(NUMBER(42)))");
+}
+
+#[test]
+fn test_search_pattern_paths() {
+    let pattern = Pattern::search(Pattern::text("target"));
+
+    let data = cbor(r#"
+    {
+        "level1": {
+            "level2": ["target", "other"]
+        },
+        "another": "target"
+    }
+    "#);
+
+    let paths = pattern.paths(&data);
+
+    // Should find multiple paths to "target"
+    assert!(paths.len() >= 2);
+
+    // All paths should be valid (non-empty)
+    for path in &paths {
+        assert!(!path.is_empty());
+    }
+}
+
+#[test]
+fn test_search_pattern_edge_cases() {
+    let pattern = Pattern::search(Pattern::number(1));
+
+    // Test with empty structures
+    assert!(!pattern.matches(&cbor("[]")));
+    assert!(!pattern.matches(&cbor("{}")));
+
+    // Test with null
+    assert!(!pattern.matches(&cbor("null")));
+
+    // Test with deeply nested structure containing the target
+    assert!(pattern.matches(&cbor("[[[[1]]]]")));
+}
+
+#[test]
+fn test_search_pattern_with_structure_pattern() {
+    // Search for any array
+    let pattern = Pattern::search(Pattern::parse("ARRAY").unwrap());
+
+    let data = cbor(r#"
+    {
+        "arrays": [[1, 2], [3, 4]],
+        "not_array": 42
+    }
+    "#);
+
+    assert!(pattern.matches(&data));
+
+    let paths = pattern.paths(&data);
+    // Should find the outer arrays structure and the inner arrays
+    assert!(paths.len() >= 3); // The "arrays" value plus the two inner arrays
+}

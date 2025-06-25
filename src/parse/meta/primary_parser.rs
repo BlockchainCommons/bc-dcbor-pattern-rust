@@ -11,7 +11,7 @@ use crate::{Error, Pattern, Result};
 /// Parse a primary pattern - the most basic unit of pattern matching.
 ///
 /// This parser handles:
-/// - ANY and NONE meta patterns
+/// - ANY, NONE, and SEARCH meta patterns
 /// - Parenthesized group patterns
 /// - Capture patterns (@name(...))
 /// - All atomic value patterns (BOOL, TEXT, NUMBER, etc.)
@@ -37,6 +37,7 @@ pub(crate) fn parse_primary(
         // Meta patterns
         Token::Any => Ok(Pattern::any()),
         Token::None => Ok(Pattern::none()),
+        Token::Search => super::parse_search(lexer),
 
         // Parenthesized groups - parse the inner pattern
         Token::ParenOpen => {

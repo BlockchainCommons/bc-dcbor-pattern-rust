@@ -89,6 +89,9 @@ pub enum Token {
     #[token("ANY")]
     Any,
 
+    #[token("SEARCH")]
+    Search,
+
     #[token("NONE")]
     None,
 

@@ -74,6 +74,11 @@ impl Matcher for RepeatPattern {
         literals.push((*self.pattern).clone());
         code.push(Instr::Repeat { pat_idx: idx, quantifier: self.quantifier });
     }
+
+    fn collect_capture_names(&self, names: &mut Vec<String>) {
+        // Collect captures from the repeated pattern
+        self.pattern.collect_capture_names(names);
+    }
 }
 
 impl std::fmt::Display for RepeatPattern {

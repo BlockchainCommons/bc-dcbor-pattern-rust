@@ -93,6 +93,24 @@ impl Matcher for ArrayPattern {
         ));
         code.push(Instr::MatchStructure(idx));
     }
+
+    fn collect_capture_names(&self, names: &mut Vec<String>) {
+        match self {
+            ArrayPattern::Any => {
+                // No captures in a simple any pattern
+            }
+            ArrayPattern::WithElements(pattern) => {
+                // Collect captures from the element pattern
+                pattern.collect_capture_names(names);
+            }
+            ArrayPattern::WithLength(_) => {
+                // No captures in length patterns
+            }
+            ArrayPattern::WithLengthRange(_) => {
+                // No captures in length range patterns
+            }
+        }
+    }
 }
 
 impl std::fmt::Display for ArrayPattern {

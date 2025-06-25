@@ -37,6 +37,12 @@ pub trait Matcher: std::fmt::Debug + std::fmt::Display + Clone {
         unimplemented!("Matcher::compile not implemented for {:?}", self);
     }
 
+    /// Recursively collect all capture names from this pattern.
+    fn collect_capture_names(&self, _names: &mut Vec<String>) {
+        // Default implementation does nothing - only capture patterns
+        // and patterns containing them need to override this
+    }
+
     /// Should return true if the Display of the matcher is *complex*,
     /// i.e. contains nested patterns or other complex structures
     /// that require its text rendering to be surrounded by grouping

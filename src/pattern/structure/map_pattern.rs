@@ -132,6 +132,33 @@ impl Matcher for MapPattern {
         ));
         code.push(Instr::MatchStructure(idx));
     }
+
+    fn collect_capture_names(&self, names: &mut Vec<String>) {
+        match self {
+            MapPattern::Any => {
+                // No captures in a simple any pattern
+            }
+            MapPattern::WithKey(pattern) => {
+                // Collect captures from key pattern
+                pattern.collect_capture_names(names);
+            }
+            MapPattern::WithValue(pattern) => {
+                // Collect captures from value pattern
+                pattern.collect_capture_names(names);
+            }
+            MapPattern::WithKeyValue { key_pattern, value_pattern } => {
+                // Collect captures from both key and value patterns
+                key_pattern.collect_capture_names(names);
+                value_pattern.collect_capture_names(names);
+            }
+            MapPattern::WithLength(_) => {
+                // No captures in length patterns
+            }
+            MapPattern::WithLengthRange(_) => {
+                // No captures in length range patterns
+            }
+        }
+    }
 }
 
 impl std::fmt::Display for MapPattern {

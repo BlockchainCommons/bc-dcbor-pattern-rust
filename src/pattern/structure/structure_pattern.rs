@@ -29,6 +29,14 @@ impl Matcher for StructurePattern {
             StructurePattern::Tagged(pattern) => pattern.compile(code, literals, captures),
         }
     }
+
+    fn collect_capture_names(&self, names: &mut Vec<String>) {
+        match self {
+            StructurePattern::Array(pattern) => pattern.collect_capture_names(names),
+            StructurePattern::Map(pattern) => pattern.collect_capture_names(names),
+            StructurePattern::Tagged(pattern) => pattern.collect_capture_names(names),
+        }
+    }
 }
 
 impl std::fmt::Display for StructurePattern {

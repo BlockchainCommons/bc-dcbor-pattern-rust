@@ -305,6 +305,14 @@ impl Pattern {
         ))
     }
 
+    /// Creates a search pattern that recursively searches the entire dCBOR
+    /// tree.
+    pub fn search(pattern: Pattern) -> Self {
+        Pattern::Meta(MetaPattern::Search(
+            crate::pattern::meta::SearchPattern::new(pattern),
+        ))
+    }
+
     /// Creates a pattern that matches with repetition using a quantifier.
     pub fn repeat(pattern: Pattern, quantifier: crate::Quantifier) -> Self {
         Pattern::Meta(MetaPattern::Repeat(
@@ -337,6 +345,7 @@ impl Pattern {
     /// - `@name(TEXT)` - captures text with name "name"
     pub fn parse(input: &str) -> Result<Self> {
         use logos::Logos;
+
         use crate::parse::{Token, meta::parse_or};
 
         let mut lexer = Token::lexer(input);
@@ -383,6 +392,21 @@ impl Matcher for Pattern {
             }
             Pattern::Meta(pattern) => {
                 pattern.compile(code, literals, captures);
+            }
+        }
+    }
+
+    /// Recursively collect all capture names from this pattern.
+    fn collect_capture_names(&self, names: &mut Vec<String>) {
+        match self {
+            Pattern::Value(_) => {
+                // Value patterns don't contain captures
+            }
+            Pattern::Structure(pattern) => {
+                pattern.collect_capture_names(names);
+            }
+            Pattern::Meta(pattern) => {
+                pattern.collect_capture_names(names);
             }
         }
     }
