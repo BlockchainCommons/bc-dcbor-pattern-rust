@@ -49,6 +49,17 @@ impl Matcher for StructurePattern {
             }
         }
     }
+
+    fn paths_with_captures(
+        &self,
+        cbor: &dcbor::CBOR,
+    ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
+        match self {
+            StructurePattern::Array(pattern) => pattern.paths_with_captures(cbor),
+            StructurePattern::Map(pattern) => pattern.paths_with_captures(cbor),
+            StructurePattern::Tagged(pattern) => pattern.paths_with_captures(cbor),
+        }
+    }
 }
 
 impl std::fmt::Display for StructurePattern {

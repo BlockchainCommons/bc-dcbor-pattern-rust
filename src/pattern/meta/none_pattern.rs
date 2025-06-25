@@ -35,6 +35,14 @@ impl Matcher for NonePattern {
     fn collect_capture_names(&self, _names: &mut Vec<String>) {
         // NonePattern doesn't contain captures
     }
+
+    fn paths_with_captures(
+        &self,
+        cbor: &dcbor::CBOR,
+    ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
+        // NonePattern has no internal captures, so just return paths and empty captures
+        (self.paths(cbor), std::collections::HashMap::new())
+    }
 }
 
 impl std::fmt::Display for NonePattern {

@@ -216,8 +216,11 @@ impl Matcher for TaggedPattern {
         &self,
         code: &mut Vec<Instr>,
         literals: &mut Vec<Pattern>,
-        _captures: &mut Vec<String>,
+        captures: &mut Vec<String>,
     ) {
+        // Collect capture names from inner patterns
+        self.collect_capture_names(captures);
+
         let idx = literals.len();
         literals.push(Pattern::Structure(
             crate::pattern::StructurePattern::Tagged(self.clone()),
@@ -262,6 +265,103 @@ impl Matcher for TaggedPattern {
             } => {
                 // Collect captures from the content pattern
                 content_pattern.collect_capture_names(names);
+            }
+        }
+    }
+
+    fn paths_with_captures(
+        &self,
+        cbor: &dcbor::CBOR,
+    ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
+        // Check if this CBOR value is a tagged value
+        let dcbor::CBORCase::Tagged(tag_value, content) = cbor.as_case() else {
+            return (vec![], std::collections::HashMap::new());
+        };
+
+        match self {
+            TaggedPattern::Any => {
+                // Matches any tagged value, no captures
+                (vec![vec![cbor.clone()]], std::collections::HashMap::new())
+            }
+            TaggedPattern::WithTag(expected_tag) => {
+                if *tag_value == *expected_tag {
+                    (vec![vec![cbor.clone()]], std::collections::HashMap::new())
+                } else {
+                    (vec![], std::collections::HashMap::new())
+                }
+            }
+            TaggedPattern::WithTagSet(tags) => {
+                if tags.contains(tag_value) {
+                    (vec![vec![cbor.clone()]], std::collections::HashMap::new())
+                } else {
+                    (vec![], std::collections::HashMap::new())
+                }
+            }
+            TaggedPattern::WithContent(content_pattern) => {
+                // Match any tag but check content with potential captures
+                let (content_paths, captures) = content_pattern.paths_with_captures(content);
+                if !content_paths.is_empty() {
+                    // Build paths that include the tagged value as root
+                    let tagged_paths: Vec<Path> = content_paths.iter()
+                        .map(|content_path| {
+                            let mut path = vec![cbor.clone()];
+                            path.extend_from_slice(&content_path[1..]);  // Skip the content's root
+                            path
+                        })
+                        .collect();                        // Update captures to include tagged value as root
+                        let mut updated_captures = std::collections::HashMap::new();
+                        for (name, capture_paths) in captures {
+                            let updated_paths: Vec<Path> = capture_paths.iter()
+                                .map(|_capture_path| {
+                                    // For tagged patterns, the capture path should be [tagged_value, content]
+                                    vec![cbor.clone(), content.clone()]
+                                })
+                                .collect();
+                            updated_captures.insert(name, updated_paths);
+                        }
+
+                    (tagged_paths, updated_captures)
+                } else {
+                    (vec![], captures)
+                }
+            }
+            TaggedPattern::WithTagAndContent { tag: expected_tag, content_pattern } => {
+                if *tag_value == *expected_tag {
+                    // Match specific tag and check content with potential captures
+                    let (content_paths, captures) = content_pattern.paths_with_captures(content);
+                    if !content_paths.is_empty() {
+                        // Build paths that include the tagged value as root
+                        let tagged_paths: Vec<Path> = content_paths.iter()
+                            .map(|content_path| {
+                                let mut path = vec![cbor.clone()];
+                                path.extend_from_slice(&content_path[1..]);  // Skip the content's root
+                                path
+                            })
+                            .collect();
+
+                        // Update captures to include tagged value as root
+                        let mut updated_captures = std::collections::HashMap::new();
+                        for (name, capture_paths) in captures {
+                            let updated_paths: Vec<Path> = capture_paths.iter()
+                                .map(|_capture_path| {
+                                    // For tagged patterns, the capture path should be [tagged_value, content]
+                                    vec![cbor.clone(), content.clone()]
+                                })
+                                .collect();
+                            updated_captures.insert(name, updated_paths);
+                        }
+
+                        (tagged_paths, updated_captures)
+                    } else {
+                        (vec![], captures)
+                    }
+                } else {
+                    (vec![], std::collections::HashMap::new())
+                }
+            }
+            _ => {
+                // For other variants, fall back to basic paths without captures
+                (self.paths(cbor), std::collections::HashMap::new())
             }
         }
     }

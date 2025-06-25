@@ -21,6 +21,14 @@ impl Matcher for AnyPattern {
         vec![vec![cbor.clone()]]
     }
 
+    fn paths_with_captures(
+        &self,
+        cbor: &dcbor::CBOR,
+    ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
+        // AnyPattern has no internal captures, so just return paths and empty captures
+        (self.paths(cbor), std::collections::HashMap::new())
+    }
+
     fn compile(
         &self,
         code: &mut Vec<Instr>,

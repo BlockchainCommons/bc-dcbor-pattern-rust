@@ -23,6 +23,30 @@ impl Matcher for OrPattern {
         }
     }
 
+    fn paths_with_captures(
+        &self,
+        cbor: &dcbor::CBOR,
+    ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
+        let mut all_paths = Vec::new();
+        let mut all_captures = std::collections::HashMap::new();
+
+        // Try each pattern in the OR group
+        for pattern in self.patterns() {
+            let (paths, captures) = pattern.paths_with_captures(cbor);
+            all_paths.extend(paths);
+
+            // Merge captures
+            for (name, capture_paths) in captures {
+                all_captures
+                    .entry(name)
+                    .or_insert_with(Vec::new)
+                    .extend(capture_paths);
+            }
+        }
+
+        (all_paths, all_captures)
+    }
+
     /// Compile into byte-code (OR = any can match).
     fn compile(
         &self,

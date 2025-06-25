@@ -62,6 +62,61 @@ impl SearchPattern {
             }
         }
     }
+
+    // Helper method to recursively search through CBOR tree with capture support
+    fn search_recursive_with_captures(
+        &self,
+        cbor: &CBOR,
+        path: Vec<CBOR>,
+        results: &mut Vec<Path>,
+        all_captures: &mut std::collections::HashMap<String, Vec<Path>>,
+    ) {
+        // Test the pattern against this node with captures
+        let (pattern_paths, captures) = self.0.paths_with_captures(cbor);
+
+        // If the pattern matches, add the current path to results and handle captures
+        if !pattern_paths.is_empty() {
+            results.push(path.clone());
+
+            // For search patterns, the captured paths should be based on the current
+            // search location, not the inner pattern's paths
+            for (name, _capture_paths) in captures {
+                // The capture should be the path to the location where the match occurred
+                all_captures.entry(name).or_insert_with(Vec::new).push(path.clone());
+            }
+        }
+
+        // Recursively search children based on CBOR type
+        match cbor.as_case() {
+            dcbor::CBORCase::Array(arr) => {
+                for child in arr.iter() {
+                    let mut new_path = path.clone();
+                    new_path.push(child.clone());
+                    self.search_recursive_with_captures(child, new_path, results, all_captures);
+                }
+            }
+            dcbor::CBORCase::Map(map) => {
+                for (key, value) in map.iter() {
+                    // Search both keys and values
+                    let mut key_path = path.clone();
+                    key_path.push(key.clone());
+                    self.search_recursive_with_captures(key, key_path, results, all_captures);
+
+                    let mut value_path = path.clone();
+                    value_path.push(value.clone());
+                    self.search_recursive_with_captures(value, value_path, results, all_captures);
+                }
+            }
+            dcbor::CBORCase::Tagged(_, content) => {
+                let mut tagged_path = path.clone();
+                tagged_path.push(content.clone());
+                self.search_recursive_with_captures(content, tagged_path, results, all_captures);
+            }
+            _ => {
+                // For primitive types, no further recursion
+            }
+        }
+    }
 }
 
 impl Default for SearchPattern {
@@ -91,6 +146,36 @@ impl Matcher for SearchPattern {
         }
 
         unique
+    }
+
+    fn paths_with_captures(
+        &self,
+        cbor: &dcbor::CBOR,
+    ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
+        let mut result_paths = Vec::new();
+        let mut all_captures = std::collections::HashMap::new();
+
+        self.search_recursive_with_captures(cbor, vec![cbor.clone()], &mut result_paths, &mut all_captures);
+
+        // Remove duplicates from result paths
+        let mut seen = std::collections::HashSet::new();
+        let mut unique_paths = Vec::new();
+        for path in result_paths {
+            let path_key: Vec<_> = path
+                .iter()
+                .map(|cbor| cbor.to_cbor_data())
+                .collect();
+            if seen.insert(path_key) {
+                unique_paths.push(path);
+            }
+        }
+
+        (unique_paths, all_captures)
+    }
+
+    fn collect_capture_names(&self, names: &mut Vec<String>) {
+        // Delegate to the inner pattern to collect its capture names
+        self.0.collect_capture_names(names);
     }
 
     fn compile(

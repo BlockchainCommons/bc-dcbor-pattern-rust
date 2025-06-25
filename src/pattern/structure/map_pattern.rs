@@ -17,7 +17,8 @@ pub enum MapPattern {
         key_pattern: Box<Pattern>,
         value_pattern: Box<Pattern>,
     },
-    /// Matches maps with multiple key-value constraints that must all be satisfied.
+    /// Matches maps with multiple key-value constraints that must all be
+    /// satisfied.
     WithKeyValueConstraints(Vec<(Pattern, Pattern)>),
     /// Matches maps with a specific number of key-value pairs.
     WithLength(usize),
@@ -56,7 +57,9 @@ impl MapPattern {
 
     /// Creates a new `MapPattern` that matches maps with multiple key-value
     /// constraints that must all be satisfied.
-    pub fn with_key_value_constraints(constraints: Vec<(Pattern, Pattern)>) -> Self {
+    pub fn with_key_value_constraints(
+        constraints: Vec<(Pattern, Pattern)>,
+    ) -> Self {
         MapPattern::WithKeyValueConstraints(constraints)
     }
 
@@ -115,7 +118,9 @@ impl Matcher for MapPattern {
                         for (key_pattern, value_pattern) in constraints {
                             let mut found_match = false;
                             for (key, value) in map.iter() {
-                                if key_pattern.matches(key) && value_pattern.matches(value) {
+                                if key_pattern.matches(key)
+                                    && value_pattern.matches(value)
+                                {
                                     found_match = true;
                                     break;
                                 }
@@ -153,8 +158,11 @@ impl Matcher for MapPattern {
         &self,
         code: &mut Vec<Instr>,
         literals: &mut Vec<Pattern>,
-        _captures: &mut Vec<String>,
+        captures: &mut Vec<String>,
     ) {
+        // Collect capture names from inner patterns
+        self.collect_capture_names(captures);
+
         let idx = literals.len();
         literals.push(Pattern::Structure(
             crate::pattern::StructurePattern::Map(self.clone()),
@@ -195,6 +203,186 @@ impl Matcher for MapPattern {
             }
         }
     }
+
+    fn paths_with_captures(
+        &self,
+        cbor: &dcbor::CBOR,
+    ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
+        // Check if this CBOR value is a map
+        let dcbor::CBORCase::Map(map) = cbor.as_case() else {
+            return (vec![], std::collections::HashMap::new());
+        };
+
+        match self {
+            MapPattern::Any => {
+                // Matches any map, no captures
+                (vec![vec![cbor.clone()]], std::collections::HashMap::new())
+            }
+            MapPattern::WithKey(key_pattern) => {
+                // Match if any key matches the pattern
+                let mut all_captures = std::collections::HashMap::new();
+                for (key, _value) in map.iter() {
+                    let (key_paths, captures) =
+                        key_pattern.paths_with_captures(key);
+                    if !key_paths.is_empty() {
+                        // Merge captures, adjusting paths to include map
+                        // context
+                        for (name, capture_paths) in captures {
+                            let updated_paths: Vec<Path> = capture_paths
+                                .iter()
+                                .map(|_capture_path| {
+                                    // For map keys, the capture path should be
+                                    // [map, key]
+                                    vec![cbor.clone(), key.clone()]
+                                })
+                                .collect();
+                            all_captures
+                                .entry(name)
+                                .or_insert_with(Vec::new)
+                                .extend(updated_paths);
+                        }
+                        return (vec![vec![cbor.clone()]], all_captures);
+                    }
+                }
+                (vec![], all_captures)
+            }
+            MapPattern::WithValue(value_pattern) => {
+                // Match if any value matches the pattern
+                let mut all_captures = std::collections::HashMap::new();
+                for (_key, value) in map.iter() {
+                    let (value_paths, captures) =
+                        value_pattern.paths_with_captures(value);
+                    if !value_paths.is_empty() {
+                        // Merge captures, adjusting paths to include map
+                        // context
+                        for (name, capture_paths) in captures {
+                            let updated_paths: Vec<Path> = capture_paths
+                                .iter()
+                                .map(|_capture_path| {
+                                    // For map values, the capture path should
+                                    // be [map, value]
+                                    vec![cbor.clone(), value.clone()]
+                                })
+                                .collect();
+                            all_captures
+                                .entry(name)
+                                .or_insert_with(Vec::new)
+                                .extend(updated_paths);
+                        }
+                        return (vec![vec![cbor.clone()]], all_captures);
+                    }
+                }
+                (vec![], all_captures)
+            }
+            MapPattern::WithKeyValue { key_pattern, value_pattern } => {
+                // Match if there's a key-value pair where both patterns match
+                let mut all_captures = std::collections::HashMap::new();
+                for (key, value) in map.iter() {
+                    let (key_paths, key_captures) =
+                        key_pattern.paths_with_captures(key);
+                    let (value_paths, value_captures) =
+                        value_pattern.paths_with_captures(value);
+
+                    if !key_paths.is_empty() && !value_paths.is_empty() {
+                        // Merge key captures
+                        for (name, capture_paths) in key_captures {
+                            let updated_paths: Vec<Path> = capture_paths
+                                .iter()
+                                .map(|_capture_path| {
+                                    vec![cbor.clone(), key.clone()]
+                                })
+                                .collect();
+                            all_captures
+                                .entry(name)
+                                .or_insert_with(Vec::new)
+                                .extend(updated_paths);
+                        }
+
+                        // Merge value captures
+                        for (name, capture_paths) in value_captures {
+                            let updated_paths: Vec<Path> = capture_paths
+                                .iter()
+                                .map(|_capture_path| {
+                                    vec![cbor.clone(), value.clone()]
+                                })
+                                .collect();
+                            all_captures
+                                .entry(name)
+                                .or_insert_with(Vec::new)
+                                .extend(updated_paths);
+                        }
+
+                        return (vec![vec![cbor.clone()]], all_captures);
+                    }
+                }
+                (vec![], all_captures)
+            }
+            MapPattern::WithKeyValueConstraints(constraints) => {
+                // Match if all key-value constraints are satisfied
+                let mut all_captures = std::collections::HashMap::new();
+                let mut all_constraints_satisfied = true;
+
+                for (key_pattern, value_pattern) in constraints {
+                    let mut constraint_satisfied = false;
+
+                    for (key, value) in map.iter() {
+                        let (key_paths, key_captures) =
+                            key_pattern.paths_with_captures(key);
+                        let (value_paths, value_captures) =
+                            value_pattern.paths_with_captures(value);
+
+                        if !key_paths.is_empty() && !value_paths.is_empty() {
+                            constraint_satisfied = true;
+
+                            // Merge key captures
+                            for (name, capture_paths) in key_captures {
+                                let updated_paths: Vec<Path> = capture_paths
+                                    .iter()
+                                    .map(|_capture_path| {
+                                        vec![cbor.clone(), key.clone()]
+                                    })
+                                    .collect();
+                                all_captures
+                                    .entry(name)
+                                    .or_insert_with(Vec::new)
+                                    .extend(updated_paths);
+                            }
+
+                            // Merge value captures
+                            for (name, capture_paths) in value_captures {
+                                let updated_paths: Vec<Path> = capture_paths
+                                    .iter()
+                                    .map(|_capture_path| {
+                                        vec![cbor.clone(), value.clone()]
+                                    })
+                                    .collect();
+                                all_captures
+                                    .entry(name)
+                                    .or_insert_with(Vec::new)
+                                    .extend(updated_paths);
+                            }
+                            break; // Found a matching key-value pair for this constraint
+                        }
+                    }
+
+                    if !constraint_satisfied {
+                        all_constraints_satisfied = false;
+                        break;
+                    }
+                }
+
+                if all_constraints_satisfied {
+                    (vec![vec![cbor.clone()]], all_captures)
+                } else {
+                    (vec![], all_captures)
+                }
+            }
+            _ => {
+                // For other variants, fall back to basic paths without captures
+                (self.paths(cbor), std::collections::HashMap::new())
+            }
+        }
+    }
 }
 
 impl std::fmt::Display for MapPattern {
@@ -212,7 +400,9 @@ impl std::fmt::Display for MapPattern {
             }
             MapPattern::WithKeyValueConstraints(constraints) => {
                 write!(f, "MAP(")?;
-                for (i, (key_pattern, value_pattern)) in constraints.iter().enumerate() {
+                for (i, (key_pattern, value_pattern)) in
+                    constraints.iter().enumerate()
+                {
                     if i > 0 {
                         write!(f, ", ")?;
                     }

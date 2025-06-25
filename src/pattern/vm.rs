@@ -272,44 +272,57 @@ fn run_thread(
                     th.pc += 1;
                 }
                 MatchStructure(idx) => {
-                    // Use the structure pattern's direct matcher, not the
-                    // compiled pattern
-                    let structure_paths =
-                        if let crate::pattern::Pattern::Structure(sp) =
-                            &prog.literals[idx]
-                        {
-                            sp.paths(&th.cbor)
-                        } else {
-                            panic!(
-                                "MatchStructure used with non-structure pattern"
-                            );
-                        };
-
-                    if structure_paths.is_empty() {
-                        break;
-                    }
-
-                    // For structure patterns, we need to extend the path with
-                    // matching results
-                    if structure_paths.len() == 1
-                        && structure_paths[0].len() == 1
+                    // Use the structure pattern's matcher, with captures if
+                    // present
+                    if let crate::pattern::Pattern::Structure(sp) =
+                        &prog.literals[idx]
                     {
-                        // Simple case: single path with single element
-                        th.pc += 1;
-                    } else {
-                        // Complex case: multiple paths or multi-element paths
-                        for structure_path in structure_paths {
-                            if let Some(target) = structure_path.last() {
-                                let mut new_thread = th.clone();
-                                new_thread.cbor = target.clone();
-                                new_thread.path.extend(
-                                    structure_path.iter().skip(1).cloned(),
-                                );
-                                new_thread.pc += 1;
-                                stack.push(new_thread);
+                        let (structure_paths, structure_captures) =
+                            sp.paths_with_captures(&th.cbor);
+
+                        if structure_paths.is_empty() {
+                            break;
+                        }
+
+                        // Merge structure captures into thread captures
+                        for (i, name) in prog.capture_names.iter().enumerate() {
+                            if let Some(captured_paths) =
+                                structure_captures.get(name)
+                            {
+                                // Ensure capture storage is initialized
+                                while th.captures.len() <= i {
+                                    th.captures.push(Vec::new());
+                                }
+                                th.captures[i].extend(captured_paths.clone());
                             }
                         }
-                        break;
+
+                        // Handle structure paths
+                        if structure_paths.len() == 1
+                            && structure_paths[0].len() == 1
+                        {
+                            // Simple case: single path with single element
+                            th.pc += 1;
+                        } else {
+                            // Complex case: multiple paths or multi-element
+                            // paths
+                            for structure_path in structure_paths {
+                                if let Some(target) = structure_path.last() {
+                                    let mut new_thread = th.clone();
+                                    new_thread.cbor = target.clone();
+                                    new_thread.path.extend(
+                                        structure_path.iter().skip(1).cloned(),
+                                    );
+                                    new_thread.pc += 1;
+                                    stack.push(new_thread);
+                                }
+                            }
+                            break;
+                        }
+                    } else {
+                        panic!(
+                            "MatchStructure used with non-structure pattern"
+                        );
                     }
                 }
                 Split { a, b } => {
@@ -353,17 +366,25 @@ fn run_thread(
                     break;
                 }
                 Search { pat_idx, ref capture_map } => {
-                    // Implement recursive search pattern
-                    let search_results = prog.literals[pat_idx].paths(&th.cbor);
+                    // Implement recursive search pattern with capture support
+                    let (search_results, captures) =
+                        prog.literals[pat_idx].paths_with_captures(&th.cbor);
+
                     for search_path in search_results {
                         let mut new_thread = th.clone();
-                        new_thread.path = search_path;
+                        new_thread.path = search_path.clone();
 
-                        // Apply capture mappings
-                        for (_name, capture_idx) in capture_map {
-                            if *capture_idx < prog.capture_names.len() {
-                                // Handle capture logic here when captures are
-                                // implemented
+                        // Apply capture mappings - map captured paths to thread
+                        // state
+                        for (name, capture_idx) in capture_map {
+                            if *capture_idx < new_thread.captures.len() {
+                                if let Some(capture_paths) = captures.get(name)
+                                {
+                                    for capture_path in capture_paths {
+                                        new_thread.captures[*capture_idx]
+                                            .push(capture_path.clone());
+                                    }
+                                }
                             }
                         }
 
@@ -420,17 +441,21 @@ fn run_thread(
                     while th.capture_stack.len() <= idx {
                         th.capture_stack.push(Vec::new());
                     }
+                    // Store the current path to capture it at CaptureEnd
                     th.capture_stack[idx].push(th.path.len());
                     th.pc += 1;
                 }
                 CaptureEnd(idx) => {
                     // Finalize capture group
-                    if let Some(start_len) = th
+                    if let Some(_start_len) = th
                         .capture_stack
                         .get_mut(idx)
                         .and_then(|stack| stack.pop())
                     {
-                        let captured_path = th.path[start_len..].to_vec();
+                        // For captures, we want to capture the full path to the
+                        // current CBOR value
+                        // not just the delta since CaptureStart
+                        let captured_path = th.path.clone();
                         if let Some(captures) = th.captures.get_mut(idx) {
                             captures.push(captured_path);
                         }

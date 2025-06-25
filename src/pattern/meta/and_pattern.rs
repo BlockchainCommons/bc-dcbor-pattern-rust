@@ -23,6 +23,33 @@ impl Matcher for AndPattern {
         }
     }
 
+    fn paths_with_captures(
+        &self,
+        cbor: &dcbor::CBOR,
+    ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
+        // For AND patterns, all patterns must match, and we merge captures
+        let mut all_captures = std::collections::HashMap::new();
+
+        for pattern in self.patterns() {
+            let (paths, captures) = pattern.paths_with_captures(cbor);
+            if paths.is_empty() {
+                // If any pattern fails to match, AND fails
+                return (vec![], std::collections::HashMap::new());
+            }
+
+            // Merge captures
+            for (name, capture_paths) in captures {
+                all_captures
+                    .entry(name)
+                    .or_insert_with(Vec::new)
+                    .extend(capture_paths);
+            }
+        }
+
+        // If all patterns matched, return the basic path and merged captures
+        (vec![vec![cbor.clone()]], all_captures)
+    }
+
     /// Compile into byte-code (AND = all must match).
     fn compile(
         &self,

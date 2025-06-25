@@ -63,6 +63,15 @@ impl Matcher for RepeatPattern {
         }
     }
 
+    fn paths_with_captures(
+        &self,
+        cbor: &dcbor::CBOR,
+    ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
+        // For now, repeat patterns use basic implementation without captures
+        // TODO: Implement full repeat capture support
+        (self.paths(cbor), std::collections::HashMap::new())
+    }
+
     fn compile(
         &self,
         code: &mut Vec<Instr>,

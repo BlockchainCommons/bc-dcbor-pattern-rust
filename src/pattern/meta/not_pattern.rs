@@ -26,6 +26,21 @@ impl Matcher for NotPattern {
         }
     }
 
+    fn paths_with_captures(
+        &self,
+        cbor: &dcbor::CBOR,
+    ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
+        // For NOT patterns, we match if the inner pattern does NOT match
+        let (inner_paths, _inner_captures) = self.pattern().paths_with_captures(cbor);
+        if inner_paths.is_empty() {
+            // Inner pattern doesn't match, so NOT matches
+            (vec![vec![cbor.clone()]], std::collections::HashMap::new())
+        } else {
+            // Inner pattern matches, so NOT doesn't match
+            (vec![], std::collections::HashMap::new())
+        }
+    }
+
     /// Compile into byte-code (NOT = negation of the inner pattern).
     fn compile(
         &self,

@@ -106,6 +106,23 @@ impl Matcher for MetaPattern {
             MetaPattern::Sequence(pattern) => pattern.is_complex(),
         }
     }
+
+    fn paths_with_captures(
+        &self,
+        cbor: &dcbor::CBOR,
+    ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
+        match self {
+            MetaPattern::Any(pattern) => pattern.paths_with_captures(cbor),
+            MetaPattern::None(pattern) => pattern.paths_with_captures(cbor),
+            MetaPattern::And(pattern) => pattern.paths_with_captures(cbor),
+            MetaPattern::Or(pattern) => pattern.paths_with_captures(cbor),
+            MetaPattern::Not(pattern) => pattern.paths_with_captures(cbor),
+            MetaPattern::Repeat(pattern) => pattern.paths_with_captures(cbor),
+            MetaPattern::Capture(pattern) => pattern.paths_with_captures(cbor),
+            MetaPattern::Search(pattern) => pattern.paths_with_captures(cbor),
+            MetaPattern::Sequence(pattern) => pattern.paths_with_captures(cbor),
+        }
+    }
 }
 
 impl std::fmt::Display for MetaPattern {

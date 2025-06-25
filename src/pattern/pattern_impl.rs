@@ -394,9 +394,64 @@ impl Pattern {
             crate::pattern::structure::TaggedPattern::any(),
         ))
     }
+
+    /// Execute pattern matching and return both paths and captures.
+    /// This is a convenience method that calls the `paths_with_captures` method
+    /// from the `Matcher` trait.
+    pub fn match_with_captures(
+        &self,
+        cbor: &dcbor::CBOR,
+    ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
+        use crate::pattern::Matcher;
+        self.paths_with_captures(cbor)
+    }
 }
 
 impl Matcher for Pattern {
+    fn paths_with_captures(
+        &self,
+        cbor: &dcbor::CBOR,
+    ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
+        // Collect all capture names from this pattern
+        let mut capture_names = Vec::new();
+        self.collect_capture_names(&mut capture_names);
+
+        // If no captures, use the faster direct path matching
+        if capture_names.is_empty() {
+            return (self.paths(cbor), std::collections::HashMap::new());
+        }
+
+        // For certain pattern types, delegate directly to their
+        // paths_with_captures
+        match self {
+            Pattern::Meta(pattern) => {
+                // Meta patterns like SearchPattern handle their own capture
+                // logic
+                return pattern.paths_with_captures(cbor);
+            }
+            _ => {
+                // Use VM for other pattern types that need it
+            }
+        }
+
+        // Compile pattern to VM program for capture-aware matching
+        let mut code = Vec::new();
+        let mut literals = Vec::new();
+        let mut captures = Vec::new();
+
+        self.compile(&mut code, &mut literals, &mut captures);
+        code.push(crate::pattern::vm::Instr::Accept);
+
+        let program = crate::pattern::vm::Program {
+            code,
+            literals,
+            capture_names: captures,
+        };
+
+        // Run VM to get paths and captures
+        crate::pattern::vm::run(&program, cbor)
+    }
+
     fn paths(&self, cbor: &dcbor::CBOR) -> Vec<Path> {
         match self {
             Pattern::Value(pattern) => pattern.paths(cbor),

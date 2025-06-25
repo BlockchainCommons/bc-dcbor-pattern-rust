@@ -93,6 +93,15 @@ impl Matcher for SequencePattern {
         // if any of its patterns are complex
         self.patterns.len() > 1 || self.patterns.iter().any(|p| p.is_complex())
     }
+
+    fn paths_with_captures(
+        &self,
+        cbor: &dcbor::CBOR,
+    ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
+        // For now, sequence patterns use basic implementation without captures
+        // TODO: Implement full sequence capture support
+        (self.paths(cbor), std::collections::HashMap::new())
+    }
 }
 
 impl std::fmt::Display for SequencePattern {

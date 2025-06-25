@@ -69,6 +69,21 @@ impl Matcher for CapturePattern {
         // A capture pattern is complex if its inner pattern is complex
         self.pattern.is_complex()
     }
+
+    fn paths_with_captures(
+        &self,
+        cbor: &dcbor::CBOR,
+    ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
+        // Get paths from the inner pattern
+        let (paths, mut captures) = self.pattern.paths_with_captures(cbor);
+
+        // For all paths that match, add them as captures for this capture name
+        if !paths.is_empty() {
+            captures.insert(self.name.clone(), paths.clone());
+        }
+
+        (paths, captures)
+    }
 }
 
 impl std::fmt::Display for CapturePattern {
