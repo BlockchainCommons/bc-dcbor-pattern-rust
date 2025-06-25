@@ -2,7 +2,7 @@ use dcbor::prelude::*;
 
 use super::{
     AndPattern, AnyPattern, CapturePattern, NonePattern, NotPattern, OrPattern,
-    RepeatPattern, SearchPattern,
+    RepeatPattern, SearchPattern, SequencePattern,
 };
 use crate::pattern::{Matcher, Path, Pattern, vm::Instr};
 
@@ -25,6 +25,8 @@ pub enum MetaPattern {
     Capture(CapturePattern),
     /// Searches the entire dCBOR tree for matches.
     Search(SearchPattern),
+    /// Matches a sequence of patterns in order.
+    Sequence(SequencePattern),
 }
 
 impl Matcher for MetaPattern {
@@ -38,6 +40,7 @@ impl Matcher for MetaPattern {
             MetaPattern::Repeat(pattern) => pattern.paths(cbor),
             MetaPattern::Capture(pattern) => pattern.paths(cbor),
             MetaPattern::Search(pattern) => pattern.paths(cbor),
+            MetaPattern::Sequence(pattern) => pattern.paths(cbor),
         }
     }
 
@@ -62,6 +65,9 @@ impl Matcher for MetaPattern {
             MetaPattern::Search(pattern) => {
                 pattern.compile(code, lits, captures)
             }
+            MetaPattern::Sequence(pattern) => {
+                pattern.compile(code, lits, captures)
+            }
         }
     }
 
@@ -81,6 +87,9 @@ impl Matcher for MetaPattern {
             MetaPattern::Search(pattern) => {
                 pattern.collect_capture_names(names)
             }
+            MetaPattern::Sequence(pattern) => {
+                pattern.collect_capture_names(names)
+            }
         }
     }
 
@@ -94,6 +103,7 @@ impl Matcher for MetaPattern {
             MetaPattern::Repeat(pattern) => pattern.is_complex(),
             MetaPattern::Capture(pattern) => pattern.is_complex(),
             MetaPattern::Search(pattern) => pattern.is_complex(),
+            MetaPattern::Sequence(pattern) => pattern.is_complex(),
         }
     }
 }
@@ -109,6 +119,7 @@ impl std::fmt::Display for MetaPattern {
             MetaPattern::Repeat(pattern) => pattern.fmt(f),
             MetaPattern::Capture(pattern) => pattern.fmt(f),
             MetaPattern::Search(pattern) => pattern.fmt(f),
+            MetaPattern::Sequence(pattern) => pattern.fmt(f),
         }
     }
 }

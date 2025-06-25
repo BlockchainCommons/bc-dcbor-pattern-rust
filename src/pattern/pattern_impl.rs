@@ -327,6 +327,13 @@ impl Pattern {
         ))
     }
 
+    /// Creates a sequence pattern that matches patterns in order.
+    pub fn sequence(patterns: Vec<Pattern>) -> Self {
+        Pattern::Meta(MetaPattern::Sequence(
+            crate::pattern::meta::SequencePattern::new(patterns),
+        ))
+    }
+
     /// Parse a pattern expression from a string.
     ///
     /// This method supports the full dCBOR pattern syntax including:
@@ -365,6 +372,27 @@ impl Pattern {
                 }
             }
         }
+    }
+
+    /// Creates a pattern that matches any array.
+    pub fn any_array() -> Self {
+        Pattern::Structure(crate::pattern::structure::StructurePattern::Array(
+            crate::pattern::structure::ArrayPattern::any(),
+        ))
+    }
+
+    /// Creates a pattern that matches any map.
+    pub fn any_map() -> Self {
+        Pattern::Structure(crate::pattern::structure::StructurePattern::Map(
+            crate::pattern::structure::MapPattern::any(),
+        ))
+    }
+
+    /// Creates a pattern that matches any tagged value.
+    pub fn any_tagged() -> Self {
+        Pattern::Structure(crate::pattern::structure::StructurePattern::Tagged(
+            crate::pattern::structure::TaggedPattern::any(),
+        ))
     }
 }
 

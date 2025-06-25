@@ -7,6 +7,7 @@ mod not_pattern;
 mod or_pattern;
 mod repeat_pattern;
 mod search_pattern;
+mod sequence_pattern;
 
 pub use and_pattern::*;
 pub use any_pattern::*;
@@ -17,3 +18,4 @@ pub use not_pattern::*;
 pub use or_pattern::*;
 pub use repeat_pattern::*;
 pub use search_pattern::*;
+pub use sequence_pattern::*;
