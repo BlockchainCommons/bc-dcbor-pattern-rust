@@ -98,7 +98,7 @@ fn test_array_vm_compilation_and_execution() {
 
     // Verify compilation structure
     assert!(!code.is_empty(), "Code should not be empty");
-    assert!(captures.len() >= 1, "Should have at least one capture name");
+    assert!(!captures.is_empty(), "Should have at least one capture name");
     assert!(
         captures.contains(&"item".to_string()),
         "Should contain 'item' capture"
