@@ -6,6 +6,8 @@ use crate::pattern::{Matcher, Path, Pattern, vm::Instr};
 /// Pattern for matching dCBOR digest values (CBOR tag 40001).
 #[derive(Debug, Clone)]
 pub enum DigestPattern {
+    /// Matches any digest value.
+    Any,
     /// Matches the exact digest.
     Digest(Digest),
     /// Matches the prefix of a digest (case insensitive).
@@ -17,6 +19,7 @@ pub enum DigestPattern {
 impl PartialEq for DigestPattern {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
+            (DigestPattern::Any, DigestPattern::Any) => true,
             (DigestPattern::Digest(a), DigestPattern::Digest(b)) => a == b,
             (DigestPattern::Prefix(a), DigestPattern::Prefix(b)) => {
                 a.eq_ignore_ascii_case(b)
@@ -34,16 +37,19 @@ impl Eq for DigestPattern {}
 impl std::hash::Hash for DigestPattern {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         match self {
-            DigestPattern::Digest(a) => {
+            DigestPattern::Any => {
                 0u8.hash(state);
+            }
+            DigestPattern::Digest(a) => {
+                1u8.hash(state);
                 a.hash(state);
             }
             DigestPattern::Prefix(prefix) => {
-                1u8.hash(state);
+                2u8.hash(state);
                 prefix.hash(state);
             }
             DigestPattern::BinaryRegex(regex) => {
-                2u8.hash(state);
+                3u8.hash(state);
                 // Regex does not implement Hash, so we hash its pattern string.
                 regex.as_str().hash(state);
             }
@@ -52,6 +58,9 @@ impl std::hash::Hash for DigestPattern {
 }
 
 impl DigestPattern {
+    /// Creates a new `DigestPattern` that matches any digest.
+    pub fn any() -> Self { DigestPattern::Any }
+
     /// Creates a new `DigestPattern` that matches the exact digest.
     pub fn digest(digest: Digest) -> Self { DigestPattern::Digest(digest) }
 
@@ -77,6 +86,7 @@ impl Matcher for DigestPattern {
                     Ok(digest_bytes) => {
                         if digest_bytes.len() == Digest::DIGEST_SIZE {
                             let is_hit = match self {
+                                DigestPattern::Any => true,
                                 DigestPattern::Digest(pattern_digest) => {
                                     digest_bytes == pattern_digest.data()
                                 }
@@ -120,6 +130,7 @@ impl Matcher for DigestPattern {
 impl std::fmt::Display for DigestPattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            DigestPattern::Any => write!(f, "DIGEST"),
             DigestPattern::Digest(digest) => write!(f, "DIGEST({})", digest),
             DigestPattern::Prefix(prefix) => {
                 write!(f, "DIGEST({})", hex::encode(prefix))

@@ -237,6 +237,13 @@ impl Pattern {
 
     // Digest pattern convenience methods
 
+    /// Creates a pattern that matches any digest value.
+    pub fn any_digest() -> Self {
+        Pattern::Value(ValuePattern::Digest(
+            crate::pattern::value::DigestPattern::any(),
+        ))
+    }
+
     /// Creates a pattern that matches a specific digest.
     pub fn digest(digest: bc_components::Digest) -> Self {
         Pattern::Value(ValuePattern::Digest(
@@ -314,15 +321,16 @@ impl Pattern {
 
     /// Parses a pattern from a string.
     ///
-    /// This implementation currently supports boolean, date, number, null, and
-    /// text patterns. More patterns will be added as they are implemented.
+    /// This implementation currently supports boolean, bytestring, date,
+    /// digest, number, null, and text patterns. More patterns will be added
+    /// as they are implemented.
     pub fn parse(input: &str) -> Result<Self> {
         use logos::Logos;
 
         use crate::parse::{
             Token,
             value::{
-                parse_bool, parse_bytestring, parse_date, parse_null, parse_number, parse_text,
+                parse_bool, parse_bytestring, parse_date, parse_digest, parse_null, parse_number, parse_text,
             },
         };
 
@@ -332,6 +340,7 @@ impl Pattern {
             Some(Ok(Token::Bool)) => parse_bool(&mut lexer),
             Some(Ok(Token::ByteString)) => parse_bytestring(&mut lexer),
             Some(Ok(Token::Date)) => parse_date(&mut lexer),
+            Some(Ok(Token::Digest)) => parse_digest(&mut lexer),
             Some(Ok(Token::Number)) => parse_number(&mut lexer),
             Some(Ok(Token::Null)) => parse_null(&mut lexer),
             Some(Ok(Token::Text)) => parse_text(&mut lexer),

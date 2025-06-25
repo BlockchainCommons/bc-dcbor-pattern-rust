@@ -95,10 +95,9 @@ For a given parser task, you will need to:
 - Make sure `cargo test` and `cargo clippy` pass after implementation.
 
 **Current Implementation Gaps:**
-1. **Value Parsers**: Missing digest, known_value parsers (6/8 implemented)
-2. **Structure Parsers**: All missing - array, map, tagged parsers (0/3 implemented)
-3. **Meta Parsers**: Missing and, not, or, search parsers; capture parser needs fixing (1/6 implemented)
-4. **Main Parser**: Pattern::parse supports 6 basic types, needs extension
+1. **Structure Parsers**: All missing - array, map, tagged parsers (0/3 implemented)
+2. **Meta Parsers**: Missing and, not, or, search parsers; capture parser needs fixing (1/6 implemented)
+3. **Main Parser**: Pattern::parse supports 7 basic types, needs extension for complex patterns
 
 ## Implementation Status
 
@@ -175,13 +174,13 @@ Comparison: `bc-envelope-pattern::pattern::meta` has 11 meta patterns vs our 8
 - [x] `bool_parser.rs` - Boolean value parsing (**FULLY IMPLEMENTED**)
 - [x] `bytestring_parser.rs` - Byte string parsing (**FULLY IMPLEMENTED with hex and binary regex support!**)
 - [x] `date_parser.rs` - Date/time parsing (**FULLY IMPLEMENTED with dcbor-parse integration**)
+- [x] `digest_parser.rs` - Digest value parsing (**FULLY IMPLEMENTED with hex prefix and UR string support!**)
+- [x] `known_value_parser.rs` - Known value parsing (**FULLY IMPLEMENTED with numeric, named, and regex support!**)
 - [x] `null_parser.rs` - Null value parsing (**FULLY IMPLEMENTED**)
 - [x] `number_parser.rs` - Numeric value parsing (**FULLY IMPLEMENTED**)
 - [x] `text_parser.rs` - Text string parsing (**FULLY IMPLEMENTED with regex and string literal support!**)
 
 **❌ Empty files (need implementation):**
-- [ ] `digest_parser.rs` - Digest value parsing
-- [ ] `known_value_parser.rs` - Known value parsing
 
 #### ❌ Structure Parsers (parse::structure)
 **❌ Empty files (need implementation):**
@@ -203,7 +202,7 @@ Comparison: `bc-envelope-pattern::pattern::meta` has 11 meta patterns vs our 8
 - [ ] `search_parser.rs` - Search pattern parsing
 
 **❌ Missing critical parsers (present in bc-envelope-pattern):**
-- [ ] `parse_pattern.rs` - Main pattern parsing entry point (**PARTIAL: Pattern::parse in pattern_impl.rs supports BOOL, BSTR, DATE, NUMBER, NULL, TEXT only**)
+- [ ] `parse_pattern.rs` - Main pattern parsing entry point (**PARTIAL: Pattern::parse in pattern_impl.rs supports BOOL, BSTR, DATE, DIGEST, KNOWN, NUMBER, NULL, TEXT only**)
 - [ ] `utils.rs` - Parsing utility functions
 - [ ] `group_parser.rs` - Group pattern parsing
 - [ ] `primary_parser.rs` - Primary pattern parsing
@@ -212,12 +211,12 @@ Comparison: `bc-envelope-pattern::pattern::meta` has 11 meta patterns vs our 8
 ### Test Coverage Status
 
 #### ✅ Working Tests
-- ✅ `parse_tests_value.rs` - **27 tests passing** (includes comprehensive date, text, and bytestring pattern parsing tests)
-- ✅ `pattern_tests_value.rs` - **34 tests passing** (includes 5 comprehensive known value pattern tests)
+- ✅ `parse_tests_value.rs` - **35 tests passing** (includes comprehensive date, text, bytestring, and digest pattern parsing tests)
+- ✅ `pattern_tests_value.rs` - **40 tests passing** (includes 5 comprehensive known value pattern tests + 6 new digest pattern tests)
 - ✅ `pattern_tests_meta.rs` - **23 tests passing** (**6 NEW repeat pattern tests + 7 capture pattern tests!**)
 - ✅ `pattern_tests_structure.rs` - **10 tests passing**
 - ✅ `error_tests.rs` - **67 tests passing** (actual count much higher than previously documented)
-- **Total**: **175 tests passing**
+- **Total**: **183 tests passing** (**8 new digest parser tests added!**)
 
 #### ❌ Missing/Empty Test Suites
 - [ ] `parse_tests_meta.rs` - 0 tests
@@ -227,13 +226,15 @@ Comparison: `bc-envelope-pattern::pattern::meta` has 11 meta patterns vs our 8
 
 **Next Priority Tasks:**
 1. **Complete Stub Patterns** - Implement search_pattern.rs fully (paths() and compile() methods)
-2. **Complete Value Pattern Parsers** - Implement bytestring, digest, and known_value parsers
-3. **Structure Pattern Parsers** - Text syntax parsing for arrays, maps, and tagged values
-4. **Complete Meta Pattern Parsers** - Implement and, not, or, search parsers and fix capture parser
-5. **Main Parse Pattern Entry Point** - Complete Pattern::parse to support all pattern types
-6. **Complete Test Coverage** - Tests for all implemented features
+2. **Structure Pattern Parsers** - Text syntax parsing for arrays, maps, and tagged values
+3. **Complete Meta Pattern Parsers** - Implement and, not, or, search parsers and fix capture parser
+4. **Main Parse Pattern Entry Point** - Complete Pattern::parse to support all pattern types
+5. **Complete Test Coverage** - Tests for all implemented features
 
 **Completed Major Milestones:**
+- ✅ **All Value Pattern Parsers Complete** - All 8 value pattern parsers fully implemented (bool, bytestring, date, digest, known value, null, number, text)!
+- ✅ **Digest Pattern Parsing** - Full digest pattern parsing with hex prefix and UR string support, including Pattern::parse integration!
+- ✅ **Known Value Pattern Parsing** - Full known value pattern parsing with numeric, named, and regex support!
 - ✅ **Pattern Compilation Issues Fixed** - Removed all unimplemented!() calls from pattern_impl.rs for StructurePattern!
 - ✅ **VM Implementation** - Fully functional pattern matching virtual machine
 - ✅ **Core Meta Patterns** - AND, OR, NOT, ANY, NONE patterns fully implemented with tests!
