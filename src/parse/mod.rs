@@ -1,3 +1,5 @@
+// TODO: Remove these allows as parsers are implemented
+// Many parsers are currently unimplemented stubs or empty files
 #![allow(dead_code, unused_imports, unused_variables)]
 
 mod meta;

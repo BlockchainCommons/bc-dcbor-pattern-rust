@@ -2,7 +2,7 @@
 //!
 //! The VM runs byte-code produced by `Pattern::compile` methods.
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use dcbor::prelude::*;
 
@@ -10,7 +10,6 @@ use super::{Matcher, Path, Pattern};
 use crate::{Quantifier, Reluctance};
 
 /// Navigation axis for traversing dCBOR tree structures.
-#[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Axis {
     /// Navigate to array elements
@@ -43,7 +42,6 @@ impl Axis {
 }
 
 /// Bytecode instructions for the pattern VM.
-#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum Instr {
     /// Match predicate: `literals[idx].matches(cbor)`
@@ -101,8 +99,6 @@ struct Thread {
     saved_paths: Vec<Path>,
     captures: Vec<Vec<Path>>,
     capture_stack: Vec<Vec<usize>>,
-    #[allow(dead_code)]
-    seen: HashSet<Vec<u8>>, // Use CBOR encoding as hash key
 }
 
 /// Match atomic patterns without recursion into the VM.
@@ -121,7 +117,9 @@ pub(crate) fn atomic_paths(
         Value(v) => v.paths(cbor),
         Structure(s) => s.paths(cbor),
         Meta(meta) => match meta {
-            crate::pattern::meta::MetaPattern::Any(_) => vec![vec![cbor.clone()]],
+            crate::pattern::meta::MetaPattern::Any(_) => {
+                vec![vec![cbor.clone()]]
+            }
             crate::pattern::meta::MetaPattern::None(_) => vec![],
             crate::pattern::meta::MetaPattern::Search(_) => {
                 panic!(
@@ -459,7 +457,6 @@ pub fn run(
         saved_paths: Vec::new(),
         captures: Vec::new(),
         capture_stack: Vec::new(),
-        seen: HashSet::new(),
     };
 
     let mut results = Vec::new();
