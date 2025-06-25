@@ -442,3 +442,4 @@ _ => {
 - All existing tests must continue passing: `cargo test --quiet`
 - Code quality check: `cargo clippy --quiet`
 - New functionality verification: The test case output should change from current wrong behavior to correct matching
+- Put temporary programs used for demonstrations in `examples/`. Remove them if they are not needed anymore.
