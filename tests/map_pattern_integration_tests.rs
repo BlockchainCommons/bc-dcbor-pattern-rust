@@ -37,28 +37,7 @@ fn test_map_patterns_with_real_cbor() {
 
     // Should match large map
     let paths = any_map.paths(&large_map);
-    let expected = r#"{
-    0:
-    "item0",
-    1:
-    "item1",
-    2:
-    "item2",
-    3:
-    "item3",
-    4:
-    "item4",
-    5:
-    "item5",
-    6:
-    "item6",
-    7:
-    "item7",
-    8:
-    "item8",
-    9:
-    "item9"
-}"#;
+    let expected = r#"{0: "item0", 1: "item1", 2: "item2", 3: "item3", 4: "item4", 5: "item5", 6: "item6", 7: "item7", 8: "item8", 9: "item9"}"#;
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match non-map
@@ -98,28 +77,7 @@ fn test_map_patterns_with_real_cbor() {
     // Test MAP({5,15}) - range pattern
     let range_pattern = Pattern::parse("MAP({5,15})").unwrap();
     let paths = range_pattern.paths(&large_map);
-    let expected = r#"{
-    0:
-    "item0",
-    1:
-    "item1",
-    2:
-    "item2",
-    3:
-    "item3",
-    4:
-    "item4",
-    5:
-    "item5",
-    6:
-    "item6",
-    7:
-    "item7",
-    8:
-    "item8",
-    9:
-    "item9"
-}"#;
+    let expected = r#"{0: "item0", 1: "item1", 2: "item2", 3: "item3", 4: "item4", 5: "item5", 6: "item6", 7: "item7", 8: "item8", 9: "item9"}"#;
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match smaller maps
@@ -130,28 +88,7 @@ fn test_map_patterns_with_real_cbor() {
     // Test MAP({5,}) - at least 5 items
     let min_pattern = Pattern::parse("MAP({5,})").unwrap();
     let paths = min_pattern.paths(&large_map);
-    let expected = r#"{
-    0:
-    "item0",
-    1:
-    "item1",
-    2:
-    "item2",
-    3:
-    "item3",
-    4:
-    "item4",
-    5:
-    "item5",
-    6:
-    "item6",
-    7:
-    "item7",
-    8:
-    "item8",
-    9:
-    "item9"
-}"#;
+    let expected = r#"{0: "item0", 1: "item1", 2: "item2", 3: "item3", 4: "item4", 5: "item5", 6: "item6", 7: "item7", 8: "item8", 9: "item9"}"#;
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match smaller maps
@@ -200,12 +137,7 @@ fn test_map_pattern_paths() {
     // Test that MAP pattern returns the map itself as a path
     let any_map = MapPattern::any();
     let paths = any_map.paths(&test_map);
-    let expected = r#"{
-    "key1":
-    "value1",
-    "key2":
-    42
-}"#;
+    let expected = r#"{"key1": "value1", "key2": 42}"#;
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Test with non-map data - should return no paths
@@ -216,12 +148,7 @@ fn test_map_pattern_paths() {
     // Test exact length match
     let exact_pattern = MapPattern::with_length(2);
     let paths = exact_pattern.paths(&test_map);
-    let expected = r#"{
-    "key1":
-    "value1",
-    "key2":
-    42
-}"#;
+    let expected = r#"{"key1": "value1", "key2": 42}"#;
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Test length mismatch - should return no paths
@@ -242,14 +169,7 @@ fn test_map_key_value_constraints_single() {
     )]);
 
     let paths = pattern.paths(&test_map);
-    let expected = r#"{
-    "age":
-    30,
-    "city":
-    "New York",
-    "name":
-    "Alice"
-}"#;
+    let expected = r#"{"age": 30, "city": "New York", "name": "Alice"}"#;
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Test non-matching constraint
@@ -275,14 +195,7 @@ fn test_map_key_value_constraints_multiple() {
     ]);
 
     let paths = pattern.paths(&test_map);
-    let expected = r#"{
-    "age":
-    25,
-    "name":
-    "Bob",
-    "active":
-    true
-}"#;
+    let expected = r#"{"age": 25, "name": "Bob", "active": true}"#;
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Test with one failing constraint
@@ -309,14 +222,7 @@ fn test_map_key_value_constraints_any_key() {
     )]);
 
     let paths = pattern.paths(&test_map);
-    let expected = r#"{
-    "key1":
-    "hello",
-    "key2":
-    "world",
-    "key3":
-    42
-}"#;
+    let expected = r#"{"key1": "hello", "key2": "world", "key3": 42}"#;
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Match any key with number value
@@ -341,14 +247,7 @@ fn test_map_key_value_constraints_specific_values() {
     ]);
 
     let paths = pattern.paths(&test_map);
-    let expected = r#"{
-    "flag":
-    true,
-    "count":
-    42,
-    "status":
-    "active"
-}"#;
+    let expected = r#"{"flag": true, "count": 42, "status": "active"}"#;
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Test with non-matching specific values

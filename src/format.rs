@@ -46,15 +46,15 @@ use crate::Path;
 /// A builder that provides formatting options for each path element.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PathElementFormat {
-    /// Diagnostic format, with optional maximum length for truncation.
-    Diagnostic(Option<usize>),
+    /// Diagnostic summary format, with optional maximum length for truncation.
+    DiagnosticSummary(Option<usize>),
     /// Flat diagnostic format (single line), with optional maximum length for
     /// truncation.
     DiagnosticFlat(Option<usize>),
 }
 
 impl Default for PathElementFormat {
-    fn default() -> Self { PathElementFormat::Diagnostic(None) }
+    fn default() -> Self { PathElementFormat::DiagnosticSummary(None) }
 }
 
 /// Options for formatting paths.
@@ -125,8 +125,8 @@ fn format_cbor_element(
     format: PathElementFormat,
 ) -> String {
     match format {
-        PathElementFormat::Diagnostic(max_length) => {
-            let diagnostic = cbor.diagnostic();
+        PathElementFormat::DiagnosticSummary(max_length) => {
+            let diagnostic = cbor.summary();
             truncate_with_ellipsis(&diagnostic, max_length)
         }
         PathElementFormat::DiagnosticFlat(max_length) => {
@@ -168,7 +168,7 @@ pub fn format_path_opt(
         }
     } else {
         match opts.element_format {
-            PathElementFormat::Diagnostic(_)
+            PathElementFormat::DiagnosticSummary(_)
             | PathElementFormat::DiagnosticFlat(_) => {
                 // Multi-line output with indentation for diagnostic formats.
                 let mut lines = Vec::new();

@@ -578,14 +578,9 @@ fn test_search_pattern_basic() {
     let nested_cbor = cbor("{\"key\": [1, 2, 42]}");
     let paths = pattern.paths(&nested_cbor);
     #[rustfmt::skip]
-    let expected = indoc! {r#"
-        {
-            "key":
-            [1, 2, 42]
-        }
-            [1, 2, 42]
-                42
-    "#}.trim();
+    let expected = r#"{"key": [1, 2, 42]}
+    [1, 2, 42]
+        42"#;
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Test that it doesn't match when the value is not present
@@ -622,20 +617,10 @@ fn test_search_pattern_text() {
     let nested_cbor = cbor(r#"[{"nested": ["hello"]}]"#);
     let paths = pattern.paths(&nested_cbor);
     #[rustfmt::skip]
-    let expected = indoc! {r#"
-        [
-            {
-                "nested":
-                ["hello"]
-            }
-        ]
-            {
-            "nested":
-            ["hello"]
-        }
-                ["hello"]
-                    "hello"
-    "#}.trim();
+    let expected = r#"[{"nested": ["hello"]}]
+    {"nested": ["hello"]}
+        ["hello"]
+            "hello""#;
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Test that it doesn't match when the text is not present
@@ -709,74 +694,14 @@ fn test_search_pattern_complex() {
     // places
     let paths = pattern.paths(&test_data);
     #[rustfmt::skip]
-    let expected = indoc! {r#"
-        {
-            "data":
-            [
-                {
-                    "values":
-                    [1, 2, 3]
-                },
-                {
-                    "values":
-                    [4, 5, 6]
-                },
-                {"other": "text"}
-            ],
-            "meta":
-            {
-                "count":
-                5,
-                "items":
-                [7, 8, 9]
-            }
-        }
-            [
-            {
-                "values":
-                [1, 2, 3]
-            },
-            {
-                "values":
-                [4, 5, 6]
-            },
-            {"other": "text"}
-        ]
-                {
-            "values":
+    let expected = r#"{"data": [{"values": [1, 2, 3]}, {"values": [4, 5, 6]}, {"other": "text"}], "meta": {"count": 5, "items": [7, 8, 9]}}
+    [{"values": [1, 2, 3]}, {"values": [4, 5, 6]}, {"other": "text"}]
+        {"values": [4, 5, 6]}
             [4, 5, 6]
-        }
-                    [4, 5, 6]
-                        5
-        {
-            "data":
-            [
-                {
-                    "values":
-                    [1, 2, 3]
-                },
-                {
-                    "values":
-                    [4, 5, 6]
-                },
-                {"other": "text"}
-            ],
-            "meta":
-            {
-                "count":
-                5,
-                "items":
-                [7, 8, 9]
-            }
-        }
-            {
-            "count":
-            5,
-            "items":
-            [7, 8, 9]
-        }
                 5
-    "#}.trim();
+{"data": [{"values": [1, 2, 3]}, {"values": [4, 5, 6]}, {"other": "text"}], "meta": {"count": 5, "items": [7, 8, 9]}}
+    {"count": 5, "items": [7, 8, 9]}
+        5"#;
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Check specific paths are found
@@ -793,15 +718,9 @@ fn test_search_pattern_with_captures() {
     let data = cbor("[1, {\"key\": 42}, 3]");
     let paths = pattern.paths(&data);
     #[rustfmt::skip]
-    let expected = indoc! {r#"
-        [
-            1,
-            {"key": 42},
-            3
-        ]
-            {"key": 42}
-                42
-    "#}.trim();
+    let expected = r#"[1, {"key": 42}, 3]
+    {"key": 42}
+        42"#;
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Display should show the capture in the search
@@ -866,49 +785,14 @@ fn test_search_pattern_with_structure_pattern() {
     let paths = pattern.paths(&data);
     // Should find the outer arrays structure and the inner arrays
     #[rustfmt::skip]
-    let expected = indoc! {r#"
-        {
-            "arrays":
-            [
-                [1, 2],
-                [3, 4]
-            ],
-            "not_array":
-            42
-        }
-            [
-            [1, 2],
-            [3, 4]
-        ]
-        {
-            "arrays":
-            [
-                [1, 2],
-                [3, 4]
-            ],
-            "not_array":
-            42
-        }
-            [
-            [1, 2],
-            [3, 4]
-        ]
-                [1, 2]
-        {
-            "arrays":
-            [
-                [1, 2],
-                [3, 4]
-            ],
-            "not_array":
-            42
-        }
-            [
-            [1, 2],
-            [3, 4]
-        ]
-                [3, 4]
-    "#}.trim();
+    let expected = r#"{"arrays": [[1, 2], [3, 4]], "not_array": 42}
+    [[1, 2], [3, 4]]
+{"arrays": [[1, 2], [3, 4]], "not_array": 42}
+    [[1, 2], [3, 4]]
+        [1, 2]
+{"arrays": [[1, 2], [3, 4]], "not_array": 42}
+    [[1, 2], [3, 4]]
+        [3, 4]"#;
     assert_actual_expected!(format_paths(&paths), expected);
 
     assert!(paths.len() >= 3); // The "arrays" value plus the two inner arrays

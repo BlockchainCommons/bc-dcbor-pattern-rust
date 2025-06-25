@@ -137,14 +137,7 @@ fn test_map_pattern_with_key() {
         cbor(r#"{"target_key": "value", "other_key": "other_value"}"#);
     let paths = pattern.paths(&cbor_map);
     #[rustfmt::skip]
-    let expected = indoc! {r#"
-        {
-            "other_key":
-            "other_value",
-            "target_key":
-            "value"
-        }
-    "#}.trim();
+    let expected = r#"{"other_key": "other_value", "target_key": "value"}"#;
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match map without target key
@@ -163,14 +156,7 @@ fn test_map_pattern_with_value() {
         cbor(r#"{"key": "target_value", "other_key": "other_value"}"#);
     let paths = pattern.paths(&cbor_map);
     #[rustfmt::skip]
-    let expected = indoc! {r#"
-        {
-            "key":
-            "target_value",
-            "other_key":
-            "other_value"
-        }
-    "#}.trim();
+    let expected = r#"{"key": "target_value", "other_key": "other_value"}"#;
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match map without target value

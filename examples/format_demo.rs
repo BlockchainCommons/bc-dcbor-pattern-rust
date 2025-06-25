@@ -29,7 +29,7 @@ fn main() {
 
     println!("\n=== Flat diagnostic formatting ===");
     let opts = FormatPathsOpts::new()
-        .element_format(PathElementFormat::DiagnosticFlat(None));
+        .element_format(PathElementFormat::DiagnosticSummary(None));
     println!("{}", format_paths_opt(&paths, opts));
 
     println!("\n=== Last element only ===");
@@ -38,7 +38,7 @@ fn main() {
 
     println!("\n=== Truncated elements ===");
     let opts = FormatPathsOpts::new()
-        .element_format(PathElementFormat::Diagnostic(Some(10)));
+        .element_format(PathElementFormat::DiagnosticSummary(Some(10)));
     println!("{}", format_paths_opt(&paths, opts));
 
     println!("\n=== No indentation ===");
