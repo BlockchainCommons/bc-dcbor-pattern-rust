@@ -274,15 +274,19 @@ let pattern = parse("TAGGED(1234, TEXT(\"content\"))"); // Specific tag and cont
 
 #### Range Patterns
 ```rust
-// Current: Must use programmatic API
-let pattern = ArrayPattern::with_length_range(1..=10);
-let pattern = MapPattern::with_length_range(2..=8);
+// These syntaxes are ALREADY IMPLEMENTED:
+let pattern = parse("ARRAY({1,10})");            // Array length range - ✅ IMPLEMENTED!
+let pattern = parse("MAP({2,8})");               // Map length range - ✅ IMPLEMENTED!
+let pattern = parse("ARRAY({1,})");              // Array minimum length - ✅ IMPLEMENTED!
+let pattern = parse("MAP({0,5})");               // Map maximum length - ✅ IMPLEMENTED!
+let pattern = parse("ARRAY({3})");               // Array exact length - ✅ IMPLEMENTED!
+let pattern = parse("MAP({5})");                 // Map exact length - ✅ IMPLEMENTED!
 
-// Proposed text syntax:
-let pattern = parse("ARRAY({1,10})");            // Array length range
-let pattern = parse("MAP({2,8})");               // Map length range
-let pattern = parse("ARRAY({1,})");              // Array minimum length
-let pattern = parse("MAP({,5})");                // Map maximum length
+// Note: These correspond to the documented syntax in PatternSyntax.md:
+// - ARRAY ( { n } ) - exactly n elements
+// - ARRAY ( { n , m } ) - between n and m elements
+// - ARRAY ( { n , } ) - at least n elements
+// - MAP ( { n , m } ) - between n and m entries
 ```
 
 #### Composite Structure Patterns
