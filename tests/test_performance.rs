@@ -1,7 +1,10 @@
+mod common;
+
 use std::time::Instant;
 
 use dcbor_parse::parse_dcbor_item;
-use dcbor_pattern::{Matcher, Pattern};
+use dcbor_pattern::{Matcher, Pattern, format_paths};
+use indoc::indoc;
 
 #[test]
 fn test_deeply_nested_performance() {
@@ -23,7 +26,18 @@ fn test_deeply_nested_performance() {
 
     assert!(result, "Should match deeply nested structure");
 
-    // Performance should be reasonable (under 1ms for this level of nesting)
+    // Test paths generation and validate result
+    let paths_start = Instant::now();
+    let paths = pattern.paths(&data);
+    let paths_time = paths_start.elapsed();
+
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        100({"a": {"b": {"c": {"d": [42]}}}})
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Performance should be reasonable (under 10ms for this level of nesting)
     assert!(
         pattern_creation_time.as_millis() < 10,
         "Pattern creation should be fast"
@@ -32,10 +46,14 @@ fn test_deeply_nested_performance() {
         match_time.as_millis() < 10,
         "Pattern matching should be fast"
     );
+    assert!(
+        paths_time.as_millis() < 10,
+        "Path generation should be fast"
+    );
 
     println!(
-        "Deep nesting performance - Pattern creation: {:?}, Matching: {:?}",
-        pattern_creation_time, match_time
+        "Deep nesting performance - Pattern creation: {:?}, Matching: {:?}, Paths: {:?}",
+        pattern_creation_time, match_time, paths_time
     );
 }
 
@@ -59,6 +77,17 @@ fn test_complex_repeat_pattern_performance() {
 
     assert!(result, "Should match complex pattern with multiple repeats");
 
+    // Test paths generation and validate result
+    let paths_start = Instant::now();
+    let paths = pattern.paths(&data);
+    let paths_time = paths_start.elapsed();
+
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        [{"id": 1}, {"id": 2}, 42, "test", true, {"name": "Alice"}, {"name": "Bob"}]
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
     // Performance should be reasonable even with backtracking
     assert!(
         pattern_creation_time.as_millis() < 10,
@@ -68,10 +97,14 @@ fn test_complex_repeat_pattern_performance() {
         match_time.as_millis() < 10,
         "Complex pattern matching should be fast"
     );
+    assert!(
+        paths_time.as_millis() < 10,
+        "Complex path generation should be fast"
+    );
 
     println!(
-        "Complex repeat performance - Pattern creation: {:?}, Matching: {:?}",
-        pattern_creation_time, match_time
+        "Complex repeat performance - Pattern creation: {:?}, Matching: {:?}, Paths: {:?}",
+        pattern_creation_time, match_time, paths_time
     );
 }
 
@@ -101,6 +134,18 @@ fn test_large_array_with_search_performance() {
 
     assert!(result, "Should find needle in large structure");
 
+    // Test paths generation and validate result
+    let paths_start = Instant::now();
+    let paths = pattern.paths(&large_data);
+    let paths_time = paths_start.elapsed();
+
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, {"a": 1}, {"b": 2}, {"c": 3}, {"d": 4}, {"e": 5}, [1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12], "needle", {"final": true}]
+            "needle"
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
     // Search performance should scale reasonably
     assert!(
         pattern_creation_time.as_millis() < 10,
@@ -110,10 +155,14 @@ fn test_large_array_with_search_performance() {
         match_time.as_millis() < 20,
         "Search through large structure should be reasonably fast"
     );
+    assert!(
+        paths_time.as_millis() < 10,
+        "Path generation should be fast"
+    );
 
     println!(
-        "Large structure search performance - Pattern creation: {:?}, Matching: {:?}",
-        pattern_creation_time, match_time
+        "Large structure search performance - Pattern creation: {:?}, Matching: {:?}, Paths: {:?}",
+        pattern_creation_time, match_time, paths_time
     );
 }
 
@@ -147,6 +196,17 @@ fn test_complex_or_pattern_performance() {
 
     assert!(result, "Should match complex OR pattern");
 
+    // Test paths generation and validate result
+    let paths_start = Instant::now();
+    let paths = pattern.paths(&data);
+    let paths_time = paths_start.elapsed();
+
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        [42, "test", true]
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
     // OR pattern performance should be reasonable
     assert!(
         pattern_creation_time.as_millis() < 10,
@@ -156,10 +216,14 @@ fn test_complex_or_pattern_performance() {
         match_time.as_millis() < 10,
         "Complex OR pattern matching should be fast"
     );
+    assert!(
+        paths_time.as_millis() < 10,
+        "Path generation should be fast"
+    );
 
     println!(
-        "Complex OR performance - Pattern creation: {:?}, Matching: {:?}",
-        pattern_creation_time, match_time
+        "Complex OR performance - Pattern creation: {:?}, Matching: {:?}, Paths: {:?}",
+        pattern_creation_time, match_time, paths_time
     );
 }
 
@@ -181,6 +245,10 @@ fn test_vm_instruction_optimization() {
         let data = parse_dcbor_item(test_case).unwrap();
         let result = pattern.matches(&data);
         assert!(result, "Should match test case: {}", test_case);
+
+        // Also validate paths for correctness
+        let paths = pattern.paths(&data);
+        assert!(!paths.is_empty(), "Should generate paths for test case: {}", test_case);
     }
     let total_time = total_start.elapsed();
 
@@ -220,14 +288,29 @@ fn test_edge_case_performance() {
 
     assert!(result, "Should match large array with ANY repeat pattern");
 
+    // Test paths generation and validate result
+    let paths_start = Instant::now();
+    let paths = pattern.paths(&large_array);
+    let paths_time = paths_start.elapsed();
+
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, true, false, null, "more", "strings", "here"]
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
     // Should not exhibit exponential behavior
     assert!(
         elapsed.as_millis() < 50,
         "ANY repeat patterns should not cause exponential behavior"
     );
+    assert!(
+        paths_time.as_millis() < 50,
+        "Path generation should not cause exponential behavior"
+    );
 
     println!(
-        "Edge case performance - ANY repeats on large array: {:?}",
-        elapsed
+        "Edge case performance - ANY repeats on large array: {:?}, Paths: {:?}",
+        elapsed, paths_time
     );
 }

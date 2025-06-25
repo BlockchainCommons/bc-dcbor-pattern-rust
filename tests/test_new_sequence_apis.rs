@@ -1,5 +1,8 @@
+mod common;
+
 use dcbor::prelude::*;
-use dcbor_pattern::{Matcher, Pattern};
+use dcbor_pattern::{Matcher, Pattern, format_paths};
+use indoc::indoc;
 
 #[test]
 fn test_sequence_pattern_new_api() {
@@ -38,9 +41,32 @@ fn test_structure_convenience_methods() {
         .to_cbor();
     let tagged_cbor = CBOR::to_tagged_value(42, "content".to_cbor());
 
-    assert!(!array_pattern.paths(&array_cbor).is_empty());
-    assert!(!map_pattern.paths(&map_cbor).is_empty());
-    assert!(!tagged_pattern.paths(&tagged_cbor).is_empty());
+    // Test array pattern paths
+    let array_paths = array_pattern.paths(&array_cbor);
+    assert!(!array_paths.is_empty());
+    #[rustfmt::skip]
+    let expected_array = indoc! {r#"
+        [1, 2, 3]
+    "#}.trim();
+    assert_actual_expected!(format_paths(&array_paths), expected_array);
+
+    // Test map pattern paths
+    let map_paths = map_pattern.paths(&map_cbor);
+    assert!(!map_paths.is_empty());
+    #[rustfmt::skip]
+    let expected_map = indoc! {r#"
+        {"key": "value"}
+    "#}.trim();
+    assert_actual_expected!(format_paths(&map_paths), expected_map);
+
+    // Test tagged pattern paths
+    let tagged_paths = tagged_pattern.paths(&tagged_cbor);
+    assert!(!tagged_paths.is_empty());
+    #[rustfmt::skip]
+    let expected_tagged = indoc! {r#"
+        42("content")
+    "#}.trim();
+    assert_actual_expected!(format_paths(&tagged_paths), expected_tagged);
 }
 
 #[test]

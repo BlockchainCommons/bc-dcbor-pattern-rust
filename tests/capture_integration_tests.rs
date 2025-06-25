@@ -1,8 +1,11 @@
 // Test integration for named capture functionality
 
+mod common;
+
 use dcbor::prelude::*;
 use dcbor_parse::parse_dcbor_item;
-use dcbor_pattern::{Matcher, Pattern, Result};
+use dcbor_pattern::{Matcher, Pattern, Result, format_paths};
+use indoc::indoc;
 
 /// Test basic capture functionality with simple patterns
 #[test]
@@ -15,6 +18,13 @@ fn test_capture_basic_number() -> Result<()> {
     // Should match the root
     assert_eq!(paths.len(), 1);
     assert_eq!(paths[0], vec![cbor.clone()]);
+
+    // Validate formatted output
+    #[rustfmt::skip]
+    let expected_paths = indoc! {r#"
+        42
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected_paths);
 
     // Should capture the number
     assert_eq!(captures.len(), 1);
@@ -39,6 +49,13 @@ fn test_capture_basic_text() -> Result<()> {
     assert_eq!(captures.len(), 1);
     assert!(captures.contains_key("greeting"));
     assert_eq!(captures["greeting"][0], vec![cbor.clone()]);
+
+    // Validate formatted output
+    #[rustfmt::skip]
+    let expected_paths = indoc! {r#"
+        "hello"
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected_paths);
 
     Ok(())
 }
