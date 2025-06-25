@@ -19,7 +19,7 @@ fn test_capture_basic_number() -> Result<()> {
     #[rustfmt::skip]
     let expected_output = indoc! {r#"
         @num
-           42
+            42
         42
     "#}.trim();
     assert_actual_expected!(
@@ -46,7 +46,7 @@ fn test_capture_basic_text() -> Result<()> {
     #[rustfmt::skip]
     let expected_output = indoc! {r#"
         @greeting
-           "hello"
+            "hello"
         "hello"
     "#}.trim();
     assert_actual_expected!(
@@ -96,7 +96,7 @@ fn test_multiple_captures_or() -> Result<()> {
     #[rustfmt::skip]
     let expected_output1 = indoc! {r#"
         @first
-           42
+            42
         42
     "#}.trim();
     assert_actual_expected!(
@@ -115,7 +115,7 @@ fn test_multiple_captures_or() -> Result<()> {
     #[rustfmt::skip]
     let expected_output2 = indoc! {r#"
         @second
-           "hello"
+            "hello"
         "hello"
     "#}.trim();
     assert_actual_expected!(
@@ -143,9 +143,9 @@ fn test_nested_captures() -> Result<()> {
     #[rustfmt::skip]
     let expected_output = indoc! {r#"
         @inner
-           42
+            42
         @outer
-           42
+            42
         42
     "#}.trim();
     assert_actual_expected!(
@@ -172,8 +172,8 @@ fn test_capture_in_array() -> Result<()> {
     #[rustfmt::skip]
     let expected_output = indoc! {r#"
         @item
-           [42]
-               42
+            [42]
+                42
         [42]
     "#}.trim();
     assert_actual_expected!(
@@ -201,11 +201,11 @@ fn test_capture_in_array_sequence() -> Result<()> {
     #[rustfmt::skip]
     let expected_output = indoc! {r#"
         @first
-           ["a", 42]
-               "a"
+            ["a", 42]
+                "a"
         @second
-           ["a", 42]
-               42
+            ["a", 42]
+                42
         ["a", 42]
     "#}.trim();
     assert_actual_expected!(

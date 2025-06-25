@@ -218,7 +218,7 @@ pub fn format_paths_with_captures(
                 // Add indentation to each line of the formatted path
                 for line in formatted_path.split('\n') {
                     if !line.is_empty() {
-                        result.push(format!("   {}", line));
+                        result.push(format!("    {}", line));
                     }
                 }
             }
@@ -345,9 +345,9 @@ mod tests {
 
         // Should have captures first (sorted), then regular paths
         assert!(lines[0] == "@capture1");
-        assert!(lines[1].contains("   1")); // Indented capture content
+        assert!(lines[1].contains("    1")); // Indented capture content
         assert!(lines[2] == "@capture2");
-        assert!(lines[3].contains("   2")); // Indented capture content
+        assert!(lines[3].contains("    2")); // Indented capture content
         assert!(lines[4].contains("1")); // Regular path 1
         assert!(lines[5].contains("2")); // Regular path 2
     }
