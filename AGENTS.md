@@ -1,33 +1,17 @@
 # `dcbor-pattern` Crate Documentation
 
-This file contains general information ab**⭐ LATEST ACHIEVEMENT - Advanced Nested Patterns Implementation COMPLETED:**
-- **✅ FULLY IMPLEMENTED**: All documented complex nested pattern syntax from `PatternSyntax.md`
-- **✅ INTEGRATION TESTING**: 9 comprehensive tests covering TAG(tag,ARRAY(pattern)), MAP(key:ARRAY(constraints)), and multi-level nesting
-- **✅ PERFORMANCE VERIFIED**: 6 performance tests confirm efficient execution for deeply nested patterns (<50ms operations)
-- **✅ VM OPTIMIZATION**: Complex nested patterns compile to efficient VM instructions with proper backtracking
-- **✅ SYNTAX COVERAGE**: All target syntax variations working: simple nested, complex with repeats, maps with array constraints, arrays starting with maps
-- **✅ QUALITY ASSURED**: All 353 tests pass (165 lib + 188 integration), clippy validation completed
+This file contains general information about the**🚨 CRITICAL MISSING FEATURE - Named Captures:**
+- **❌ INCOMPLETE**: Named captures infrastructure exists but is not fully functional
+- **❌ BROKEN API**: `paths_with_captures()` method falls back to `unimplemented!()` in main Pattern type
+- **❌ MISSING INTEGRATION**: VM capture functionality implemented but never used by Pattern API
+- **❌ NO END-TO-END TESTING**: Tests only verify infrastructure components, not actual capture functionalitybor-pattern` crate, which provides a pattern matcher and text syntax pattern parser for Deterministic CBOR (dCBOR) as implemented in the `dcbor` crate in this workspace. Further documentation including the pattern expression syntax can be found in the `docs/` directory. Make sure to read those before starting on any tasks.
 
-**Previous Achievement - Enhanced Map Pattern Support COMPLETED:**
-- **✅ FULLY IMPLEMENTED**: Multiple key-value constraints support for unified `MAP(pattern:pattern,...)` syntax
-- **✅ CORE API ENHANCED**: Added `MapPattern::WithKeyValueConstraints` variant and `with_key_value_constraints()` constructor
-- **✅ PARSER ENHANCED**: Extended `map_parser.rs` to support both range syntax and new key-value constraint syntax
-- **✅ LEXER ENHANCED**: Added `Colon` token for parsing key-value pairs
-- **✅ COMPREHENSIVE TESTING**: 8 new parser tests + 8 new integration tests covering all scenarios
-- **✅ VERIFIED FUNCTIONALITY**: `Pattern::parse("MAP(TEXT(\"name\"):TEXT, TEXT(\"age\"):NUMBER)")` works correctly
-- **✅ QUALITY ASSURED**: All 333 tests pass (165 lib + 11 integration + 157 others), clippy validation completed
-
-**Previous Achievement - Complex Array Pattern Text Parsing COMPLETED:**
-- **✅ FULLY IMPLEMENTED**: Text parsing support for complex array patterns with repeat quantifiers
-- **✅ PRIMARY PARSER ENHANCED**: Added `parse_quantifier` integration after parenthesized groups
-- **✅ COMPREHENSIVE TESTING**: 4 new test cases covering various repeat patterns and nested scenarios
-- **✅ VERIFIED FUNCTIONALITY**: `Pattern::parse("ARRAY((ANY)*>NUMBER(42)>(ANY)*)")` works correctly
-- **✅ QUALITY ASSURED**: All 324 tests pass, clippy validation completed
-
-**Previous Achievement - Array Pattern Repeat Matching COMPLETED:**
-- **✅ FULLY IMPLEMENTED**: Backtracking algorithm for array sequence matching with repeat patterns
-- **✅ ALL VARIANTS WORKING**: `*`, `+`, `?`, `{n,m}` quantifiers with lazy (`?`) and possessive (`+`) modifiers
-- **✅ VERIFIED**: Comprehensive testing confirms all repeat patterns work correctly in array contextsthe `dcbor-pattern` crate, which provides a pattern matcher and text syntax pattern parser for Deterministic CBOR (dCBOR) as implemented in the `dcbor` crate in this workspace. Further documentation including the pattern expression syntax can be found in the `docs/` directory. Make sure to read those before starting on any tasks.
+**⭐ LATEST ACHIEVEMENT - Named Captures Implementation NEEDED:**
+- **❌ CRITICAL GAP**: Named captures infrastructure exists but is not fully functional
+- **❌ MISSING API**: `paths_with_captures()` method not implemented in main Pattern type
+- **❌ NO VM INTEGRATION**: VM capture functionality exists but is never called by Pattern API
+- **❌ INCOMPLETE TESTING**: No end-to-end tests verify actual capture collection and retrieval
+- **🎯 NEXT PRIORITY**: Complete named captures implementation for full pattern matching functionality
 
 ## General Guidance
 
@@ -94,51 +78,34 @@ This crate is focused on deterministic CBOR (dCBOR) patterns, while `bc-envelope
 
 **Critical**: This file reflects the current state as of December 2024.
 
-**Project Status**: ✅ **COMPLETE** - All features implemented and tested
+**Project Status**: ❌ **INCOMPLETE** - Named captures functionality missing
 
 **Completion Indicators:**
 - ✅ = Fully implemented and tested
-- 🔨 = Partially implemented (none remaining)
-- ❌ = Not implemented (none remaining)
+- 🔨 = Partially implemented
+- ❌ = Not implemented or incomplete
 
 ## Current Status
 
-The `dcbor-pattern` crate is **COMPLETE** with **ALL CRITICAL FUNCTIONALITY WORKING**! 🎉
+The `dcbor-pattern` crate is **NEARLY COMPLETE** with **ONE CRITICAL FEATURE MISSING**! ⚠️
 
 **� LATEST ACHIEVEMENT - Array Pattern Repeat Matching:**
 - **✅ FIXED**: The critical limitation with repeat patterns in array matching has been resolved
 - **✅ WORKING**: `ARRAY((ANY)*>NUMBER(42)>(ANY)*)` now correctly matches any array containing 42
 - **✅ VERIFIED**: All test cases now produce correct results as documented in `PatternSyntax.md`
 
-**✅ FULLY IMPLEMENTED:**
+**✅ FULLY IMPLEMENTED (Infrastructure Complete):**
 - ✅ **Complete Pattern Infrastructure**: All pattern types with working `Matcher` trait implementations
-- ✅ **Complete VM Implementation**: Full pattern matching virtual machine with all instruction types
+- ✅ **Complete VM Implementation**: Full pattern matching virtual machine with all instruction types including capture support
 - ✅ **Complete Parser Infrastructure**: Full text syntax parsing with proper operator precedence
 - ✅ **All Value Patterns**: 8/8 value pattern types fully implemented with parsing
 - ✅ **All Structure Patterns**: 3/3 structure pattern types fully implemented with parsing
-- ✅ **All Meta Patterns**: 8/8 meta pattern types fully implemented with parsing
-- ✅ **Main Pattern::parse**: Supports complete dCBOR pattern syntax including precedence
-- ✅ **Comprehensive Test Suite**: 157 passing tests across all modules
-- ✅ **Advanced Array Unified Syntax**: Complete support for complex patterns like `ARRAY((ANY)*>NUMBER(42)>(ANY)*)`
-- ✅ **Repeat Pattern Integration**: Full backtracking algorithm for sequences with quantifiers
+- ✅ **Most Meta Patterns**: 8/9 meta pattern types fully implemented with parsing (captures have infrastructure but not integration)
+- ✅ **Main Pattern::parse**: Supports complete dCBOR pattern syntax including precedence and capture syntax
+- ✅ **Advanced Features**: Complex array patterns, map constraints, nested patterns, search patterns, sequences
+- ✅ **Comprehensive Test Suite**: 353 passing tests across all modules (missing capture integration tests)
 
-**✅ COMPLETED IN THIS SESSION:**
-- ✅ **Sequence Parsing Implementation**: Complete implementation of sequence parsing support (`parse_sequence()` function)
-- ✅ **Parser Precedence Integration**: Added sequence parsing to precedence hierarchy (OR -> AND -> NOT -> SEQUENCE -> PRIMARY)
-- ✅ **Sequence Parser Module**: New `sequence_parser.rs` with left-associative sequence operator (>) support
-- ✅ **Parser Integration**: Updated NOT parser to delegate to sequence parser maintaining proper precedence
-- ✅ **Comprehensive Parsing Tests**: 9 new tests for sequence parsing covering syntax, precedence, and functionality
-- ✅ **Test Coverage Increase**: Test suite expanded from 268 to 305 passing tests
 
-**Previous Session Completions:**
-- ✅ **SequencePattern Implementation**: Complete implementation of sequence patterns (`pattern > pattern > pattern`)
-- ✅ **SequencePattern Meta Pattern**: Added to MetaPattern enum with full integration
-- ✅ **Pattern::sequence() API**: New convenience method for creating sequence patterns programmatically
-- ✅ **Structure Convenience Methods**: Added Pattern::any_array(), Pattern::any_map(), Pattern::any_tagged()
-- ✅ **Comprehensive Tests**: 16 new tests for SequencePattern covering all functionality
-- ✅ **Test Integration**: Examples using parse_dcbor_item() for realistic test scenarios
-
-**Note**: Search patterns are specialized for tree traversal and require additional design decisions about search semantics.
 
 ## Implementation Status
 
@@ -170,14 +137,14 @@ The `dcbor-pattern` crate is **COMPLETE** with **ALL CRITICAL FUNCTIONALITY WORK
 - [x] `map_pattern.rs` - CBOR map structure patterns (**FULLY IMPLEMENTED!**)
 - [x] `tagged_pattern.rs` - CBOR tagged value patterns (**FULLY IMPLEMENTED!**)
 
-#### ✅ Meta Patterns (pattern::meta) - COMPLETE
-**✅ Fully implemented with Matcher trait (8/8 patterns):**
+#### 🔨 Meta Patterns (pattern::meta) - MOSTLY COMPLETE
+**🔨 Partially implemented with Matcher trait (8/9 patterns):**
 - [x] `any_pattern.rs` - Match any CBOR value patterns (**FULLY IMPLEMENTED!**)
 - [x] `none_pattern.rs` - Match no CBOR value patterns (**FULLY IMPLEMENTED!**)
 - [x] `and_pattern.rs` - Logical AND combinations (**FULLY IMPLEMENTED!**)
 - [x] `or_pattern.rs` - Logical OR combinations (**FULLY IMPLEMENTED!**)
 - [x] `not_pattern.rs` - Logical NOT patterns (**FULLY IMPLEMENTED!**)
-- [x] `capture_pattern.rs` - Pattern capture groups (**FULLY IMPLEMENTED!**)
+- [x] `capture_pattern.rs` - Pattern capture groups (**🔨 PARTIALLY IMPLEMENTED**: Infrastructure exists but not integrated)
 - [x] `meta_pattern.rs` - Top-level meta pattern enum (**FULLY IMPLEMENTED!**)
 - [x] `repeat_pattern.rs` - Repetition patterns (**FULLY IMPLEMENTED!**)
 - [x] `search_pattern.rs` - Search patterns (**FULLY IMPLEMENTED!**)
@@ -227,9 +194,9 @@ The `dcbor-pattern` crate is **COMPLETE** with **ALL CRITICAL FUNCTIONALITY WORK
 
 ### Test Coverage Status
 
-**✅ COMPREHENSIVE TEST SUITE: 353 TOTAL PASSING TESTS**
+**🔨 PARTIALLY COMPLETE TEST SUITE: 353 TOTAL PASSING TESTS (Missing Capture Integration Tests)**
 
-#### ✅ All Test Suites Implemented and Passing
+#### ✅ All Infrastructure Test Suites Implemented and Passing
 - ✅ **parse_tests_value.rs** - **27 tests** (value pattern parsing)
 - ✅ **pattern_tests_value.rs** - **34 tests** (value pattern functionality)
 - ✅ **pattern_tests_meta.rs** - **31 tests** (meta pattern functionality including search)
@@ -241,45 +208,50 @@ The `dcbor-pattern` crate is **COMPLETE** with **ALL CRITICAL FUNCTIONALITY WORK
 - ✅ **Plus other integration tests** - **17+ tests** (various integration scenarios)
 - ✅ **Plus 165 internal module tests** - Unit tests within individual pattern and parser modules
 
-#### ❌ Empty Test Files (No Tests Needed)
-- **error_tests.rs** - 0 tests (empty file - error testing done within modules)
-- **parse_tests_structure.rs** - 0 tests (empty file - structure parsing tested within modules)
-
-**No missing test coverage** - All implemented functionality has comprehensive test coverage.
+#### ❌ Missing Test Coverage
+- **❌ Named Capture Integration Tests** - No tests verify end-to-end capture functionality
+- **❌ VM-based Pattern Matching Tests** - No tests verify VM integration with main Pattern API
 
 ## Project Status
 
-### ✅ All Tasks Completed
+### ❌ Critical Missing Feature: Named Captures
+
+**❌ Named Captures Implementation - INCOMPLETE**
+   - **🔨 PARTIALLY IMPLEMENTED**: Infrastructure exists but not integrated
+   - **❌ MISSING**: `paths_with_captures()` implementation in main Pattern type
+   - **❌ MISSING**: VM integration for capture collection
+   - **❌ MISSING**: End-to-end tests for capture functionality
+
+### ✅ Completed Features
+
+**✅ Advanced Nested Patterns Implementation - COMPLETE**
+   - ✅ 9 comprehensive tests for deeply nested patterns covering all target syntax
+   - ✅ Complex nesting scenarios: TAG(tag, ARRAY(pattern)), MAP(key:ARRAY(constraints)), ARRAY(MAP(pattern)>pattern)
+   - ✅ Performance testing: 6 performance tests for complex nested patterns
+   - ✅ VM optimization verified for deeply nested patterns
+
+**✅ Enhanced Map Pattern Support - COMPLETE**
+   - ✅ Multiple key-value constraints support for unified `MAP(pattern:pattern,...)` syntax
+   - ✅ Extended parser and lexer support
+   - ✅ Comprehensive testing coverage
+
+**✅ Enhanced Array Pattern Support - COMPLETE**
+   - ✅ Complex array patterns with repeat quantifiers
+   - ✅ Unified `ARRAY(pattern)` syntax
+   - ✅ VM-based sequence matching with backtracking
 
 **✅ Search Pattern Implementation - COMPLETE**
-   - ✅ Implemented `search_pattern.rs` methods:
-     - `paths()` - Recursive tree traversal with proper dCBOR navigation
-     - `compile()` - VM instruction generation with capture name collection
-   - ✅ Implementation decisions made:
-     - Search scope: Entire dCBOR tree including all nodes
-     - Search order: Depth-first traversal
-     - Match collection: All matches with duplicate removal
+   - ✅ Recursive tree traversal with proper dCBOR navigation
+   - ✅ VM instruction generation with capture name collection
+   - ✅ Comprehensive testing across all scenarios
 
-**✅ Search Pattern Parsing Support - COMPLETE**
-   - ✅ Added `SEARCH` token to `token.rs` lexer
-   - ✅ Implemented `search_parser.rs` with parentheses syntax
-   - ✅ Integrated search parsing into `primary_parser.rs`
-
-**✅ Search Pattern Testing - COMPLETE**
-   - ✅ 16 comprehensive tests covering all scenarios:
-     - Simple patterns (number, text matching)
-     - Complex nested structures
-     - Edge cases (empty arrays, deep nesting)
-     - Capture integration
-     - Parser functionality
-
-### 🏆 Final Implementation Statistics
+### 🏆 Implementation Statistics (Current Status)
 - **Pattern Types**: 19/19 implemented (Value: 8, Structure: 3, Meta: 9)
 - **Parser Support**: 15/15 pattern parsers implemented (includes primary_parser.rs)
 - **VM Instructions**: 15/15 instruction types implemented
-- **Test Coverage**: 339 passing tests across all modules (including 16 new map constraint tests)
+- **Test Coverage**: 353 passing tests across all modules
 - **Code Quality**: All tests pass, clippy clean
-- **Critical Features**: ✅ Array repeat pattern matching COMPLETE, ✅ Map multiple constraints COMPLETE
+- **Critical Gap**: ❌ Named captures API integration missing
 
 ### ⚠️ Known Issues for Future Investigation
 
@@ -295,131 +267,156 @@ These formatting differences don't affect pattern matching functionality, but th
 
 3. **Composite Pattern Text Parsing Limitations**: Patterns that take other patterns as parameters (like `ArrayPattern::with_elements(pattern)`, `MapPattern::with_key(pattern)`) work when the inner pattern can be parsed from text, but the outer structure pattern constructors themselves don't have text syntax equivalents.
 
-### 🚧 Advanced Composite Pattern Implementation Plan
+### 🎯 Named Captures Implementation Plan
 
-The following advanced composite patterns have been **pre-documented** in `PatternSyntax.md` and are ready for implementation:
+**Current State**: Named captures have complete infrastructure but are not integrated with the main Pattern API.
 
-#### 🎯 Implementation Phase 1: Enhanced Array Pattern Support
+#### ✅ What's Already Implemented:
+1. **Core Infrastructure**:
+   - ✅ `CapturePattern` struct with name and inner pattern
+   - ✅ `Pattern::capture(name, pattern)` constructor method
+   - ✅ Parsing support via `@name(pattern)` syntax
+   - ✅ Display formatting shows capture syntax correctly
 
-**Target Syntax** (documented in PatternSyntax.md):
+2. **VM Support**:
+   - ✅ `CaptureStart(usize)` and `CaptureEnd(usize)` VM instructions
+   - ✅ VM thread state includes capture tracking
+   - ✅ VM `run()` function returns captures
+   - ✅ `CapturePattern::compile()` emits proper instructions
+
+3. **Pattern Collection**:
+   - ✅ `collect_capture_names()` method recursively collects capture names
+   - ✅ Integration in all pattern types
+
+#### ❌ What's Missing:
+
+**1. Main Pattern API Integration (Priority: HIGH)**
 ```rust
-// Unified ARRAY(pattern) syntax supporting any pattern type:
-let pattern = parse("ARRAY(NUMBER(42))");                      // Single element
-let pattern = parse("ARRAY(TEXT(\"a\") > TEXT(\"b\") > TEXT(\"c\"))"); // Exact sequence
-let pattern = parse("ARRAY((ANY)*>NUMBER(42)>(ANY)*)");        // Element anywhere
-let pattern = parse("ARRAY(NUMBER(42)>(ANY)*)");               // Starting with element
-let pattern = parse("ARRAY((ANY)*>NUMBER(42))");               // Ending with element
+// File: src/pattern/pattern_impl.rs
+impl Matcher for Pattern {
+    fn paths_with_captures(&self, cbor: &CBOR) -> (Vec<Path>, HashMap<String, Vec<Path>>) {
+        // Compile pattern to VM program
+        let mut code = Vec::new();
+        let mut literals = Vec::new();
+        let mut captures = Vec::new();
+
+        self.compile(&mut code, &mut literals, &mut captures);
+        code.push(Instr::Accept);
+
+        let program = vm::Program { code, literals, capture_names: captures };
+
+        // Run VM to get paths and captures
+        vm::run(&program, cbor)
+    }
+}
 ```
 
-**Implementation Tasks:**
-- [x] **✅ COMPLETED**: Implement `SequencePattern` meta pattern type and add to `MetaPattern` enum
-- [x] **✅ COMPLETED**: Add programmatic `Pattern::sequence(patterns: Vec<Pattern>)` constructor method
-- [x] **✅ COMPLETED**: Add sequence parsing support (`parse_sequence()` function)
-- [x] **✅ COMPLETED**: Add `Pattern::any_array()` convenience method to main Pattern impl
-- [x] **✅ COMPLETED**: Extend `array_parser.rs` to support the unified `ARRAY(pattern)` syntax
-- [x] **✅ COMPLETED**: Update `ArrayPattern::WithElements` matcher logic to match arrays as sequences
-- [x] **✅ COMPLETED**: Fix Display implementation for unified `ARRAY(pattern)` syntax
-- [x] **✅ COMPLETED**: Add comprehensive tests for unified array pattern syntax and matching behavior
-- [x] **✅ COMPLETED**: Implement repeat pattern support in `ArrayPattern::WithElements` matcher
-- [x] **✅ COMPLETED**: Integrate VM-based sequence matching for complex patterns with repeats
-- [x] **✅ COMPLETED**: Add text parsing support for complex repeat syntax (e.g., `ARRAY((ANY)*>NUMBER(42)>(ANY)*)`)
-- [x] **✅ COMPLETED**: Add integration tests for advanced nested array patterns
+**2. Integration Testing (Priority: HIGH)**
+- Create `tests/capture_integration_tests.rs`
+- Test end-to-end capture functionality
+- Verify captures work with complex patterns (sequences, searches, etc.)
+- Test multiple captures in same pattern
+- Test nested capture scenarios
 
-**🚨 Current Critical Limitation - Repeat Patterns in Arrays:**
-
-**Status**: The infrastructure exists but array matching is **incomplete**
-
-**What Works:**
-- ✅ Creating repeat patterns programmatically: `Pattern::repeat(Pattern::any(), Quantifier::new(0..=usize::MAX, Reluctance::Greedy))`
-- ✅ Creating sequences with repeats: `Pattern::sequence(vec![any_star, Pattern::number(42), any_star])`
-- ✅ Display formatting: `ARRAY((ANY){0,18446744073709551615}>NUMBER(42)>(ANY){0,18446744073709551615})`
-- ✅ Parser accepts complex pattern syntax
-- ✅ Simple patterns work: `ARRAY(NUMBER(42))` matches `[42]` exactly
-- ✅ Simple sequences work: `ARRAY(TEXT("a") > TEXT("b"))` matches `["a", "b"]` exactly
-
-**What Doesn't Work:**
-- ❌ **Array matching with repeat patterns**: `ARRAY((ANY)*>NUMBER(42)>(ANY)*)` produces wrong results:
-  - `[42]` → ❌ NO MATCH (should be ✅ MATCH)
-  - `[1, 42]` → ❌ NO MATCH (should be ✅ MATCH)
-  - `[42, 1]` → ❌ NO MATCH (should be ✅ MATCH)
-  - `[1, 42, 3]` → ✅ MATCH (accidental, wrong reason)
-  - `[]` → ❌ NO MATCH (should be ✅ MATCH since `(ANY)*` allows zero)
-
-**Root Cause**: `ArrayPattern::WithElements` matcher falls back to legacy "any element matching" logic for sequences containing repeat patterns, instead of proper sequence evaluation.
-
-**Required Implementation**:
-1. **Extend `ArrayPattern::WithElements` matcher** to handle `Pattern::Meta(MetaPattern::Repeat(_))` within sequences
-2. **Integrate VM-based matching** for complex sequence patterns that require backtracking and quantifier evaluation
-3. **Add sequence matching logic** that can handle patterns like `(ANY)*>NUMBER(42)>(ANY)*` against array element sequences
-
-**Priority**: **HIGH** - This blocks the core unified syntax functionality documented in `PatternSyntax.md`
-
-#### 🎯 Implementation Phase 2: Enhanced Map Pattern Support
-
-**Target Syntax** (documented in PatternSyntax.md):
+**3. Public API Exposure (Priority: MEDIUM)**
 ```rust
-// Unified MAP(pattern: pattern, ...) syntax:
-let pattern = parse("MAP(TEXT(\"key\"):ANY)");                 // Single key-value constraint
-let pattern = parse("MAP(ANY:TEXT(\"value\"))");               // Value constraint
-let pattern = parse("MAP(TEXT(\"name\"):TEXT, TEXT(\"age\"):NUMBER)"); // Multiple constraints
+// File: src/pattern/pattern_impl.rs
+impl Pattern {
+    /// Execute pattern matching and return both paths and captures
+    pub fn match_with_captures(&self, cbor: &CBOR) -> (Vec<Path>, HashMap<String, Vec<Path>>) {
+        self.paths_with_captures(cbor)
+    }
+}
 ```
 
-**Current API Assessment:**
-- ✅ `MapPattern::with_key(pattern)` - EXISTS
-- ✅ `MapPattern::with_value(pattern)` - EXISTS
-- ✅ `MapPattern::with_key_value(key_pattern, value_pattern)` - EXISTS
-- ✅ `MapPattern::with_length(n)` and `with_length_range(range)` - EXISTS
+#### 🎯 Development Tasks:
 
-**Implementation Tasks:**
-- [x] **✅ COMPLETED**: Add `Pattern::any_map()` convenience method to main Pattern impl
-- [x] **✅ COMPLETED**: Extend `MapPattern` to support multiple key-value constraints simultaneously
-- [x] **✅ COMPLETED**: Extend `map_parser.rs` to support the unified `MAP(pattern:pattern,...)` syntax with multiple constraints
-- [x] **✅ COMPLETED**: Implement parsing of complex key and value patterns
-- [x] **✅ COMPLETED**: Add comprehensive tests for all map pattern variations
+**Phase 1: Core Integration (Required for functionality)**
+1. **Implement `paths_with_captures()` in main Pattern**
+   - Override the default `unimplemented!()` in `Matcher` trait
+   - Use VM compilation and execution for capture collection
+   - Ensure backward compatibility with existing `paths()` method
 
-#### 🎯 Implementation Phase 3: Advanced Nested Patterns - ✅ COMPLETED
+2. **Add VM-based execution path**
+   - Integrate VM execution into main Pattern matching flow
+   - Handle patterns that don't use captures efficiently
+   - Ensure performance parity with direct pattern matching
 
-**Target Syntax** (documented in PatternSyntax.md):
-```rust
-// Complex nested structure patterns using unified syntax:
-let pattern = parse("TAG(100, ARRAY(TEXT(\"target\")))");      // Simple nested
-let pattern = parse("TAG(100, ARRAY((ANY)*>TEXT(\"target\")>(ANY)*))"); // Complex nested
-let pattern = parse("MAP(TEXT(\"users\"):ARRAY({3,}))");       // Map with array constraints
-let pattern = parse("ARRAY(MAP(TEXT(\"id\"):NUMBER) > (ANY)*)"); // Array starting with maps
-```
+**Phase 2: Testing (Required for reliability)**
+1. **Create comprehensive integration tests**
+   - Test basic capture functionality: `@name(PATTERN)`
+   - Test multiple captures: `@first(PATTERN) | @second(PATTERN)`
+   - Test nested captures: `@outer(@inner(PATTERN))`
+   - Test captures in complex patterns: sequences, searches, arrays, maps
 
-**Current API Assessment:**
-- ✅ `TaggedPattern::with_tag_and_content(tag, pattern)` - EXISTS
-- ✅ All nested pattern support through existing APIs - EXISTS
+2. **Add performance tests for captures**
+   - Verify VM-based matching doesn't degrade performance
+   - Test capture collection with large patterns
 
-**Implementation Tasks:**
-- [x] **✅ COMPLETED**: Add `Pattern::any_tagged()` convenience method to main Pattern impl
-- [x] **✅ COMPLETED**: Verify nested pattern parsing works correctly across all modules
-- [x] **✅ COMPLETED**: Test complex nesting scenarios with unified syntax (9 comprehensive integration tests)
-- [x] **✅ COMPLETED**: Add performance tests for complex nested patterns (6 performance tests)
-- [x] **✅ COMPLETED**: Verify VM instruction optimization for deeply nested patterns
+**Phase 3: Documentation and Polish (Required for usability)**
+1. **Update pattern syntax documentation**
+   - Document capture functionality in `PatternSyntax.md`
+   - Add examples showing capture usage
+   - Document performance characteristics
+
+2. **Add convenience APIs**
+   - `Pattern::match_with_captures()` method
+   - Better error handling for capture-related issues
+
+#### 🚨 Acceptance Criteria:
+- [ ] `Pattern::parse("@name(NUMBER(42))").match_with_captures(&cbor_value)` returns captured paths
+- [ ] All existing tests continue to pass
+- [ ] New integration tests verify capture functionality
+- [ ] Performance tests show acceptable overhead
+- [ ] `cargo clippy` passes without warnings
+
+**Estimated Effort**: 1-2 days for core integration, 1-2 days for comprehensive testing
 
 ## 🎯 Next Developer Action Items
 
-**🎉 PHASE 3 COMPLETED** - Advanced Nested Patterns Implementation!
+**🚨 CRITICAL PRIORITY** - Complete Named Captures Implementation!
 
-✅ **All Phase 3 Tasks Completed**:
-   - **Advanced Integration Testing**: 9 comprehensive tests for deeply nested patterns covering all target syntax
-   - **Complex Nesting Scenarios**: Verified TAG(tag, ARRAY(pattern)), MAP(key:ARRAY(constraints)), ARRAY(MAP(pattern)>pattern), and multi-level nesting
-   - **Performance Testing**: 6 performance tests covering deeply nested structures, complex repeats, large arrays, search patterns, OR patterns, and edge cases
-   - **VM Optimization Verification**: Performance tests confirm efficient execution for deeply nested patterns (all operations complete in <50ms)
+### Immediate Tasks (Phase 1):
+1. **Implement `paths_with_captures()` in main Pattern type**
+   - Override default `unimplemented!()` in `src/pattern/pattern_impl.rs`
+   - Compile pattern to VM program and execute for capture collection
+   - Ensure backward compatibility with existing `paths()` method
 
-**Previous Completed Phases:**
+2. **Add VM integration to Pattern matching**
+   - Use VM execution when captures are needed
+   - Maintain performance for non-capture patterns
+   - Test integration with all pattern types
+
+### Follow-up Tasks (Phase 2):
+1. **Create comprehensive capture integration tests**
+   - End-to-end capture functionality verification
+   - Multiple captures, nested captures, complex pattern captures
+   - Performance regression testing
+
+2. **Add convenience APIs and documentation**
+   - `Pattern::match_with_captures()` public method
+   - Update `PatternSyntax.md` with capture documentation
+   - Add usage examples and performance notes
+
+### Acceptance Criteria:
+- [ ] `Pattern::parse("@name(NUMBER(42))").match_with_captures(&cbor_value)` works correctly
+- [ ] All existing 353 tests continue to pass
+- [ ] New integration tests verify end-to-end capture functionality
+- [ ] `cargo clippy` validation passes
+
+**Note**: Once named captures are complete, the dcbor-pattern crate will have full feature parity with the documented syntax and be ready for production use.
+
+---
+
+### ✅ Previously Completed Phases:
+- **✅ PHASE 3 COMPLETED** - Advanced Nested Patterns Implementation
 - **✅ PHASE 2 COMPLETED** - Enhanced Map Pattern Support with Multiple Key-Value Constraints
 - **✅ PHASE 1 COMPLETED** - Enhanced Array Pattern Support with Complex Text Parsing
 - **✅ PHASE 0 COMPLETED** - Core Pattern Infrastructure and VM Implementation
 
-**🏆 PROJECT STATUS: COMPLETE** - All Three Implementation Phases Successfully Finished!
-
-**Final Validation**:
+**Current Test Status**:
 - ✅ All existing tests pass: `cargo test --lib --quiet` (165/165 tests)
 - ✅ All integration tests pass: 15 integration test files with 188 total integration tests
 - ✅ Code quality check: `cargo clippy --quiet` (clean)
-- ✅ Total comprehensive test coverage: **353 passing tests** (includes 15 new tests for advanced nested patterns and performance)
-- ✅ All documented syntax in `PatternSyntax.md` fully implemented and working
-- ✅ Performance validated: Complex nested patterns execute efficiently with proper VM optimization
+- ✅ Total test coverage: **353 passing tests** (infrastructure complete)
+- ❌ **Missing**: Named capture integration tests and functionality
