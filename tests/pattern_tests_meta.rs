@@ -1,6 +1,9 @@
+mod common;
+
 use dcbor::prelude::*;
 use dcbor_parse::parse_dcbor_item;
-use dcbor_pattern::{Matcher, Pattern};
+use dcbor_pattern::{Matcher, Pattern, format_paths};
+use indoc::indoc;
 
 /// Helper function to parse CBOR diagnostic notation into CBOR objects
 fn cbor(s: &str) -> CBOR { parse_dcbor_item(s).unwrap() }
@@ -10,11 +13,30 @@ fn test_any_pattern() {
     let pattern = Pattern::any();
 
     // Should match all types of CBOR values
-    assert!(pattern.matches(&cbor("42")));
-    assert!(pattern.matches(&cbor(r#""hello""#)));
-    assert!(pattern.matches(&cbor("true")));
-    assert!(pattern.matches(&cbor("[1, 2, 3]")));
-    assert!(pattern.matches(&cbor("null")));
+    let number_cbor = cbor("42");
+    let paths = pattern.paths(&number_cbor);
+    let expected = "42";
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let text_cbor = cbor(r#""hello""#);
+    let paths = pattern.paths(&text_cbor);
+    let expected = r#""hello""#;
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let bool_cbor = cbor("true");
+    let paths = pattern.paths(&bool_cbor);
+    let expected = "true";
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let array_cbor = cbor("[1, 2, 3]");
+    let paths = pattern.paths(&array_cbor);
+    let expected = "[1, 2, 3]";
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let null_cbor = cbor("null");
+    let paths = pattern.paths(&null_cbor);
+    let expected = "null";
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Display should show ANY
     assert_eq!(pattern.to_string(), "ANY");
@@ -43,9 +65,20 @@ fn test_and_pattern() {
     ]);
 
     // Should match values that satisfy all conditions
-    assert!(pattern.matches(&cbor("7")));
-    assert!(pattern.matches(&cbor("6")));
-    assert!(pattern.matches(&cbor("9")));
+    let seven_cbor = cbor("7");
+    let paths = pattern.paths(&seven_cbor);
+    let expected = "7";
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let six_cbor = cbor("6");
+    let paths = pattern.paths(&six_cbor);
+    let expected = "6";
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let nine_cbor = cbor("9");
+    let paths = pattern.paths(&nine_cbor);
+    let expected = "9";
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match values that fail any condition
     assert!(!pattern.matches(&cbor("3"))); // < 5
@@ -65,9 +98,20 @@ fn test_or_pattern() {
     ]);
 
     // Should match values that satisfy any condition
-    assert!(pattern.matches(&cbor("5")));
-    assert!(pattern.matches(&cbor(r#""hello""#)));
-    assert!(pattern.matches(&cbor("true")));
+    let five_cbor = cbor("5");
+    let paths = pattern.paths(&five_cbor);
+    let expected = "5";
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let hello_cbor = cbor(r#""hello""#);
+    let paths = pattern.paths(&hello_cbor);
+    let expected = r#""hello""#;
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let true_cbor = cbor("true");
+    let paths = pattern.paths(&true_cbor);
+    let expected = "true";
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match values that don't satisfy any condition
     assert!(!pattern.matches(&cbor("42")));
@@ -83,9 +127,20 @@ fn test_not_pattern() {
     let pattern = Pattern::not_matching(Pattern::number(5));
 
     // Should match values that don't match the inner pattern
-    assert!(pattern.matches(&cbor("42")));
-    assert!(pattern.matches(&cbor(r#""hello""#)));
-    assert!(pattern.matches(&cbor("true")));
+    let forty_two_cbor = cbor("42");
+    let paths = pattern.paths(&forty_two_cbor);
+    let expected = "42";
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let hello_cbor = cbor(r#""hello""#);
+    let paths = pattern.paths(&hello_cbor);
+    let expected = r#""hello""#;
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let true_cbor = cbor("true");
+    let paths = pattern.paths(&true_cbor);
+    let expected = "true";
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match the exact value
     assert!(!pattern.matches(&cbor("5")));
@@ -103,9 +158,20 @@ fn test_not_pattern_complex() {
     let pattern = Pattern::not_matching(inner);
 
     // Should match values outside the range
-    assert!(pattern.matches(&cbor("3"))); // < 5
-    assert!(pattern.matches(&cbor("12"))); // > 10
-    assert!(pattern.matches(&cbor(r#""hello""#))); // not a number
+    let three_cbor = cbor("3");
+    let paths = pattern.paths(&three_cbor);
+    let expected = "3";
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let twelve_cbor = cbor("12");
+    let paths = pattern.paths(&twelve_cbor);
+    let expected = "12";
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let hello_cbor = cbor(r#""hello""#);
+    let paths = pattern.paths(&hello_cbor);
+    let expected = r#""hello""#;
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match values in the range
     assert!(!pattern.matches(&cbor("7")));
@@ -126,10 +192,16 @@ fn test_nested_meta_patterns() {
     ]);
 
     // Should match numbers in range
-    assert!(pattern.matches(&cbor("7")));
+    let seven_cbor = cbor("7");
+    let paths = pattern.paths(&seven_cbor);
+    let expected = "7";
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should match the specific text
-    assert!(pattern.matches(&cbor(r#""hello""#)));
+    let hello_cbor = cbor(r#""hello""#);
+    let paths = pattern.paths(&hello_cbor);
+    let expected = r#""hello""#;
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Should not match numbers outside range or other text
     assert!(!pattern.matches(&cbor("3")));
@@ -172,7 +244,12 @@ fn test_capture_pattern_basic() {
     let pattern = Pattern::capture("test", Pattern::number(42));
 
     // Should match the same things as the inner pattern
-    assert!(pattern.matches(&cbor("42")));
+    let forty_two_cbor = cbor("42");
+    let paths = pattern.paths(&forty_two_cbor);
+    let expected = "42";
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Should not match other values
     assert!(!pattern.matches(&cbor("43")));
     assert!(!pattern.matches(&cbor(r#""hello""#)));
 
@@ -185,7 +262,12 @@ fn test_capture_pattern_text() {
     let pattern = Pattern::capture("name", Pattern::text("hello"));
 
     // Should match the same things as the inner pattern
-    assert!(pattern.matches(&cbor(r#""hello""#)));
+    let hello_cbor = cbor(r#""hello""#);
+    let paths = pattern.paths(&hello_cbor);
+    let expected = r#""hello""#;
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Should not match other values
     assert!(!pattern.matches(&cbor(r#""world""#)));
     assert!(!pattern.matches(&cbor("42")));
 
@@ -198,10 +280,25 @@ fn test_capture_pattern_any() {
     let pattern = Pattern::capture("anything", Pattern::any());
 
     // Should match anything since inner pattern is ANY
-    assert!(pattern.matches(&cbor("42")));
-    assert!(pattern.matches(&cbor(r#""hello""#)));
-    assert!(pattern.matches(&cbor("true")));
-    assert!(pattern.matches(&cbor("[1, 2, 3]")));
+    let forty_two_cbor = cbor("42");
+    let paths = pattern.paths(&forty_two_cbor);
+    let expected = "42";
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let hello_cbor = cbor(r#""hello""#);
+    let paths = pattern.paths(&hello_cbor);
+    let expected = r#""hello""#;
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let true_cbor = cbor("true");
+    let paths = pattern.paths(&true_cbor);
+    let expected = "true";
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let array_cbor = cbor("[1, 2, 3]");
+    let paths = pattern.paths(&array_cbor);
+    let expected = "[1, 2, 3]";
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Display should show capture syntax
     assert_eq!(pattern.to_string(), "@anything(ANY)");
@@ -231,9 +328,22 @@ fn test_capture_pattern_complex() {
     );
 
     // Should match numbers in range 5 < x < 10
-    assert!(pattern.matches(&cbor("7")));
-    assert!(pattern.matches(&cbor("6")));
-    assert!(pattern.matches(&cbor("9")));
+    let seven_cbor = cbor("7");
+    let paths = pattern.paths(&seven_cbor);
+    let expected = "7";
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let six_cbor = cbor("6");
+    let paths = pattern.paths(&six_cbor);
+    let expected = "6";
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let nine_cbor = cbor("9");
+    let paths = pattern.paths(&nine_cbor);
+    let expected = "9";
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Should not match values outside range
     assert!(!pattern.matches(&cbor("5")));
     assert!(!pattern.matches(&cbor("10")));
     assert!(!pattern.matches(&cbor("15")));
@@ -256,8 +366,17 @@ fn test_nested_capture_patterns() {
     );
 
     // Should match either captured pattern
-    assert!(pattern.matches(&cbor("42")));
-    assert!(pattern.matches(&cbor(r#""hello""#)));
+    let forty_two_cbor = cbor("42");
+    let paths = pattern.paths(&forty_two_cbor);
+    let expected = "42";
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let hello_cbor = cbor(r#""hello""#);
+    let paths = pattern.paths(&hello_cbor);
+    let expected = r#""hello""#;
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Should not match other values
     assert!(!pattern.matches(&cbor("43")));
     assert!(!pattern.matches(&cbor(r#""world""#)));
 
@@ -306,7 +425,12 @@ fn test_repeat_pattern_basic() {
     // Test exact match (default quantifier)
     let pattern = Pattern::group(Pattern::number(42));
 
-    assert!(pattern.matches(&cbor("42")));
+    let forty_two_cbor = cbor("42");
+    let paths = pattern.paths(&forty_two_cbor);
+    let expected = "42";
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Should not match other values
     assert!(!pattern.matches(&cbor("41")));
     assert!(!pattern.matches(&cbor(r#""hello""#)));
 
@@ -325,7 +449,10 @@ fn test_repeat_pattern_with_quantifier() {
     );
 
     // Should match the number or succeed without it
-    assert!(optional_pattern.matches(&cbor("42")));
+    let forty_two_cbor = cbor("42");
+    let paths = optional_pattern.paths(&forty_two_cbor);
+    let expected = "42";
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Display should show pattern with ? quantifier
     assert_eq!(optional_pattern.to_string(), "(NUMBER(42))?");
@@ -341,8 +468,14 @@ fn test_repeat_pattern_zero_or_more() {
         Quantifier::new(0.., Reluctance::Greedy),
     );
 
-    // Should always succeed (since 0 matches are allowed)
-    assert!(star_pattern.matches(&cbor("42")));
+    // Should always succeed with 0 matches or with the actual match
+    let forty_two_cbor = cbor("42");
+    let paths = star_pattern.paths(&forty_two_cbor);
+    let expected = "42";
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Also succeeds with 0 matches for non-matching values - tested with
+    // matches()
     assert!(star_pattern.matches(&cbor("41"))); // Succeeds with 0 matches
 
     // Display should show pattern with * quantifier
@@ -360,7 +493,12 @@ fn test_repeat_pattern_one_or_more() {
     );
 
     // Should match the number but not other values
-    assert!(plus_pattern.matches(&cbor("42")));
+    let forty_two_cbor = cbor("42");
+    let paths = plus_pattern.paths(&forty_two_cbor);
+    let expected = "42";
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Should not match other values
     assert!(!plus_pattern.matches(&cbor("41")));
 
     // Display should show pattern with + quantifier
@@ -410,13 +548,45 @@ fn test_search_pattern_basic() {
     let pattern = Pattern::search(Pattern::number(42));
 
     // Test with a flat CBOR value containing the number
-    assert!(pattern.matches(&cbor("42")));
+    let forty_two_cbor = cbor("42");
+    let paths = pattern.paths(&forty_two_cbor);
+    let expected = "42";
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Should not match other flat values
     assert!(!pattern.matches(&cbor("43")));
 
     // Test with nested structure containing the number
-    assert!(pattern.matches(&cbor("[1, 42, 3]")));
-    assert!(pattern.matches(&cbor("{1: 42}")));
-    assert!(pattern.matches(&cbor("{\"key\": [1, 2, 42]}")));
+    let array_cbor = cbor("[1, 42, 3]");
+    let paths = pattern.paths(&array_cbor);
+    let expected = indoc! {r#"
+        [1, 42, 3]
+            42
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let map_cbor = cbor("{1: 42}");
+    let paths = pattern.paths(&map_cbor);
+    let expected = indoc! {r#"
+        {1: 42}
+            42
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let nested_cbor = cbor("{\"key\": [1, 2, 42]}");
+    let paths = pattern.paths(&nested_cbor);
+    let expected = indoc! {r#"
+        {
+            "key":
+            [1, 2, 42]
+        }
+            [1, 2, 42]
+                42
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Test that it doesn't match when the value is not present
     assert!(!pattern.matches(&cbor("[1, 2, 3]")));
@@ -431,9 +601,42 @@ fn test_search_pattern_text() {
     let pattern = Pattern::search(Pattern::text("hello"));
 
     // Test with nested structures
-    assert!(pattern.matches(&cbor(r#"["hello", "world"]"#)));
-    assert!(pattern.matches(&cbor(r#"{"greeting": "hello"}"#)));
-    assert!(pattern.matches(&cbor(r#"[{"nested": ["hello"]}]"#)));
+    let array_cbor = cbor(r#"["hello", "world"]"#);
+    let paths = pattern.paths(&array_cbor);
+    let expected = indoc! {r#"
+        ["hello", "world"]
+            "hello"
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let map_cbor = cbor(r#"{"greeting": "hello"}"#);
+    let paths = pattern.paths(&map_cbor);
+    let expected = indoc! {r#"
+        {"greeting": "hello"}
+            "hello"
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let nested_cbor = cbor(r#"[{"nested": ["hello"]}]"#);
+    let paths = pattern.paths(&nested_cbor);
+    let expected = indoc! {r#"
+        [
+            {
+                "nested":
+                ["hello"]
+            }
+        ]
+            {
+            "nested":
+            ["hello"]
+        }
+                ["hello"]
+                    "hello"
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Test that it doesn't match when the text is not present
     assert!(!pattern.matches(&cbor(r#"["goodbye", "world"]"#)));
@@ -447,10 +650,35 @@ fn test_search_pattern_any() {
     let pattern = Pattern::search(Pattern::any());
 
     // Should match any CBOR value because ANY matches everything
-    assert!(pattern.matches(&cbor("42")));
-    assert!(pattern.matches(&cbor(r#""hello""#)));
-    assert!(pattern.matches(&cbor("[1, 2, 3]")));
-    assert!(pattern.matches(&cbor("{}")));
+    let forty_two_cbor = cbor("42");
+    let paths = pattern.paths(&forty_two_cbor);
+    let expected = "42";
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let hello_cbor = cbor(r#""hello""#);
+    let paths = pattern.paths(&hello_cbor);
+    let expected = r#""hello""#;
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let array_cbor = cbor("[1, 2, 3]");
+    let paths = pattern.paths(&array_cbor);
+    // ANY matches everything, so this should match all nodes in the tree
+    let expected = indoc! {r#"
+        [1, 2, 3]
+        [1, 2, 3]
+            1
+        [1, 2, 3]
+            2
+        [1, 2, 3]
+            3
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let empty_map_cbor = cbor("{}");
+    let paths = pattern.paths(&empty_map_cbor);
+    let expected = "{}";
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Display should show SEARCH(ANY)
     assert_eq!(pattern.to_string(), "SEARCH(ANY)");
@@ -461,7 +689,8 @@ fn test_search_pattern_complex() {
     // Search for arrays containing the number 5
     let pattern = Pattern::search(Pattern::number(5));
 
-    let test_data = cbor(r#"
+    let test_data = cbor(
+        r#"
     {
         "data": [
             {"values": [1, 2, 3]},
@@ -473,13 +702,84 @@ fn test_search_pattern_complex() {
             "items": [7, 8, 9]
         }
     }
-    "#);
+    "#,
+    );
 
-    // Should match because the structure contains the number 5 in multiple places
-    assert!(pattern.matches(&test_data));
+    // Should match because the structure contains the number 5 in multiple
+    // places
+    let paths = pattern.paths(&test_data);
+    let expected = indoc! {r#"
+        {
+            "data":
+            [
+                {
+                    "values":
+                    [1, 2, 3]
+                },
+                {
+                    "values":
+                    [4, 5, 6]
+                },
+                {"other": "text"}
+            ],
+            "meta":
+            {
+                "count":
+                5,
+                "items":
+                [7, 8, 9]
+            }
+        }
+            [
+            {
+                "values":
+                [1, 2, 3]
+            },
+            {
+                "values":
+                [4, 5, 6]
+            },
+            {"other": "text"}
+        ]
+                {
+            "values":
+            [4, 5, 6]
+        }
+                    [4, 5, 6]
+                        5
+        {
+            "data":
+            [
+                {
+                    "values":
+                    [1, 2, 3]
+                },
+                {
+                    "values":
+                    [4, 5, 6]
+                },
+                {"other": "text"}
+            ],
+            "meta":
+            {
+                "count":
+                5,
+                "items":
+                [7, 8, 9]
+            }
+        }
+            {
+            "count":
+            5,
+            "items":
+            [7, 8, 9]
+        }
+                5
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Check specific paths are found
-    let paths = pattern.paths(&test_data);
     assert!(!paths.is_empty());
 }
 
@@ -491,7 +791,18 @@ fn test_search_pattern_with_captures() {
 
     // Test with a nested structure
     let data = cbor("[1, {\"key\": 42}, 3]");
-    assert!(pattern.matches(&data));
+    let paths = pattern.paths(&data);
+    let expected = indoc! {r#"
+        [
+            1,
+            {"key": 42},
+            3
+        ]
+            {"key": 42}
+                42
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 
     // Display should show the capture in the search
     assert_eq!(pattern.to_string(), "SEARCH(@found(NUMBER(42)))");
@@ -501,14 +812,16 @@ fn test_search_pattern_with_captures() {
 fn test_search_pattern_paths() {
     let pattern = Pattern::search(Pattern::text("target"));
 
-    let data = cbor(r#"
+    let data = cbor(
+        r#"
     {
         "level1": {
             "level2": ["target", "other"]
         },
         "another": "target"
     }
-    "#);
+    "#,
+    );
 
     let paths = pattern.paths(&data);
 
@@ -541,16 +854,62 @@ fn test_search_pattern_with_structure_pattern() {
     // Search for any array
     let pattern = Pattern::search(Pattern::parse("ARRAY").unwrap());
 
-    let data = cbor(r#"
+    let data = cbor(
+        r#"
     {
         "arrays": [[1, 2], [3, 4]],
         "not_array": 42
     }
-    "#);
-
-    assert!(pattern.matches(&data));
+    "#,
+    );
 
     let paths = pattern.paths(&data);
     // Should find the outer arrays structure and the inner arrays
+    let expected = indoc! {r#"
+        {
+            "arrays":
+            [
+                [1, 2],
+                [3, 4]
+            ],
+            "not_array":
+            42
+        }
+            [
+            [1, 2],
+            [3, 4]
+        ]
+        {
+            "arrays":
+            [
+                [1, 2],
+                [3, 4]
+            ],
+            "not_array":
+            42
+        }
+            [
+            [1, 2],
+            [3, 4]
+        ]
+                [1, 2]
+        {
+            "arrays":
+            [
+                [1, 2],
+                [3, 4]
+            ],
+            "not_array":
+            42
+        }
+            [
+            [1, 2],
+            [3, 4]
+        ]
+                [3, 4]
+    "#}
+    .trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
     assert!(paths.len() >= 3); // The "arrays" value plus the two inner arrays
 }
