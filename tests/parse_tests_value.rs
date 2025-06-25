@@ -1,5 +1,5 @@
 use dcbor_parse::parse_dcbor_item;
-use dcbor_pattern::Pattern;
+use dcbor_pattern::{Matcher, Pattern};
 
 /// Helper function to parse CBOR diagnostic notation into CBOR objects
 fn cbor(s: &str) -> dcbor::CBOR { parse_dcbor_item(s).unwrap() }
@@ -234,7 +234,10 @@ fn parse_text_regex() {
 
     let spaced = r"TEXT ( /h.*o/ )";
     let p_spaced = Pattern::parse(spaced).unwrap();
-    assert_eq!(p_spaced, Pattern::text_regex(regex::Regex::new("h.*o").unwrap()));
+    assert_eq!(
+        p_spaced,
+        Pattern::text_regex(regex::Regex::new("h.*o").unwrap())
+    );
     assert_eq!(p_spaced.to_string(), src);
 }
 
@@ -261,7 +264,11 @@ fn parse_text_patterns_round_trip() {
     for pattern in patterns {
         let string_repr = pattern.to_string();
         let parsed = Pattern::parse(&string_repr).unwrap();
-        assert_eq!(pattern, parsed, "Round trip failed for pattern: {}", string_repr);
+        assert_eq!(
+            pattern, parsed,
+            "Round trip failed for pattern: {}",
+            string_repr
+        );
     }
 }
 
@@ -284,4 +291,56 @@ fn parse_text_edge_cases() {
     let regex = regex::Regex::new("[a-zA-Z]+").unwrap();
     assert_eq!(p, Pattern::text_regex(regex));
     assert_eq!(p.to_string(), src);
+}
+
+#[test]
+fn parse_bytestring_any() {
+    let src = "BSTR";
+    let p = Pattern::parse(src).unwrap();
+    assert_eq!(p, Pattern::any_byte_string());
+    assert_eq!(p.to_string(), src);
+}
+
+#[test]
+fn parse_bytestring_hex() {
+    let src = r#"BSTR(h'010203')"#;
+    let p = Pattern::parse(src).unwrap();
+    assert_eq!(p, Pattern::byte_string(vec![1, 2, 3]));
+    assert_eq!(p.to_string(), src);
+
+    let spaced = r#"BSTR ( h'010203' )"#;
+    let p_spaced = Pattern::parse(spaced).unwrap();
+    assert_eq!(p_spaced, Pattern::byte_string(vec![1, 2, 3]));
+    assert_eq!(p_spaced.to_string(), src);
+}
+
+#[test]
+fn parse_bytestring_regex() {
+    let src = r"BSTR(/^[0-9]+$/)";
+    let p = Pattern::parse(src).unwrap();
+    let regex = regex::bytes::Regex::new(r"^[0-9]+$").unwrap();
+    assert_eq!(p, Pattern::byte_string_regex(regex));
+    assert_eq!(p.to_string(), src);
+
+    // Test pattern matching
+    let pattern = Pattern::parse("BSTR(/abc/)").unwrap();
+    assert!(pattern.matches(&cbor(r#"h'616263'"#))); // "abc" in hex
+    assert!(!pattern.matches(&cbor(r#"h'646566'"#))); // "def" in hex
+}
+
+#[test]
+fn parse_bytestring_patterns_round_trip() {
+    let cases = vec![
+        "BSTR",
+        r#"BSTR(h'deadbeef')"#,
+        r#"BSTR(h'')"#,
+        r"BSTR(/^[a-f0-9]+$/)",
+        r"BSTR(/test/)",
+    ];
+
+    for case in cases {
+        let p = Pattern::parse(case).unwrap();
+        let round_trip = Pattern::parse(&p.to_string()).unwrap();
+        assert_eq!(p, round_trip, "Round trip failed for: {}", case);
+    }
 }

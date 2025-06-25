@@ -235,7 +235,28 @@ impl Pattern {
         ))
     }
 
-    // Meta pattern convenience methods
+    // Digest pattern convenience methods
+
+    /// Creates a pattern that matches a specific digest.
+    pub fn digest(digest: bc_components::Digest) -> Self {
+        Pattern::Value(ValuePattern::Digest(
+            crate::pattern::value::DigestPattern::digest(digest),
+        ))
+    }
+
+    /// Creates a pattern that matches digests with the specified prefix.
+    pub fn digest_prefix(prefix: impl AsRef<[u8]>) -> Self {
+        Pattern::Value(ValuePattern::Digest(
+            crate::pattern::value::DigestPattern::prefix(prefix),
+        ))
+    }
+
+    /// Creates a pattern that matches digests using a binary regex.
+    pub fn digest_binary_regex(regex: regex::bytes::Regex) -> Self {
+        Pattern::Value(ValuePattern::Digest(
+            crate::pattern::value::DigestPattern::binary_regex(regex),
+        ))
+    }
 
     /// Creates a pattern that always matches any CBOR value.
     pub fn any() -> Self {
@@ -301,7 +322,7 @@ impl Pattern {
         use crate::parse::{
             Token,
             value::{
-                parse_bool, parse_date, parse_null, parse_number, parse_text,
+                parse_bool, parse_bytestring, parse_date, parse_null, parse_number, parse_text,
             },
         };
 
@@ -309,6 +330,7 @@ impl Pattern {
 
         match lexer.next() {
             Some(Ok(Token::Bool)) => parse_bool(&mut lexer),
+            Some(Ok(Token::ByteString)) => parse_bytestring(&mut lexer),
             Some(Ok(Token::Date)) => parse_date(&mut lexer),
             Some(Ok(Token::Number)) => parse_number(&mut lexer),
             Some(Ok(Token::Null)) => parse_null(&mut lexer),
