@@ -229,3 +229,200 @@ fn test_map_pattern_paths() {
     let paths = wrong_length.paths(&test_map);
     assert_eq!(paths.len(), 0);
 }
+
+#[test]
+fn test_map_key_value_constraints_single() {
+    // Test map with single key-value constraint
+    let test_map = cbor(r#"{"name": "Alice", "age": 30, "city": "New York"}"#);
+
+    // Single constraint: name must be a text value
+    let pattern = MapPattern::with_key_value_constraints(vec![(
+        Pattern::text("name"),
+        Pattern::any_text(),
+    )]);
+
+    let paths = pattern.paths(&test_map);
+    let expected = r#"{
+    "age":
+    30,
+    "city":
+    "New York",
+    "name":
+    "Alice"
+}"#;
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Test non-matching constraint
+    let non_matching = MapPattern::with_key_value_constraints(vec![
+        (Pattern::text("name"), Pattern::any_number()), /* name is text, not
+                                                         * number */
+    ]);
+
+    let paths = non_matching.paths(&test_map);
+    assert_eq!(paths.len(), 0);
+}
+
+#[test]
+fn test_map_key_value_constraints_multiple() {
+    // Test map with multiple key-value constraints
+    let test_map = cbor(r#"{"name": "Bob", "age": 25, "active": true}"#);
+
+    // Multiple constraints: all must be satisfied
+    let pattern = MapPattern::with_key_value_constraints(vec![
+        (Pattern::text("name"), Pattern::any_text()),
+        (Pattern::text("age"), Pattern::any_number()),
+        (Pattern::text("active"), Pattern::any_bool()),
+    ]);
+
+    let paths = pattern.paths(&test_map);
+    let expected = r#"{
+    "age":
+    25,
+    "name":
+    "Bob",
+    "active":
+    true
+}"#;
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Test with one failing constraint
+    let partial_pattern = MapPattern::with_key_value_constraints(vec![
+        (Pattern::text("name"), Pattern::any_text()), // matches
+        (Pattern::text("age"), Pattern::any_text()),  /* fails: age is
+                                                       * number, not text */
+        (Pattern::text("active"), Pattern::any_bool()), // matches
+    ]);
+
+    let paths = partial_pattern.paths(&test_map);
+    assert_eq!(paths.len(), 0);
+}
+
+#[test]
+fn test_map_key_value_constraints_any_key() {
+    // Test constraints with ANY key pattern
+    let test_map = cbor(r#"{"key1": "hello", "key2": "world", "key3": 42}"#);
+
+    // Match any key with text value
+    let pattern = MapPattern::with_key_value_constraints(vec![(
+        Pattern::any(),
+        Pattern::any_text(),
+    )]);
+
+    let paths = pattern.paths(&test_map);
+    let expected = r#"{
+    "key1":
+    "hello",
+    "key2":
+    "world",
+    "key3":
+    42
+}"#;
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Match any key with number value
+    let number_pattern = MapPattern::with_key_value_constraints(vec![(
+        Pattern::any(),
+        Pattern::any_number(),
+    )]);
+
+    let paths = number_pattern.paths(&test_map);
+    assert_actual_expected!(format_paths(&paths), expected);
+}
+
+#[test]
+fn test_map_key_value_constraints_specific_values() {
+    // Test constraints with specific values
+    let test_map = cbor(r#"{"status": "active", "count": 42, "flag": true}"#);
+
+    // Match specific key-value pairs
+    let pattern = MapPattern::with_key_value_constraints(vec![
+        (Pattern::text("status"), Pattern::text("active")),
+        (Pattern::text("count"), Pattern::number(42.0)),
+    ]);
+
+    let paths = pattern.paths(&test_map);
+    let expected = r#"{
+    "flag":
+    true,
+    "count":
+    42,
+    "status":
+    "active"
+}"#;
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Test with non-matching specific values
+    let wrong_values = MapPattern::with_key_value_constraints(vec![
+        (Pattern::text("status"), Pattern::text("inactive")), // wrong value
+        (Pattern::text("count"), Pattern::number(42.0)),      // correct value
+    ]);
+
+    let paths = wrong_values.paths(&test_map);
+    assert_eq!(paths.len(), 0);
+}
+
+#[test]
+fn test_map_key_value_constraints_empty_map() {
+    // Test constraints against empty map
+    let empty_map = cbor("{}");
+
+    // Any constraint should fail on empty map
+    let pattern = MapPattern::with_key_value_constraints(vec![(
+        Pattern::any(),
+        Pattern::any(),
+    )]);
+
+    let paths = pattern.paths(&empty_map);
+    assert_eq!(paths.len(), 0);
+
+    // Multiple constraints should also fail
+    let multi_pattern = MapPattern::with_key_value_constraints(vec![
+        (Pattern::text("key1"), Pattern::any()),
+        (Pattern::text("key2"), Pattern::any()),
+    ]);
+
+    let paths = multi_pattern.paths(&empty_map);
+    assert_eq!(paths.len(), 0);
+}
+
+#[test]
+fn test_map_key_value_constraints_pattern_text_parsing() {
+    // Test the unified MAP(pattern:pattern, ...) syntax from text
+    let pattern =
+        Pattern::parse(r#"MAP(TEXT("name"):TEXT, TEXT("age"):NUMBER)"#)
+            .unwrap();
+
+    let matching_map =
+        cbor(r#"{"name": "Charlie", "age": 28, "extra": "data"}"#);
+    assert!(pattern.matches(&matching_map));
+
+    let non_matching_map = cbor(r#"{"name": 123, "age": 28}"#); // name is number, not text
+    assert!(!pattern.matches(&non_matching_map));
+
+    let missing_key_map = cbor(r#"{"name": "Charlie"}"#); // missing age key
+    assert!(!pattern.matches(&missing_key_map));
+
+    // Test display format
+    assert_eq!(
+        pattern.to_string(),
+        r#"MAP(TEXT("name"):TEXT, TEXT("age"):NUMBER)"#
+    );
+}
+
+#[test]
+fn test_map_key_value_constraints_complex_patterns() {
+    // Test with complex nested patterns
+    let pattern =
+        Pattern::parse(r#"MAP(ANY:TEXT("target"), NUMBER(42):BOOL(true))"#)
+            .unwrap();
+
+    let matching_map =
+        cbor(r#"{"somekey": "target", 42: true, "other": "data"}"#);
+    assert!(pattern.matches(&matching_map));
+
+    let partial_match = cbor(r#"{"somekey": "target", 42: false}"#); // boolean is wrong
+    assert!(!pattern.matches(&partial_match));
+
+    let no_match = cbor(r#"{"somekey": "other", 42: true}"#); // text value is wrong
+    assert!(!pattern.matches(&no_match));
+}

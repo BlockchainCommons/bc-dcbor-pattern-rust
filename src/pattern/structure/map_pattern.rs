@@ -17,6 +17,8 @@ pub enum MapPattern {
         key_pattern: Box<Pattern>,
         value_pattern: Box<Pattern>,
     },
+    /// Matches maps with multiple key-value constraints that must all be satisfied.
+    WithKeyValueConstraints(Vec<(Pattern, Pattern)>),
     /// Matches maps with a specific number of key-value pairs.
     WithLength(usize),
     /// Matches maps with number of key-value pairs in the given range
@@ -50,6 +52,12 @@ impl MapPattern {
             key_pattern: Box::new(key_pattern),
             value_pattern: Box::new(value_pattern),
         }
+    }
+
+    /// Creates a new `MapPattern` that matches maps with multiple key-value
+    /// constraints that must all be satisfied.
+    pub fn with_key_value_constraints(constraints: Vec<(Pattern, Pattern)>) -> Self {
+        MapPattern::WithKeyValueConstraints(constraints)
     }
 
     /// Creates a new `MapPattern` that matches maps with a specific number of
@@ -101,6 +109,22 @@ impl Matcher for MapPattern {
                             }
                         }
                         vec![]
+                    }
+                    MapPattern::WithKeyValueConstraints(constraints) => {
+                        // All constraints must be satisfied
+                        for (key_pattern, value_pattern) in constraints {
+                            let mut found_match = false;
+                            for (key, value) in map.iter() {
+                                if key_pattern.matches(key) && value_pattern.matches(value) {
+                                    found_match = true;
+                                    break;
+                                }
+                            }
+                            if !found_match {
+                                return vec![];
+                            }
+                        }
+                        vec![vec![cbor.clone()]]
                     }
                     MapPattern::WithLength(target_length) => {
                         if map.len() == *target_length {
@@ -156,6 +180,13 @@ impl Matcher for MapPattern {
                 key_pattern.collect_capture_names(names);
                 value_pattern.collect_capture_names(names);
             }
+            MapPattern::WithKeyValueConstraints(constraints) => {
+                // Collect captures from all key and value patterns
+                for (key_pattern, value_pattern) in constraints {
+                    key_pattern.collect_capture_names(names);
+                    value_pattern.collect_capture_names(names);
+                }
+            }
             MapPattern::WithLength(_) => {
                 // No captures in length patterns
             }
@@ -178,6 +209,16 @@ impl std::fmt::Display for MapPattern {
             }
             MapPattern::WithKeyValue { key_pattern, value_pattern } => {
                 write!(f, "MAP_KV({}, {})", key_pattern, value_pattern)
+            }
+            MapPattern::WithKeyValueConstraints(constraints) => {
+                write!(f, "MAP(")?;
+                for (i, (key_pattern, value_pattern)) in constraints.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "{}:{}", key_pattern, value_pattern)?;
+                }
+                write!(f, ")")
             }
             MapPattern::WithLength(length) => {
                 write!(f, "MAP({{{}}})", length)

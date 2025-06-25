@@ -115,6 +115,9 @@ pub enum Token {
     #[token(",")]
     Comma,
 
+    #[token(":")]
+    Colon,
+
     #[token("...")]
     Ellipsis,
 
