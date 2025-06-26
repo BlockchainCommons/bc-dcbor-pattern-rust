@@ -104,6 +104,20 @@ impl Pattern {
         ))
     }
 
+    /// Creates a pattern that matches positive infinity values.
+    pub fn number_infinity() -> Self {
+        Pattern::Value(ValuePattern::Number(
+            crate::pattern::value::NumberPattern::infinity(),
+        ))
+    }
+
+    /// Creates a pattern that matches negative infinity values.
+    pub fn number_neg_infinity() -> Self {
+        Pattern::Value(ValuePattern::Number(
+            crate::pattern::value::NumberPattern::neg_infinity(),
+        ))
+    }
+
     /// Creates a pattern that matches any text value.
     pub fn any_text() -> Self {
         Pattern::Value(ValuePattern::Text(

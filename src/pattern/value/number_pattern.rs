@@ -23,6 +23,10 @@ pub enum NumberPattern {
     LessThanOrEqual(f64),
     /// Matches numbers that are NaN (Not a Number).
     NaN,
+    /// Matches positive infinity.
+    Infinity,
+    /// Matches negative infinity.
+    NegInfinity,
 }
 
 impl std::hash::Hash for NumberPattern {
@@ -55,6 +59,8 @@ impl std::hash::Hash for NumberPattern {
                 value.to_bits().hash(state);
             }
             NumberPattern::NaN => 7u8.hash(state),
+            NumberPattern::Infinity => 8u8.hash(state),
+            NumberPattern::NegInfinity => 9u8.hash(state),
         }
     }
 }
@@ -78,6 +84,8 @@ impl PartialEq for NumberPattern {
                 NumberPattern::LessThanOrEqual(b),
             ) => a == b,
             (NumberPattern::NaN, NumberPattern::NaN) => true,
+            (NumberPattern::Infinity, NumberPattern::Infinity) => true,
+            (NumberPattern::NegInfinity, NumberPattern::NegInfinity) => true,
             _ => false,
         }
     }
@@ -146,6 +154,12 @@ impl NumberPattern {
 
     /// Creates a new `NumberPattern` that matches NaN values.
     pub fn nan() -> Self { NumberPattern::NaN }
+
+    /// Creates a new `NumberPattern` that matches positive infinity.
+    pub fn infinity() -> Self { NumberPattern::Infinity }
+
+    /// Creates a new `NumberPattern` that matches negative infinity.
+    pub fn neg_infinity() -> Self { NumberPattern::NegInfinity }
 }
 
 impl Matcher for NumberPattern {
@@ -201,6 +215,20 @@ impl Matcher for NumberPattern {
                     false
                 }
             }
+            NumberPattern::Infinity => {
+                if let Ok(value) = f64::try_from_cbor(cbor) {
+                    value.is_infinite() && value.is_sign_positive()
+                } else {
+                    false
+                }
+            }
+            NumberPattern::NegInfinity => {
+                if let Ok(value) = f64::try_from_cbor(cbor) {
+                    value.is_infinite() && value.is_sign_negative()
+                } else {
+                    false
+                }
+            }
         };
 
         if is_hit {
@@ -243,6 +271,8 @@ impl std::fmt::Display for NumberPattern {
                 write!(f, "NUMBER(<={})", value)
             }
             NumberPattern::NaN => write!(f, "NUMBER(NaN)"),
+            NumberPattern::Infinity => write!(f, "NUMBER(Infinity)"),
+            NumberPattern::NegInfinity => write!(f, "NUMBER(-Infinity)"),
         }
     }
 }
@@ -270,6 +300,8 @@ mod tests {
             "NUMBER(<=5)"
         );
         assert_eq!(NumberPattern::nan().to_string(), "NUMBER(NaN)");
+        assert_eq!(NumberPattern::infinity().to_string(), "NUMBER(Infinity)");
+        assert_eq!(NumberPattern::neg_infinity().to_string(), "NUMBER(-Infinity)");
     }
 
     #[test]
@@ -356,5 +388,42 @@ mod tests {
         assert_eq!(f64::try_from_cbor(&float_cbor).ok(), Some(3.2222));
         assert_eq!(f64::try_from_cbor(&negative_cbor).ok(), Some(-10.0));
         assert_eq!(f64::try_from_cbor(&text_cbor).ok(), None);
+    }
+
+    #[test]
+    fn test_infinity_patterns() {
+        let inf_cbor = f64::INFINITY.to_cbor();
+        let neg_inf_cbor = f64::NEG_INFINITY.to_cbor();
+        let nan_cbor = f64::NAN.to_cbor();
+        let regular_cbor = 42.0.to_cbor();
+        let text_cbor = "not a number".to_cbor();
+
+        // Test positive infinity pattern
+        let inf_pattern = NumberPattern::infinity();
+        assert!(inf_pattern.matches(&inf_cbor));
+        assert!(!inf_pattern.matches(&neg_inf_cbor));
+        assert!(!inf_pattern.matches(&nan_cbor));
+        assert!(!inf_pattern.matches(&regular_cbor));
+        assert!(!inf_pattern.matches(&text_cbor));
+
+        // Test negative infinity pattern
+        let neg_inf_pattern = NumberPattern::neg_infinity();
+        assert!(!neg_inf_pattern.matches(&inf_cbor));
+        assert!(neg_inf_pattern.matches(&neg_inf_cbor));
+        assert!(!neg_inf_pattern.matches(&nan_cbor));
+        assert!(!neg_inf_pattern.matches(&regular_cbor));
+        assert!(!neg_inf_pattern.matches(&text_cbor));
+
+        // Test that any pattern matches all number types including infinities
+        let any_pattern = NumberPattern::any();
+        assert!(any_pattern.matches(&inf_cbor));
+        assert!(any_pattern.matches(&neg_inf_cbor));
+        assert!(any_pattern.matches(&nan_cbor));
+        assert!(any_pattern.matches(&regular_cbor));
+        assert!(!any_pattern.matches(&text_cbor));
+
+        // Test display formatting
+        assert_eq!(inf_pattern.to_string(), "NUMBER(Infinity)");
+        assert_eq!(neg_inf_pattern.to_string(), "NUMBER(-Infinity)");
     }
 }

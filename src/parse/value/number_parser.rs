@@ -12,17 +12,55 @@ pub(crate) fn parse_number(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
 }
 
 fn parse_number_inner(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
-    // Check for NaN first
-    if let Some(Ok(Token::NaN)) = lexer.clone().next() {
-        lexer.next(); // consume the NaN token
-        match lexer.next() {
-            Some(Ok(Token::ParenClose)) => return Ok(Pattern::number_nan()),
-            Some(Ok(t)) => {
-                return Err(Error::UnexpectedToken(Box::new(t), lexer.span()));
+    // Check for special values first
+    match lexer.clone().next() {
+        Some(Ok(Token::NaN)) => {
+            lexer.next(); // consume the NaN token
+            match lexer.next() {
+                Some(Ok(Token::ParenClose)) => return Ok(Pattern::number_nan()),
+                Some(Ok(t)) => {
+                    return Err(Error::UnexpectedToken(
+                        Box::new(t),
+                        lexer.span(),
+                    ));
+                }
+                Some(Err(e)) => return Err(e),
+                None => return Err(Error::ExpectedCloseParen(lexer.span())),
             }
-            Some(Err(e)) => return Err(e),
-            None => return Err(Error::ExpectedCloseParen(lexer.span())),
         }
+        Some(Ok(Token::Infinity)) => {
+            lexer.next(); // consume the Infinity token
+            match lexer.next() {
+                Some(Ok(Token::ParenClose)) => {
+                    return Ok(Pattern::number_infinity());
+                }
+                Some(Ok(t)) => {
+                    return Err(Error::UnexpectedToken(
+                        Box::new(t),
+                        lexer.span(),
+                    ));
+                }
+                Some(Err(e)) => return Err(e),
+                None => return Err(Error::ExpectedCloseParen(lexer.span())),
+            }
+        }
+        Some(Ok(Token::NegInfinity)) => {
+            lexer.next(); // consume the -Infinity token
+            match lexer.next() {
+                Some(Ok(Token::ParenClose)) => {
+                    return Ok(Pattern::number_neg_infinity());
+                }
+                Some(Ok(t)) => {
+                    return Err(Error::UnexpectedToken(
+                        Box::new(t),
+                        lexer.span(),
+                    ));
+                }
+                Some(Err(e)) => return Err(e),
+                None => return Err(Error::ExpectedCloseParen(lexer.span())),
+            }
+        }
+        _ => {} // Continue with normal parsing
     }
 
     // Check for comparison operators
@@ -197,6 +235,50 @@ mod tests {
         match test_parse("NUMBER(3.2222e-2)") {
             Ok(pattern) => assert_eq!(pattern.to_string(), "NUMBER(0.032222)"),
             Err(e) => panic!("Failed to parse NUMBER(3.2222e-2): {:?}", e),
+        }
+    }
+
+    #[test]
+    fn test_number_infinity_parsing() {
+        // Test parsing NUMBER(NaN) - this should work
+        match Pattern::parse("NUMBER(NaN)") {
+            Ok(pattern) => {
+                println!("✓ NUMBER(NaN) parsed successfully: {}", pattern)
+            }
+            Err(e) => println!("✗ NUMBER(NaN) failed: {:?}", e),
+        }
+
+        // Test parsing NUMBER(Infinity) - this might not work
+        match Pattern::parse("NUMBER(Infinity)") {
+            Ok(pattern) => {
+                println!("✓ NUMBER(Infinity) parsed successfully: {}", pattern)
+            }
+            Err(e) => println!("✗ NUMBER(Infinity) failed: {:?}", e),
+        }
+
+        // Test parsing NUMBER(-Infinity) - this might not work
+        match Pattern::parse("NUMBER(-Infinity)") {
+            Ok(pattern) => {
+                println!("✓ NUMBER(-Infinity) parsed successfully: {}", pattern)
+            }
+            Err(e) => println!("✗ NUMBER(-Infinity) failed: {:?}", e),
+        }
+
+        // Test with the actual float values
+        match Pattern::parse(&format!("NUMBER({})", f64::INFINITY)) {
+            Ok(pattern) => println!(
+                "✓ NUMBER(f64::INFINITY) parsed successfully: {}",
+                pattern
+            ),
+            Err(e) => println!("✗ NUMBER(f64::INFINITY) failed: {:?}", e),
+        }
+
+        match Pattern::parse(&format!("NUMBER({})", f64::NEG_INFINITY)) {
+            Ok(pattern) => println!(
+                "✓ NUMBER(f64::NEG_INFINITY) parsed successfully: {}",
+                pattern
+            ),
+            Err(e) => println!("✗ NUMBER(f64::NEG_INFINITY) failed: {:?}", e),
         }
     }
 }

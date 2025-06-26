@@ -105,6 +105,12 @@ pub enum Token {
     #[token("NaN")]
     NaN,
 
+    #[token("Infinity")]
+    Infinity,
+
+    #[token("-Infinity")]
+    NegInfinity,
+
     // Grouping and Range delimiters
     #[token("(")]
     ParenOpen,
