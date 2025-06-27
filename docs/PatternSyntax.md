@@ -1,8 +1,8 @@
-# Pattern Syntax
+# dCBOR Pattern Expression Syntax (_patex_)
 
 This syntax is inspired by regular expressions but is specifically designed for dCBOR.
 
-The pattern syntax is designed to be flexible and expressive. Patterns can be composed of *leaf patterns*, *structure patterns*, and combinators known as *meta-patterns*.
+The pattern syntax is designed to be flexible and expressive. Patterns can be composed of *value patterns*, *structure patterns*, and combinators known as *meta-patterns*.
 
 Keywords like `BOOL`, `ARRAY`, `MAP`, etc., are case-sensitive and must be written in uppercase. Patterns can include specific values, ranges, or regexes to match against the corresponding parts of the dCBOR item.
 
