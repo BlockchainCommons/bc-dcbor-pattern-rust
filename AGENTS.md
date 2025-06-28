@@ -156,8 +156,6 @@ The following syntax changes are planned but not yet implemented:
 - Old: `ARRAY(TEXT("a"), TEXT("b"))` → New: `[TEXT("a"), TEXT("b")]` (sequence)
 - Old: `ARRAY((ANY)*, NUMBER(42))` → New: `[(ANY)*, NUMBER(42)]` (with repeats)
 
-**Note**: There are currently 2 test failures in `array_capture_tests.rs` that appear to be test environment issues rather than functional problems. The bracket array syntax itself works correctly as demonstrated by successful parsing in isolated tests and the debug examples.
-
 # dcbor-pattern Crate Documentation
 
 ## Overview
