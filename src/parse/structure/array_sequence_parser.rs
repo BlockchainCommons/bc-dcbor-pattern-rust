@@ -16,8 +16,6 @@ use crate::{Pattern, Result};
 /// - `NUMBER(1), NUMBER(2), NUMBER(3)` - matches 1, 2, 3 in exact sequence
 /// - `ANY, NUMBER(42)` - matches any value followed by the number 42
 /// - `(ANY)*, NUMBER(42), (ANY)*` - matches 42 anywhere within the array
-
-/// Parse an OR pattern for array contents.
 pub(crate) fn parse_array_or(
     lexer: &mut logos::Lexer<Token>,
 ) -> Result<Pattern> {

@@ -12,7 +12,7 @@ fn test_deeply_nested_performance() {
     let start = Instant::now();
 
     // Create a deeply nested pattern: 5 levels deep
-    let pattern = Pattern::parse(r#"TAG(100, MAP(TEXT("a"):MAP(TEXT("b"):MAP(TEXT("c"):MAP(TEXT("d"):ARRAY(NUMBER(42)))))))"#).unwrap();
+    let pattern = Pattern::parse(r#"TAG(100, MAP(TEXT("a"):MAP(TEXT("b"):MAP(TEXT("c"):MAP(TEXT("d"):[NUMBER(42)])))))"#).unwrap();
     let pattern_creation_time = start.elapsed();
 
     // Create matching deeply nested data
@@ -63,7 +63,7 @@ fn test_complex_repeat_pattern_performance() {
 
     // Complex pattern with multiple repeat patterns
     let pattern = Pattern::parse(
-        r#"ARRAY((MAP(TEXT("id"):NUMBER))*, (ANY)*, (MAP(TEXT("name"):TEXT))*)"#,
+        r#"[(MAP(TEXT("id"):NUMBER])*, (ANY)*, (MAP(TEXT("name"):TEXT))*)"#,
     )
     .unwrap();
     let pattern_creation_time = start.elapsed();
@@ -175,13 +175,13 @@ fn test_complex_or_pattern_performance() {
         r#"
         TAG(1, NUMBER) |
         TAG(2, TEXT) |
-        TAG(3, ARRAY(NUMBER)) |
+        TAG(3, [NUMBER]) |
         TAG(4, MAP(TEXT:ANY)) |
         TAG(5, BOOL) |
         MAP(TEXT("type"):TEXT("user")) |
         MAP(TEXT("type"):TEXT("admin")) |
-        ARRAY(TEXT("start")) |
-        ARRAY(NUMBER, TEXT, BOOL)
+        [TEXT("start")] |
+        [NUMBER, TEXT, BOOL]
     "#,
     )
     .unwrap();
@@ -230,7 +230,7 @@ fn test_complex_or_pattern_performance() {
 #[test]
 fn test_vm_instruction_optimization() {
     // Test that complex patterns compile to efficient VM instructions
-    let pattern = Pattern::parse(r#"TAG(100, ARRAY((MAP(TEXT("key"):NUMBER))*, TEXT("separator"), (MAP(TEXT("value"):TEXT))*))"#).unwrap();
+    let pattern = Pattern::parse(r#"TAG(100, [(MAP(TEXT("key"):NUMBER])*, TEXT("separator"), (MAP(TEXT("value"):TEXT))*))"#).unwrap();
 
     // Test multiple matches to ensure VM optimization is effective
     let test_cases = vec![
@@ -269,7 +269,7 @@ fn test_edge_case_performance() {
     // Test performance with edge cases that could cause exponential behavior
 
     // Simpler pattern with repeats that should match the test data
-    let pattern = Pattern::parse(r#"ARRAY((ANY)*)"#).unwrap();
+    let pattern = Pattern::parse(r#"[(ANY)*]"#).unwrap();
 
     // Large array that the pattern should definitely match
     let large_array = parse_dcbor_item(

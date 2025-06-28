@@ -630,12 +630,14 @@ impl ArrayPattern {
     /// This handles sequence patterns specially to use commas instead of >.
     fn format_array_element_pattern(pattern: &Pattern) -> String {
         match pattern {
-            Pattern::Meta(crate::pattern::MetaPattern::Sequence(seq_pattern)) => {
+            Pattern::Meta(crate::pattern::MetaPattern::Sequence(
+                seq_pattern,
+            )) => {
                 // For sequence patterns within arrays, use commas instead of >
                 let patterns_str: Vec<String> = seq_pattern
                     .patterns()
                     .iter()
-                    .map(|p| Self::format_array_element_pattern(p))
+                    .map(Self::format_array_element_pattern)
                     .collect();
                 patterns_str.join(", ")
             }
@@ -647,19 +649,20 @@ impl ArrayPattern {
 impl std::fmt::Display for ArrayPattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ArrayPattern::Any => write!(f, "ARRAY"),
+            ArrayPattern::Any => write!(f, "[*]"),
             ArrayPattern::WithElements(pattern) => {
-                let formatted_pattern = Self::format_array_element_pattern(pattern);
-                write!(f, "ARRAY({})", formatted_pattern)
+                let formatted_pattern =
+                    Self::format_array_element_pattern(pattern);
+                write!(f, "[{}]", formatted_pattern)
             }
             ArrayPattern::WithLength(length) => {
-                write!(f, "ARRAY({{{}}})", length)
+                write!(f, "[{{{}}}]", length)
             }
             ArrayPattern::WithLengthRange(range) => {
                 if range.end() == &usize::MAX {
-                    write!(f, "ARRAY({{{},}})", range.start())
+                    write!(f, "[{{{},}}]", range.start())
                 } else {
-                    write!(f, "ARRAY({{{},{}}})", range.start(), range.end())
+                    write!(f, "[{{{},{}}}]", range.start(), range.end())
                 }
             }
         }

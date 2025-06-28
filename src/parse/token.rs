@@ -118,6 +118,12 @@ pub enum Token {
     #[token(")")]
     ParenClose,
 
+    #[token("[")]
+    BracketOpen,
+
+    #[token("]")]
+    BracketClose,
+
     #[token(",")]
     Comma,
 

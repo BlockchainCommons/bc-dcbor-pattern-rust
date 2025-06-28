@@ -74,6 +74,9 @@ pub(crate) fn parse_primary(
         Token::Map => parse_map(lexer),
         Token::Tagged => parse_tagged(lexer),
 
+        // Bracket syntax for arrays
+        Token::BracketOpen => super::super::structure::parse_bracket_array(lexer),
+
         // Unexpected tokens
         _ => Err(Error::UnexpectedToken(Box::new(token), lexer.span())),
     }

@@ -57,7 +57,8 @@ pub(crate) fn parse_array(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
                 }
                 _ => {
                     // This is a pattern syntax: ARRAY(pattern)
-                    // Parse the inner pattern using array-specific parsing (commas for sequences)
+                    // Parse the inner pattern using array-specific parsing
+                    // (commas for sequences)
                     let element_pattern = super::parse_array_or(lexer)?;
                     let pattern = ArrayPattern::with_elements(element_pattern);
 
@@ -100,7 +101,7 @@ mod tests {
                 ArrayPattern::any()
             ))
         );
-        assert_eq!(pattern.to_string(), "ARRAY");
+        assert_eq!(pattern.to_string(), "[*]");
     }
 
     #[test]
@@ -112,7 +113,7 @@ mod tests {
                 ArrayPattern::with_length(3)
             ))
         );
-        assert_eq!(pattern.to_string(), "ARRAY({3})");
+        assert_eq!(pattern.to_string(), "[{3}]");
     }
 
     #[test]
@@ -124,7 +125,7 @@ mod tests {
                 ArrayPattern::with_length_range(2..=5)
             ))
         );
-        assert_eq!(pattern.to_string(), "ARRAY({2,5})");
+        assert_eq!(pattern.to_string(), "[{2,5}]");
     }
 
     #[test]
@@ -136,7 +137,7 @@ mod tests {
                 ArrayPattern::with_length_range(2..=usize::MAX)
             ))
         );
-        assert_eq!(pattern.to_string(), "ARRAY({2,})");
+        assert_eq!(pattern.to_string(), "[{2,}]");
     }
 
     #[test]
@@ -160,7 +161,7 @@ mod tests {
                 ArrayPattern::with_elements(Pattern::number(42))
             ))
         );
-        assert_eq!(pattern.to_string(), "ARRAY(NUMBER(42))");
+        assert_eq!(pattern.to_string(), "[NUMBER(42)]");
     }
 
     #[test]
@@ -172,7 +173,7 @@ mod tests {
                 ArrayPattern::with_elements(Pattern::text("hello"))
             ))
         );
-        assert_eq!(pattern.to_string(), r#"ARRAY(TEXT("hello"))"#);
+        assert_eq!(pattern.to_string(), r#"[TEXT("hello")]"#);
     }
 
     #[test]
@@ -298,7 +299,7 @@ mod tests {
                 ArrayPattern::with_elements(Pattern::any_number())
             ))
         );
-        assert_eq!(pattern.to_string(), "ARRAY(NUMBER)");
+        assert_eq!(pattern.to_string(), "[NUMBER]");
     }
 
     #[test]

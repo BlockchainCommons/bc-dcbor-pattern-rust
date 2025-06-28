@@ -5,7 +5,7 @@ mod test_array_comma_display {
     #[test]
     fn test_array_sequence_display_format() {
         // Test that array sequences display with commas
-        let pattern = Pattern::parse(r#"ARRAY(TEXT("a"), TEXT("b"))"#).unwrap();
+        let pattern = Pattern::parse(r#"[TEXT("a"), TEXT("b"])"#).unwrap();
         let display = pattern.to_string();
 
         println!("Pattern display: {}", display);
@@ -17,7 +17,7 @@ mod test_array_comma_display {
 
     #[test]
     fn test_complex_array_sequence_display() {
-        let pattern = Pattern::parse(r#"ARRAY((ANY)*, NUMBER(42), (ANY)*)"#).unwrap();
+        let pattern = Pattern::parse(r#"[(ANY)*, NUMBER(42], (ANY)*)"#).unwrap();
         let display = pattern.to_string();
 
         println!("Complex pattern display: {}", display);

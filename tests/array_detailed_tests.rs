@@ -16,7 +16,7 @@ fn parse(s: &str) -> Pattern { Pattern::parse(s).unwrap() }
 #[test]
 fn test_array_pattern_paths_with_captures() {
     // Parse the inner capture pattern directly
-    let inner_pattern = parse("ARRAY(@item(NUMBER(42)))");
+    let inner_pattern = parse("[@item(NUMBER(42)])");
     let cbor_data = cbor("[42]");
 
     // Test the inner pattern directly on the array
@@ -104,7 +104,7 @@ fn test_array_element_traversal() {
 #[test]
 fn test_array_pattern_with_multiple_elements() {
     let cbor_data = cbor("[42, 100, 200]");
-    let pattern = parse("ARRAY(@item(NUMBER))");
+    let pattern = parse("[@item(NUMBER)]");
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
@@ -132,7 +132,7 @@ fn test_array_pattern_with_multiple_elements() {
 #[test]
 fn test_array_pattern_nested_structure() {
     let cbor_data = cbor(r#"[[42], [100]]"#);
-    let pattern = parse("ARRAY(@outer_item(ARRAY(@inner_item(NUMBER))))");
+    let pattern = parse("[@outer_item([@inner_item(NUMBER)])]");
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
@@ -165,7 +165,7 @@ fn test_array_pattern_nested_structure() {
 #[test]
 fn test_array_pattern_specific_value_matching() {
     let cbor_data = cbor("[42, 100, 42]");
-    let pattern = parse("ARRAY(@specific(NUMBER(42)))");
+    let pattern = parse("[@specific(NUMBER(42)])");
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
@@ -189,7 +189,7 @@ fn test_array_pattern_specific_value_matching() {
 #[test]
 fn test_array_pattern_no_match() {
     let cbor_data = cbor("[100, 200]");
-    let pattern = parse("ARRAY(@item(NUMBER(42)))");
+    let pattern = parse("[@item(NUMBER(42)])");
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
@@ -210,7 +210,7 @@ fn test_array_pattern_no_match() {
 #[test]
 fn test_array_pattern_mixed_types() {
     let cbor_data = cbor(r#"[42, "hello", true, [1, 2]]"#);
-    let pattern = parse("ARRAY(@any_item(ANY))");
+    let pattern = parse("[@any_item(ANY)]");
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 

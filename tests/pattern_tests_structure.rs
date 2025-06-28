@@ -44,7 +44,7 @@ fn test_array_pattern_any() {
 /// Test that ArrayPattern::WithLength matches arrays with specific length
 #[test]
 fn test_array_pattern_with_length() {
-    let pattern = parse("ARRAY({2})");
+    let pattern = parse("[{2}]");
 
     // Should match array with length 2
     let array = cbor("[1, 2]");
@@ -65,7 +65,7 @@ fn test_array_pattern_with_length() {
 }
 
 /// Test that ArrayPattern::WithElements matches arrays with exactly the
-/// specified pattern This implements the unified syntax: ARRAY(pattern) matches
+/// specified pattern This implements the unified syntax: [pattern] matches
 /// the array as a sequence
 #[test]
 fn test_array_pattern_with_elements() {
@@ -86,7 +86,7 @@ fn test_array_pattern_with_elements() {
     let multi_element = cbor("[1, 42, 3]");
     assert!(
         !pattern.matches(&multi_element),
-        "ARRAY(NUMBER(42)) should only match [42], not [1, 42, 3]"
+        "[NUMBER(42)] should only match [42], not [1, 42, 3]"
     );
 
     // Should not match array without 42
@@ -232,10 +232,10 @@ fn test_tagged_pattern_with_content() {
 fn test_structure_pattern_display() {
     // Array patterns
     assert_eq!(parse("ARRAY").to_string(), "ARRAY");
-    assert_eq!(parse("ARRAY({5})").to_string(), "ARRAY({5})");
+    assert_eq!(parse("[{5}]").to_string(), "[{5}]");
     assert_eq!(
         format!("{}", ArrayPattern::with_length_range(1..=10)),
-        "ARRAY({1,10})"
+        "[{1,10}]"
     );
 
     // Map patterns

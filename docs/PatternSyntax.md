@@ -4,7 +4,7 @@ This syntax is inspired by regular expressions but is specifically designed for 
 
 The pattern syntax is designed to be flexible and expressive. Patterns can be composed of *value patterns*, *structure patterns*, and combinators known as *meta-patterns*.
 
-Keywords like `BOOL`, `ARRAY`, `MAP`, etc., are case-sensitive and must be written in uppercase. Patterns can include specific values, ranges, or regexes to match against the corresponding parts of the dCBOR item.
+Keywords like `BOOL`, `MAP`, `TAG`, etc., are case-sensitive and must be written in uppercase. Patterns can include specific values, ranges, or regexes to match against the corresponding parts of the dCBOR item. Arrays use the new bracket syntax `[...]` for improved readability.
 
 Spaces may used to separate different parts of the pattern.
 
@@ -91,22 +91,22 @@ All value patterns match atomic CBOR values.
 
 Structure patterns match parts of dCBOR items.
 - Array
-    - `ARRAY`
+    - `[*]`
         - Matches any array.
-    - `ARRAY ( { n } )`
+    - `[{n}]`
         - Matches an array with exactly `n` elements.
-    - `ARRAY ( { n , m } )`
+    - `[{n,m}]`
         - Matches an array with between `n` and `m` elements, inclusive.
-    - `ARRAY ( { n , } )`
+    - `[{n,}]`
         - Matches an array with at least `n` elements.
-    - `ARRAY ( pattern )`
+    - `[pattern]`
         - Matches an array where the elements match the specified pattern. The pattern can be a simple pattern, a sequence of patterns, or patterns with repeat quantifiers.
         - Examples:
-            - `ARRAY ( NUMBER(42) )` - Array containing exactly one element: the number 42
-            - `ARRAY ( TEXT("a"), TEXT("b"), TEXT("c") )` - Array containing exactly ["a", "b", "c"] in sequence
-            - `ARRAY ( ( ANY )*, NUMBER(42), ( ANY )* )` - Array containing 42 anywhere within it
-            - `ARRAY ( NUMBER(42), ( ANY )* )` - Array starting with 42, followed by any elements
-            - `ARRAY ( ( ANY )*, NUMBER(42) )` - Array ending with 42, preceded by any elements
+            - `[NUMBER(42)]` - Array containing exactly one element: the number 42
+            - `[TEXT("a"), TEXT("b"), TEXT("c")]` - Array containing exactly ["a", "b", "c"] in sequence
+            - `[(ANY)*, NUMBER(42), (ANY)*]` - Array containing 42 anywhere within it
+            - `[NUMBER(42), (ANY)*]` - Array starting with 42, followed by any elements
+            - `[(ANY)*, NUMBER(42)]` - Array ending with 42, preceded by any elements
 - Map
     - `MAP`
         - Matches any map.

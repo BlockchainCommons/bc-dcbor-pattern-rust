@@ -7,7 +7,7 @@ mod test_capture_behavior {
     fn test_capture_deduplication_behavior() {
         // Test with array that has duplicate values
         let cbor_data = parse_dcbor_item("[42, 100, 42]").unwrap();
-        let pattern = Pattern::parse("ARRAY(@item(NUMBER(42)))").unwrap();
+        let pattern = Pattern::parse("[@item(NUMBER(42))]").unwrap();
 
         let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
@@ -46,7 +46,7 @@ mod test_capture_behavior {
     fn test_what_makes_paths_unique() {
         // Let's understand what makes paths unique in this context
         let cbor_data = parse_dcbor_item("[42, 100, 42]").unwrap();
-        let pattern = Pattern::parse("ARRAY(@item(ANY))").unwrap();
+        let pattern = Pattern::parse("[@item(ANY)]").unwrap();
 
         let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 

@@ -6,7 +6,7 @@ mod tests {
     #[test]
     fn test_complex_array_pattern_text_parsing() {
         // Test if complex array pattern parsing works from text
-        let pattern_text = r#"ARRAY((ANY)*, NUMBER(42), (ANY)*)"#;
+        let pattern_text = r#"[(ANY)*, NUMBER(42], (ANY)*)"#;
 
         let pattern =
             Pattern::parse(pattern_text).expect("Should parse complex pattern");
@@ -44,20 +44,20 @@ mod tests {
     #[test]
     fn test_various_repeat_quantifiers_in_arrays() {
         let test_patterns = [
-            ("ARRAY((ANY)+)", "One or more ANY", "[1]", true),
-            ("ARRAY((ANY)+)", "One or more ANY empty", "[]", false),
-            ("ARRAY((ANY)?)", "Zero or one ANY", "[]", true),
-            ("ARRAY((ANY)?)", "Zero or one ANY single", "[1]", true),
-            ("ARRAY((ANY)?)", "Zero or one ANY multiple", "[1,2]", false),
-            ("ARRAY((NUMBER)*)", "Zero or more numbers", "[]", true),
+            ("[(ANY)+]", "One or more ANY", "[1]", true),
+            ("[(ANY)+]", "One or more ANY empty", "[]", false),
+            ("[(ANY)?]", "Zero or one ANY", "[]", true),
+            ("[(ANY)?]", "Zero or one ANY single", "[1]", true),
+            ("[(ANY)?]", "Zero or one ANY multiple", "[1,2]", false),
+            ("[(NUMBER)*]", "Zero or more numbers", "[]", true),
             (
-                "ARRAY((NUMBER)*)",
+                "[(NUMBER)*]",
                 "Zero or more numbers with nums",
                 "[1,2,3]",
                 true,
             ),
             (
-                "ARRAY((NUMBER)*)",
+                "[(NUMBER)*]",
                 "Zero or more numbers with text",
                 r#"["hello"]"#,
                 false,
@@ -84,7 +84,7 @@ mod tests {
     #[test]
     fn test_nested_array_patterns_with_repeats() {
         // Test nested patterns with complex repeats
-        let pattern_text = r#"ARRAY(ARRAY((NUMBER)*), (ANY)*)"#;
+        let pattern_text = r#"[[(NUMBER)*], (ANY]*)"#;
         let pattern =
             Pattern::parse(pattern_text).expect("Should parse nested pattern");
 
@@ -124,11 +124,11 @@ mod tests {
         let test_patterns = [
             ("ARRAY", "[]", true),
             ("ARRAY", "[1,2,3]", true),
-            ("ARRAY({3})", "[1,2,3]", true),
-            ("ARRAY({3})", "[1,2]", false),
-            ("ARRAY(NUMBER)", "[42]", true),
-            ("ARRAY(NUMBER)", "[42,43]", false), // Single element only
-            ("ARRAY(TEXT)", r#"["hello"]"#, true),
+            ("[{3}]", "[1,2,3]", true),
+            ("[{3}]", "[1,2]", false),
+            ("[NUMBER]", "[42]", true),
+            ("[NUMBER]", "[42,43]", false), // Single element only
+            ("[TEXT]", r#"["hello"]"#, true),
         ];
 
         for (pattern_text, cbor_text, expected_match) in &test_patterns {

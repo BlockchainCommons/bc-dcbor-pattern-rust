@@ -9,7 +9,7 @@ mod test_order_stability {
         // order
         let cbor_data = parse_dcbor_item(r#"[[1], [2], [3], [1]]"#).unwrap();
         let pattern =
-            Pattern::parse("ARRAY(@outer(ARRAY(@inner(NUMBER))))").unwrap();
+            Pattern::parse("[@outer([@inner(NUMBER)]])").unwrap();
 
         let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
@@ -67,7 +67,7 @@ mod test_order_stability {
         // Test with values that are likely to hash differently
         let cbor_data =
             parse_dcbor_item(r#"[1, 1000000, 2, 1000000, 3]"#).unwrap();
-        let pattern = Pattern::parse("ARRAY(@item(NUMBER))").unwrap();
+        let pattern = Pattern::parse("[@item(NUMBER)]").unwrap();
 
         let first_run = pattern.paths_with_captures(&cbor_data);
 

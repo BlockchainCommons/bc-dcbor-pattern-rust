@@ -6,8 +6,8 @@ use indoc::indoc;
 
 #[test]
 fn test_simple_nested_tagged_array() {
-    // TAG(100, ARRAY(TEXT("target")))
-    let pattern = Pattern::parse(r#"TAG(100, ARRAY(TEXT("target")))"#).unwrap();
+    // TAG(100, [TEXT("target")])
+    let pattern = Pattern::parse(r#"TAG(100, [TEXT("target")])"#).unwrap();
 
     // Should match: 100(["target"])
     let match_case = parse_dcbor_item(r#"100(["target"])"#).unwrap();
@@ -44,9 +44,9 @@ fn test_simple_nested_tagged_array() {
 
 #[test]
 fn test_complex_nested_tagged_array_with_repeat() {
-    // TAG(100, ARRAY((ANY)*, TEXT("target"), (ANY)*))
+    // TAG(100, [(ANY)*, TEXT("target"], (ANY)*))
     let pattern =
-        Pattern::parse(r#"TAG(100, ARRAY((ANY)*, TEXT("target"), (ANY)*))"#)
+        Pattern::parse(r#"TAG(100, [(ANY)*, TEXT("target"], (ANY)*))"#)
             .unwrap();
 
     // Should match: 100(["target"])
@@ -113,8 +113,8 @@ fn test_complex_nested_tagged_array_with_repeat() {
 
 #[test]
 fn test_map_with_array_constraints() {
-    // MAP(TEXT("users"):ARRAY({3,}))
-    let pattern = Pattern::parse(r#"MAP(TEXT("users"):ARRAY({3,}))"#).unwrap();
+    // MAP(TEXT("users"):[{3,}])
+    let pattern = Pattern::parse(r#"MAP(TEXT("users"):[{3,}])"#).unwrap();
 
     // Should match: {"users": [1, 2, 3]}
     let case1 = parse_dcbor_item(r#"{"users": [1, 2, 3]}"#).unwrap();
@@ -166,9 +166,9 @@ fn test_map_with_array_constraints() {
 
 #[test]
 fn test_array_starting_with_maps() {
-    // ARRAY(MAP(TEXT("id"):NUMBER), (ANY)*)
+    // [MAP(TEXT("id"):NUMBER], (ANY)*)
     let pattern =
-        Pattern::parse(r#"ARRAY(MAP(TEXT("id"):NUMBER), (ANY)*)"#).unwrap();
+        Pattern::parse(r#"[MAP(TEXT("id"):NUMBER], (ANY)*)"#).unwrap();
 
     // Should match: [{"id": 42}]
     let case1 = parse_dcbor_item(r#"[{"id": 42}]"#).unwrap();
@@ -226,9 +226,9 @@ fn test_array_starting_with_maps() {
 
 #[test]
 fn test_deeply_nested_structures() {
-    // TAG(200, MAP(TEXT("data"):ARRAY(MAP(TEXT("value"):NUMBER))))
+    // TAG(200, MAP(TEXT("data"):[MAP(TEXT("value"):NUMBER])))
     let pattern = Pattern::parse(
-        r#"TAG(200, MAP(TEXT("data"):ARRAY(MAP(TEXT("value"):NUMBER))))"#,
+        r#"TAG(200, MAP(TEXT("data"):[MAP(TEXT("value"):NUMBER])))"#,
     )
     .unwrap();
 
@@ -257,9 +257,9 @@ fn test_deeply_nested_structures() {
 #[test]
 fn test_deeply_nested_structures_with_multiple_maps() {
     // For multiple maps, we need a repeat pattern
-    // TAG(200, MAP(TEXT("data"):ARRAY((MAP(TEXT("value"):NUMBER))*)))
+    // TAG(200, MAP(TEXT("data"):[(MAP(TEXT("value"):NUMBER])*)))
     let pattern = Pattern::parse(
-        r#"TAG(200, MAP(TEXT("data"):ARRAY((MAP(TEXT("value"):NUMBER))*)))"#,
+        r#"TAG(200, MAP(TEXT("data"):[(MAP(TEXT("value"):NUMBER])*)))"#,
     )
     .unwrap();
 
@@ -311,9 +311,9 @@ fn test_deeply_nested_structures_with_multiple_maps() {
 
 #[test]
 fn test_multiple_levels_of_nesting_with_any() {
-    // TAG(300, ARRAY(MAP(ANY:ANY), (ANY)*))
+    // TAG(300, [MAP(ANY:ANY), (ANY]*))
     let pattern =
-        Pattern::parse(r#"TAG(300, ARRAY(MAP(ANY:ANY), (ANY)*))"#).unwrap();
+        Pattern::parse(r#"TAG(300, [MAP(ANY:ANY), (ANY]*))"#).unwrap();
 
     // Should match: 300([{"key": "value"}])
     let case1 = parse_dcbor_item(r#"300([{"key": "value"}])"#).unwrap();
@@ -353,8 +353,8 @@ fn test_multiple_levels_of_nesting_with_any() {
 fn test_extreme_nesting_depth() {
     // Test deeply nested structures for performance
     // TAG(400, MAP(TEXT("level1"):MAP(TEXT("level2"):MAP(TEXT("level3"):
-    // ARRAY(NUMBER(42))))))
-    let pattern = Pattern::parse(r#"TAG(400, MAP(TEXT("level1"):MAP(TEXT("level2"):MAP(TEXT("level3"):ARRAY(NUMBER(42))))))"#).unwrap();
+    // [NUMBER(42)]))))
+    let pattern = Pattern::parse(r#"TAG(400, MAP(TEXT("level1"):MAP(TEXT("level2"):MAP(TEXT("level3"):[NUMBER(42)]))))"#).unwrap();
 
     let deep_structure =
         parse_dcbor_item(r#"400({"level1": {"level2": {"level3": [42]}}})"#)
@@ -382,8 +382,8 @@ fn test_extreme_nesting_depth() {
 #[test]
 fn test_complex_combined_patterns() {
     // Combining multiple advanced patterns
-    // TAG(500, ARRAY(MAP(TEXT("type"):TEXT("user")), MAP(TEXT("id"):NUMBER), (MAP(TEXT("name"):TEXT) | MAP(TEXT("email"):TEXT))*))
-    let pattern = Pattern::parse(r#"TAG(500, ARRAY(MAP(TEXT("type"):TEXT("user")), MAP(TEXT("id"):NUMBER), (MAP(TEXT("name"):TEXT) | MAP(TEXT("email"):TEXT))*))"#).unwrap();
+    // TAG(500, [MAP(TEXT("type"):TEXT("user"]), MAP(TEXT("id"):NUMBER), (MAP(TEXT("name"):TEXT) | MAP(TEXT("email"):TEXT))*))
+    let pattern = Pattern::parse(r#"TAG(500, [MAP(TEXT("type"):TEXT("user"]), MAP(TEXT("id"):NUMBER), (MAP(TEXT("name"):TEXT) | MAP(TEXT("email"):TEXT))*))"#).unwrap();
 
     // Minimum valid structure
     let case1 =

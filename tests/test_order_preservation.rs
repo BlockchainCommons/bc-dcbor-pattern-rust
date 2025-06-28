@@ -6,7 +6,7 @@ mod test_order_preservation {
     #[test]
     fn test_path_order_deterministic() {
         let cbor_data = parse_dcbor_item("[42, 100, 200]").unwrap();
-        let pattern = Pattern::parse("ARRAY(@item(NUMBER))").unwrap();
+        let pattern = Pattern::parse("[@item(NUMBER)]").unwrap();
 
         // Run the same pattern multiple times to check for deterministic
         // ordering
@@ -48,7 +48,7 @@ mod test_order_preservation {
     #[test]
     fn test_capture_order_deterministic() {
         let cbor_data = parse_dcbor_item("[1, 2, 3, 1, 2, 3]").unwrap(); // Intentional duplicates
-        let pattern = Pattern::parse("ARRAY(@num(NUMBER))").unwrap();
+        let pattern = Pattern::parse("[@num(NUMBER)]").unwrap();
 
         // Run multiple times to check deterministic ordering
         let mut all_results = Vec::new();
