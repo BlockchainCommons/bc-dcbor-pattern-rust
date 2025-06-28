@@ -7,7 +7,6 @@ mod parse;
 mod pattern;
 mod quantifier;
 mod reluctance;
-mod debug_test;
 
 pub use error::*;
 pub use format::*;

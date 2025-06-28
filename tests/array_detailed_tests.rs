@@ -11,10 +11,9 @@ use indoc::indoc;
 fn cbor(s: &str) -> dcbor::CBOR { parse_dcbor_item(s).unwrap() }
 
 #[test]
-#[ignore]
 fn test_array_pattern_paths_with_captures() {
     // Parse the inner capture pattern directly
-    let inner_pattern = Pattern::parse("[@item(NUMBER(42))])").unwrap();
+    let inner_pattern = Pattern::parse("[@item(NUMBER(42))]").unwrap();
     let cbor_data = cbor("[42]");
 
     // Test the inner pattern directly on the array
@@ -161,10 +160,9 @@ fn test_array_pattern_nested_structure() {
 }
 
 #[test]
-#[ignore]
 fn test_array_pattern_specific_value_matching() {
     let cbor_data = cbor("[42, 100, 42]");
-    let pattern = Pattern::parse("[@specific(NUMBER(42))])").unwrap();
+    let pattern = Pattern::parse("[@specific(NUMBER(42))]").unwrap();
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
@@ -186,10 +184,9 @@ fn test_array_pattern_specific_value_matching() {
 }
 
 #[test]
-#[ignore]
 fn test_array_pattern_no_match() {
     let cbor_data = cbor("[100, 200]");
-    let pattern = Pattern::parse("[@item(NUMBER(42))])").unwrap();
+    let pattern = Pattern::parse("[@item(NUMBER(42))]").unwrap();
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
