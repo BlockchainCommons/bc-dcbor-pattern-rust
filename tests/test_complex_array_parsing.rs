@@ -6,7 +6,7 @@ mod tests {
     #[test]
     fn test_complex_array_pattern_text_parsing() {
         // Test if complex array pattern parsing works from text
-        let pattern_text = r#"ARRAY((ANY)*>NUMBER(42)>(ANY)*)"#;
+        let pattern_text = r#"ARRAY((ANY)*, NUMBER(42), (ANY)*)"#;
 
         let pattern =
             Pattern::parse(pattern_text).expect("Should parse complex pattern");
@@ -84,7 +84,7 @@ mod tests {
     #[test]
     fn test_nested_array_patterns_with_repeats() {
         // Test nested patterns with complex repeats
-        let pattern_text = r#"ARRAY(ARRAY((NUMBER)*) > (ANY)*)"#;
+        let pattern_text = r#"ARRAY(ARRAY((NUMBER)*), (ANY)*)"#;
         let pattern =
             Pattern::parse(pattern_text).expect("Should parse nested pattern");
 

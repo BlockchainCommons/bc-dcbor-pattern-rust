@@ -623,12 +623,34 @@ impl Matcher for ArrayPattern {
     }
 }
 
+impl ArrayPattern {
+    // ...existing methods...
+
+    /// Format a pattern for display within array context.
+    /// This handles sequence patterns specially to use commas instead of >.
+    fn format_array_element_pattern(pattern: &Pattern) -> String {
+        match pattern {
+            Pattern::Meta(crate::pattern::MetaPattern::Sequence(seq_pattern)) => {
+                // For sequence patterns within arrays, use commas instead of >
+                let patterns_str: Vec<String> = seq_pattern
+                    .patterns()
+                    .iter()
+                    .map(|p| Self::format_array_element_pattern(p))
+                    .collect();
+                patterns_str.join(", ")
+            }
+            _ => pattern.to_string(),
+        }
+    }
+}
+
 impl std::fmt::Display for ArrayPattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ArrayPattern::Any => write!(f, "ARRAY"),
             ArrayPattern::WithElements(pattern) => {
-                write!(f, "ARRAY({})", pattern)
+                let formatted_pattern = Self::format_array_element_pattern(pattern);
+                write!(f, "ARRAY({})", formatted_pattern)
             }
             ArrayPattern::WithLength(length) => {
                 write!(f, "ARRAY({{{}}})", length)

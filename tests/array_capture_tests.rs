@@ -47,7 +47,7 @@ fn test_array_capture_basic() {
 
 #[test]
 fn test_array_capture_multiple_items() {
-    let pattern = parse("ARRAY(@first(NUMBER) > @second(NUMBER))");
+    let pattern = parse("ARRAY(@first(NUMBER), @second(NUMBER))");
     let cbor_data = cbor("[42, 100]");
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);

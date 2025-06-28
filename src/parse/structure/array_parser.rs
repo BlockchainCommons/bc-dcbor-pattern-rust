@@ -57,8 +57,8 @@ pub(crate) fn parse_array(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
                 }
                 _ => {
                     // This is a pattern syntax: ARRAY(pattern)
-                    // Parse the inner pattern using the full pattern syntax
-                    let element_pattern = super::super::meta::parse_or(lexer)?;
+                    // Parse the inner pattern using array-specific parsing (commas for sequences)
+                    let element_pattern = super::parse_array_or(lexer)?;
                     let pattern = ArrayPattern::with_elements(element_pattern);
 
                     // Expect closing parenthesis

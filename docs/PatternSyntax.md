@@ -103,10 +103,10 @@ Structure patterns match parts of dCBOR items.
         - Matches an array where the elements match the specified pattern. The pattern can be a simple pattern, a sequence of patterns, or patterns with repeat quantifiers.
         - Examples:
             - `ARRAY ( NUMBER(42) )` - Array containing exactly one element: the number 42
-            - `ARRAY ( TEXT("a") > TEXT("b") > TEXT("c") )` - Array containing exactly ["a", "b", "c"] in sequence
-            - `ARRAY ( ( ANY )* > NUMBER(42) > ( ANY )* )` - Array containing 42 anywhere within it
-            - `ARRAY ( NUMBER(42) > ( ANY )* )` - Array starting with 42, followed by any elements
-            - `ARRAY ( ( ANY )* > NUMBER(42) )` - Array ending with 42, preceded by any elements
+            - `ARRAY ( TEXT("a"), TEXT("b"), TEXT("c") )` - Array containing exactly ["a", "b", "c"] in sequence
+            - `ARRAY ( ( ANY )*, NUMBER(42), ( ANY )* )` - Array containing 42 anywhere within it
+            - `ARRAY ( NUMBER(42), ( ANY )* )` - Array starting with 42, followed by any elements
+            - `ARRAY ( ( ANY )*, NUMBER(42) )` - Array ending with 42, preceded by any elements
 - Map
     - `MAP`
         - Matches any map.

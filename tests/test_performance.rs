@@ -63,7 +63,7 @@ fn test_complex_repeat_pattern_performance() {
 
     // Complex pattern with multiple repeat patterns
     let pattern = Pattern::parse(
-        r#"ARRAY((MAP(TEXT("id"):NUMBER))*>(ANY)*>(MAP(TEXT("name"):TEXT))*)"#,
+        r#"ARRAY((MAP(TEXT("id"):NUMBER))*, (ANY)*, (MAP(TEXT("name"):TEXT))*)"#,
     )
     .unwrap();
     let pattern_creation_time = start.elapsed();
@@ -181,7 +181,7 @@ fn test_complex_or_pattern_performance() {
         MAP(TEXT("type"):TEXT("user")) |
         MAP(TEXT("type"):TEXT("admin")) |
         ARRAY(TEXT("start")) |
-        ARRAY(NUMBER > TEXT > BOOL)
+        ARRAY(NUMBER, TEXT, BOOL)
     "#,
     )
     .unwrap();
@@ -230,7 +230,7 @@ fn test_complex_or_pattern_performance() {
 #[test]
 fn test_vm_instruction_optimization() {
     // Test that complex patterns compile to efficient VM instructions
-    let pattern = Pattern::parse(r#"TAG(100, ARRAY((MAP(TEXT("key"):NUMBER))*>TEXT("separator")>(MAP(TEXT("value"):TEXT))*))"#).unwrap();
+    let pattern = Pattern::parse(r#"TAG(100, ARRAY((MAP(TEXT("key"):NUMBER))*, TEXT("separator"), (MAP(TEXT("value"):TEXT))*))"#).unwrap();
 
     // Test multiple matches to ensure VM optimization is effective
     let test_cases = vec![
