@@ -11,7 +11,7 @@ use crate::{Pattern, Result};
 /// - `BOOL & TEXT` - matches values that are both boolean AND text (impossible,
 ///   always fails)
 /// - `NUMBER & (>= 0)` - matches numbers that are also >= 0
-/// - `ARRAY & MAP` - matches values that are both arrays AND maps (impossible,
+/// - `[*] & MAP` - matches values that are both arrays AND maps (impossible,
 ///   always fails)
 pub(crate) fn parse_and(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
     let mut patterns = vec![parse_not(lexer)?];

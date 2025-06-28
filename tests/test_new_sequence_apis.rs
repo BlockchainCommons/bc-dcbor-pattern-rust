@@ -29,7 +29,7 @@ fn test_structure_convenience_methods() {
     let map_pattern = Pattern::any_map();
     let tagged_pattern = Pattern::any_tagged();
 
-    assert_eq!(array_pattern.to_string(), "ARRAY");
+    assert_eq!(array_pattern.to_string(), "[*]");
     assert_eq!(map_pattern.to_string(), "MAP");
     assert_eq!(tagged_pattern.to_string(), "TAGGED");
 

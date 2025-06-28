@@ -16,7 +16,7 @@ fn parse(s: &str) -> Pattern { Pattern::parse(s).unwrap() }
 /// Test that ArrayPattern::Any matches any array
 #[test]
 fn test_array_pattern_any() {
-    let pattern = parse("ARRAY");
+    let pattern = parse("[*]");
 
     // Should match empty array
     let empty_array = cbor("[]");
@@ -231,7 +231,7 @@ fn test_tagged_pattern_with_content() {
 #[test]
 fn test_structure_pattern_display() {
     // Array patterns
-    assert_eq!(parse("ARRAY").to_string(), "ARRAY");
+    assert_eq!(parse("[*]").to_string(), "[*]");
     assert_eq!(parse("[{5}]").to_string(), "[{5}]");
     assert_eq!(
         format!("{}", ArrayPattern::with_length_range(1..=10)),

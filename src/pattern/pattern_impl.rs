@@ -375,7 +375,7 @@ impl Pattern {
     ///
     /// This method supports the full dCBOR pattern syntax including:
     /// - Value patterns: BOOL, TEXT, NUMBER, NULL, BSTR, DATE, DIGEST, KNOWN
-    /// - Structure patterns: ARRAY, MAP, TAG
+    /// - Structure patterns: Array, Map, Tagged
     /// - Meta patterns: ANY, NONE, AND (&), OR (|), NOT (!)
     /// - Capture patterns: @name(pattern)
     /// - Grouping with parentheses

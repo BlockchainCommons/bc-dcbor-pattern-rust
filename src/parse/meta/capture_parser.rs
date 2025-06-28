@@ -10,7 +10,7 @@ use crate::{Error, Pattern, Result};
 /// Examples:
 /// - `@count(NUMBER)` - captures any number with the name "count"
 /// - `@name(TEXT)` - captures any text with the name "name"
-/// - `@item(ARRAY | MAP)` - captures any array or map with the name "item"
+/// - `@item([*] | MAP)` - captures any array or map with the name "item"
 pub(crate) fn parse_capture(
     lexer: &mut logos::Lexer<Token>,
     name: String,

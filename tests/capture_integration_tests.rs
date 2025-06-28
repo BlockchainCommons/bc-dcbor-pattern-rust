@@ -162,7 +162,7 @@ fn test_nested_captures() -> Result<()> {
 /// Test captures in array patterns
 #[test]
 fn test_capture_in_array() -> Result<()> {
-    let pattern = Pattern::parse("[@item(NUMBER(42)])")?;
+    let pattern = Pattern::parse("[@item(NUMBER(42))]")?;
     let cbor = parse_dcbor_item("[42]").unwrap();
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
@@ -191,7 +191,7 @@ fn test_capture_in_array() -> Result<()> {
 #[test]
 fn test_capture_in_array_sequence() -> Result<()> {
     let pattern =
-        Pattern::parse("[@first(TEXT(\"a\")], @second(NUMBER(42)))")?;
+        Pattern::parse(r#"[@first(TEXT("a")), @second(NUMBER(42))]"#)?;
     let cbor = parse_dcbor_item(r#"["a", 42]"#).unwrap();
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
@@ -464,18 +464,17 @@ fn test_capture_parsing_errors() {
 /// Test complex nested captures with multiple levels
 #[test]
 fn test_complex_nested_captures() -> Result<()> {
-    let pattern = Pattern::parse(
-        r#"
+    #[rustfmt::skip]
+    let pattern = Pattern::parse(r#"
         [
             @first_map(MAP(
-                @key1(TEXT("type")]: @val1(TEXT("person"))
+                @key1(TEXT("type")): @val1(TEXT("person"))
             )),
             @second_map(MAP(
                 @key2(TEXT("name")): @val2(TEXT)
             ))
-        )
-    "#,
-    )?;
+        ]
+    "#)?;
 
     let cbor =
         parse_dcbor_item(r#"[{"type": "person"}, {"name": "Alice"}]"#).unwrap();

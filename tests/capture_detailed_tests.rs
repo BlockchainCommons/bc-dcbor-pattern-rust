@@ -129,7 +129,7 @@ fn test_capture_with_array_pattern() -> Result<()> {
 
 #[test]
 fn test_capture_with_nested_pattern() -> Result<()> {
-    let pattern = parse("@outer([@inner(NUMBER(42)]))");
+    let pattern = parse("@outer([@inner(NUMBER(42))])");
     let cbor_data = cbor("[42]");
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);

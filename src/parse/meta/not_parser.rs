@@ -9,7 +9,7 @@ use crate::{Pattern, Result};
 /// Examples:
 /// - `!BOOL` - matches anything that is not a boolean
 /// - `!!TEXT` - matches anything that is not (not text), i.e., matches text
-/// - `!ARRAY` - matches anything that is not an array
+/// - `![*]` - matches anything that is not an array
 pub(crate) fn parse_not(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
     let mut lookahead = lexer.clone();
     match lookahead.next() {

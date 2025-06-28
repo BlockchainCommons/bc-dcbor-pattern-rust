@@ -772,7 +772,7 @@ fn test_search_pattern_edge_cases() {
 #[test]
 fn test_search_pattern_with_structure_pattern() {
     // Search for any array
-    let pattern = Pattern::search(Pattern::parse("ARRAY").unwrap());
+    let pattern = Pattern::search(Pattern::parse("[*]").unwrap());
 
     #[rustfmt::skip]
     let data = cbor(r#"
@@ -803,7 +803,7 @@ fn test_search_pattern_with_structure_pattern() {
 #[test]
 fn test_search_array_order() {
     let data = cbor(r#"[[1, 2, 3], [4, 5, 6]]"#);
-    let pattern = Pattern::parse("SEARCH(ARRAY)").unwrap();
+    let pattern = Pattern::parse("SEARCH([*])").unwrap();
 
     let paths = pattern.paths(&data);
     #[rustfmt::skip]

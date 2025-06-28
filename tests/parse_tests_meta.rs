@@ -192,9 +192,9 @@ fn test_parse_empty_input() {
 /// Test integration with other pattern types
 #[test]
 fn test_integration_with_structure_patterns() -> Result<()> {
-    let pattern = Pattern::parse("ARRAY | MAP")?;
+    let pattern = Pattern::parse("[*] | MAP")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
-    assert_eq!(pattern.to_string(), "ARRAY|MAP");
+    assert_eq!(pattern.to_string(), "[*]|MAP");
     Ok(())
 }
 
@@ -320,11 +320,11 @@ fn test_parse_search_with_capture() -> Result<()> {
 
 #[test]
 fn test_parse_search_with_nested_structure() -> Result<()> {
-    let pattern = Pattern::parse("SEARCH(ARRAY)")?;
+    let pattern = Pattern::parse("SEARCH([*])")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
 
     // Test display formatting
-    assert_eq!(pattern.to_string(), "SEARCH(ARRAY)");
+    assert_eq!(pattern.to_string(), "SEARCH([*])");
     Ok(())
 }
 
@@ -426,11 +426,11 @@ fn test_parse_sequence_precedence_with_and() -> Result<()> {
 
 #[test]
 fn test_parse_sequence_with_complex_patterns() -> Result<()> {
-    let pattern = Pattern::parse(r#"ARRAY > MAP > TAG(100, TEXT("content"))"#)?;
+    let pattern = Pattern::parse(r#"[*] > MAP > TAG(100, TEXT("content"))"#)?;
     assert!(matches!(pattern, Pattern::Meta(_)));
 
     let display = pattern.to_string();
-    assert!(display.contains("ARRAY>MAP>TAG"));
+    assert!(display.contains("[*]>MAP>TAG"));
     Ok(())
 }
 

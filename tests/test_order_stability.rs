@@ -9,7 +9,7 @@ mod test_order_stability {
         // order
         let cbor_data = parse_dcbor_item(r#"[[1], [2], [3], [1]]"#).unwrap();
         let pattern =
-            Pattern::parse("[@outer([@inner(NUMBER)]])").unwrap();
+            Pattern::parse("[@outer([@inner(NUMBER)])]").unwrap();
 
         let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 

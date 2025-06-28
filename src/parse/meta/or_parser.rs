@@ -13,7 +13,7 @@ use crate::{Pattern, Result};
 /// Examples:
 /// - `BOOL | TEXT` - matches values that are either boolean OR text
 /// - `NUMBER | NULL` - matches values that are either numbers OR null
-/// - `ARRAY | MAP` - matches values that are either arrays OR maps
+/// - `[*] | MAP` - matches values that are either arrays OR maps
 pub(crate) fn parse_or(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
     let mut patterns = vec![parse_and(lexer)?];
 

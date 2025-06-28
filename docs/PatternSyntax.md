@@ -179,9 +179,9 @@ Precedence: Repeat has the highest precedence, followed by And, Not, Sequence, a
 The following patterns show examples of combining structure patterns with meta patterns to create complex matching expressions:
 
 - Nested Structure Patterns
-    - `TAG ( value , ARRAY ( pattern ) )`
+    - `TAG ( value , [ pattern ] )`
         - Matches a tagged value containing an array with the specified pattern. The pattern can be simple patterns, sequences, or patterns with repeat quantifiers.
-    - `MAP ( pattern : ARRAY ( { n , } ) )`
+    - `MAP ( pattern : [ { n , } ] )`
         - Matches a map where the specified key pattern maps to an array with at least `n` elements.
-    - `ARRAY ( MAP ( pattern : pattern ) > ( pattern )* )`
+    - `[ MAP ( pattern : pattern ) > ( pattern )* ]`
         - Matches an array starting with a map that contains the specified key-value pattern, followed by any other elements.

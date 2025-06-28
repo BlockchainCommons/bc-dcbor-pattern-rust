@@ -12,7 +12,10 @@ fn test_deeply_nested_performance() {
     let start = Instant::now();
 
     // Create a deeply nested pattern: 5 levels deep
-    let pattern = Pattern::parse(r#"TAG(100, MAP(TEXT("a"):MAP(TEXT("b"):MAP(TEXT("c"):MAP(TEXT("d"):[NUMBER(42)])))))"#).unwrap();
+    #[rustfmt::skip]
+    let pattern = Pattern::parse(r#"
+        TAG(100, MAP(TEXT("a"):MAP(TEXT("b"):MAP(TEXT("c"):MAP(TEXT("d"):[NUMBER(42)])))))
+    "#).unwrap();
     let pattern_creation_time = start.elapsed();
 
     // Create matching deeply nested data
@@ -62,10 +65,10 @@ fn test_complex_repeat_pattern_performance() {
     let start = Instant::now();
 
     // Complex pattern with multiple repeat patterns
-    let pattern = Pattern::parse(
-        r#"[(MAP(TEXT("id"):NUMBER])*, (ANY)*, (MAP(TEXT("name"):TEXT))*)"#,
-    )
-    .unwrap();
+    #[rustfmt::skip]
+    let pattern = Pattern::parse(r#"
+        [(MAP(TEXT("id"):NUMBER))*, (ANY)*, (MAP(TEXT("name"):TEXT))*]
+    "#).unwrap();
     let pattern_creation_time = start.elapsed();
 
     // Create test data with many elements to test backtracking performance
@@ -113,7 +116,10 @@ fn test_large_array_with_search_performance() {
     let start = Instant::now();
 
     // Search pattern that needs to traverse a large structure
-    let pattern = Pattern::parse(r#"SEARCH(TEXT("needle"))"#).unwrap();
+    #[rustfmt::skip]
+    let pattern = Pattern::parse(r#"
+        SEARCH(TEXT("needle"))
+    "#).unwrap();
     let pattern_creation_time = start.elapsed();
 
     // Create a large array with the needle somewhere in the middle
@@ -171,8 +177,8 @@ fn test_complex_or_pattern_performance() {
     let start = Instant::now();
 
     // Complex OR pattern with many alternatives
-    let pattern = Pattern::parse(
-        r#"
+    #[rustfmt::skip]
+    let pattern = Pattern::parse(r#"
         TAG(1, NUMBER) |
         TAG(2, TEXT) |
         TAG(3, [NUMBER]) |
@@ -182,9 +188,7 @@ fn test_complex_or_pattern_performance() {
         MAP(TEXT("type"):TEXT("admin")) |
         [TEXT("start")] |
         [NUMBER, TEXT, BOOL]
-    "#,
-    )
-    .unwrap();
+    "#).unwrap();
     let pattern_creation_time = start.elapsed();
 
     // Test with a structure that matches one of the later alternatives
@@ -230,7 +234,14 @@ fn test_complex_or_pattern_performance() {
 #[test]
 fn test_vm_instruction_optimization() {
     // Test that complex patterns compile to efficient VM instructions
-    let pattern = Pattern::parse(r#"TAG(100, [(MAP(TEXT("key"):NUMBER])*, TEXT("separator"), (MAP(TEXT("value"):TEXT))*))"#).unwrap();
+    #[rustfmt::skip]
+    let pattern = Pattern::parse(r#"
+        TAG(100, [
+            (
+                MAP(TEXT("key"):NUMBER))*, TEXT("separator"), (MAP(TEXT("value"):TEXT)
+            )*
+        ])
+    "#).unwrap();
 
     // Test multiple matches to ensure VM optimization is effective
     let test_cases = vec![
@@ -269,7 +280,10 @@ fn test_edge_case_performance() {
     // Test performance with edge cases that could cause exponential behavior
 
     // Simpler pattern with repeats that should match the test data
-    let pattern = Pattern::parse(r#"[(ANY)*]"#).unwrap();
+    #[rustfmt::skip]
+    let pattern = Pattern::parse(r#"
+        [(ANY)*]
+    "#).unwrap();
 
     // Large array that the pattern should definitely match
     let large_array = parse_dcbor_item(

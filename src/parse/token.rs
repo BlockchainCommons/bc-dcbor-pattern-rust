@@ -57,9 +57,6 @@ pub enum Token {
     #[token("MAP")]
     Map,
 
-    #[token("ARRAY")]
-    Array,
-
     // Value Pattern Keywords
     #[token("BOOL")]
     Bool,
@@ -319,7 +316,6 @@ mod tests {
         assert_eq!(Token::lexer("?").next(), Some(Ok(Token::RepeatZeroOrOne)));
 
         // Test structure pattern keywords
-        assert_eq!(Token::lexer("ARRAY").next(), Some(Ok(Token::Array)));
         assert_eq!(Token::lexer("MAP").next(), Some(Ok(Token::Map)));
         assert_eq!(Token::lexer("TAG").next(), Some(Ok(Token::Tagged)));
 

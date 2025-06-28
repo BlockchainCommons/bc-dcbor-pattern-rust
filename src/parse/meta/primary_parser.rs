@@ -1,6 +1,6 @@
 use super::super::{
     Token,
-    structure::{parse_array, parse_map, parse_tagged},
+    structure::{parse_map, parse_tagged},
     value::{
         parse_bool, parse_bytestring, parse_date, parse_digest,
         parse_known_value, parse_null, parse_number, parse_text,
@@ -15,7 +15,7 @@ use crate::{Error, Pattern, Result};
 /// - Parenthesized group patterns
 /// - Capture patterns (@name(...))
 /// - All atomic value patterns (BOOL, TEXT, NUMBER, etc.)
-/// - All structure patterns (ARRAY, MAP, TAG)
+/// - All structure patterns (Array, Map, Tagged)
 pub(crate) fn parse_primary(
     lexer: &mut logos::Lexer<Token>,
 ) -> Result<Pattern> {
@@ -70,7 +70,6 @@ pub(crate) fn parse_primary(
         Token::Text => parse_text(lexer),
 
         // Structure patterns
-        Token::Array => parse_array(lexer),
         Token::Map => parse_map(lexer),
         Token::Tagged => parse_tagged(lexer),
 
