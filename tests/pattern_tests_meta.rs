@@ -715,12 +715,14 @@ fn test_search_pattern_with_captures() {
     let pattern = Pattern::search(inner_pattern);
 
     // Test with a nested structure
-    let data = cbor("[1, {\"key\": 42}, 3]");
+    let data = cbor(r#"[1, {"key": 42}, 3]"#);
     let paths = pattern.paths(&data);
     #[rustfmt::skip]
-    let expected = r#"[1, {"key": 42}, 3]
-    {"key": 42}
-        42"#;
+    let expected = indoc! {r#"
+        [1, {"key": 42}, 3]
+            {"key": 42}
+                42
+    "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Display should show the capture in the search
@@ -731,16 +733,15 @@ fn test_search_pattern_with_captures() {
 fn test_search_pattern_paths() {
     let pattern = Pattern::search(Pattern::text("target"));
 
-    let data = cbor(
-        r#"
-    {
-        "level1": {
-            "level2": ["target", "other"]
-        },
-        "another": "target"
-    }
-    "#,
-    );
+    #[rustfmt::skip]
+    let data = cbor(r#"
+        {
+            "level1": {
+                "level2": ["target", "other"]
+            },
+            "another": "target"
+        }
+    "#);
 
     let paths = pattern.paths(&data);
 
@@ -773,27 +774,70 @@ fn test_search_pattern_with_structure_pattern() {
     // Search for any array
     let pattern = Pattern::search(Pattern::parse("ARRAY").unwrap());
 
-    let data = cbor(
-        r#"
-    {
-        "arrays": [[1, 2], [3, 4]],
-        "not_array": 42
-    }
-    "#,
-    );
+    #[rustfmt::skip]
+    let data = cbor(r#"
+        {
+            "arrays": [[1, 2], [3, 4]],
+            "not_array": 42
+        }
+    "#);
 
     let paths = pattern.paths(&data);
     // Should find the outer arrays structure and the inner arrays
     #[rustfmt::skip]
-    let expected = r#"{"arrays": [[1, 2], [3, 4]], "not_array": 42}
-    [[1, 2], [3, 4]]
-{"arrays": [[1, 2], [3, 4]], "not_array": 42}
-    [[1, 2], [3, 4]]
-        [1, 2]
-{"arrays": [[1, 2], [3, 4]], "not_array": 42}
-    [[1, 2], [3, 4]]
-        [3, 4]"#;
+    let expected = indoc! {r#"
+        {"arrays": [[1, 2], [3, 4]], "not_array": 42}
+            [[1, 2], [3, 4]]
+        {"arrays": [[1, 2], [3, 4]], "not_array": 42}
+            [[1, 2], [3, 4]]
+                [1, 2]
+        {"arrays": [[1, 2], [3, 4]], "not_array": 42}
+            [[1, 2], [3, 4]]
+                [3, 4]
+    "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
     assert!(paths.len() >= 3); // The "arrays" value plus the two inner arrays
+}
+
+#[test]
+fn test_search_array_order() {
+    let data = cbor(r#"[[1, 2, 3], [4, 5, 6]]"#);
+    let pattern = Pattern::parse("SEARCH(ARRAY)").unwrap();
+
+    let paths = pattern.paths(&data);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        [[1, 2, 3], [4, 5, 6]]
+        [[1, 2, 3], [4, 5, 6]]
+            [1, 2, 3]
+        [[1, 2, 3], [4, 5, 6]]
+            [4, 5, 6]
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    let pattern = Pattern::parse("SEARCH(NUMBER)").unwrap();
+    let paths = pattern.paths(&data);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        [[1, 2, 3], [4, 5, 6]]
+            [1, 2, 3]
+                1
+        [[1, 2, 3], [4, 5, 6]]
+            [1, 2, 3]
+                2
+        [[1, 2, 3], [4, 5, 6]]
+            [1, 2, 3]
+                3
+        [[1, 2, 3], [4, 5, 6]]
+            [4, 5, 6]
+                4
+        [[1, 2, 3], [4, 5, 6]]
+            [4, 5, 6]
+                5
+        [[1, 2, 3], [4, 5, 6]]
+            [4, 5, 6]
+                6
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
 }
