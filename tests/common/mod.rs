@@ -4,7 +4,7 @@
 /// when they do not match, especially for complex structures like CBOR data
 /// where the output may be multi-line or contain significant whitespace.
 ///
-/// General usage pattern:
+/// General usage rubric:
 /// - Run your test with this macro, and a dummy expected value so the test
 ///   fails.
 /// - Observe the actual output printed to the console.
