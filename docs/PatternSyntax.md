@@ -4,7 +4,9 @@ This syntax is inspired by regular expressions but is specifically designed for 
 
 The pattern syntax is designed to be flexible and expressive. Patterns can be composed of *value patterns*, *structure patterns*, and combinators known as *meta-patterns*.
 
-Keywords like `BOOL`, `MAP`, `TAG`, etc., are case-sensitive and must be written in uppercase. Patterns can include specific values, ranges, or regexes to match against the corresponding parts of the dCBOR item. Arrays use the new bracket syntax `[...]` for improved readability.
+Keywords like `BOOL`, `MAP`, `TAG`, etc., are case-sensitive and must be written in uppercase. Patterns can include specific values, ranges, or regexes to match against the corresponding parts of the dCBOR item.
+
+Arrays use bracket syntax `[...]`.
 
 Spaces may used to separate different parts of the pattern.
 
@@ -107,7 +109,7 @@ Structure patterns match parts of dCBOR items.
             - `[(ANY)*, NUMBER(42), (ANY)*]` - Array containing 42 anywhere within it
             - `[NUMBER(42), (ANY)*]` - Array starting with 42, followed by any elements
             - `[(ANY)*, NUMBER(42)]` - Array ending with 42, preceded by any elements
-- Map
+- Map (old)
     - `MAP`
         - Matches any map.
     - `MAP ( n )`
@@ -115,6 +117,15 @@ Structure patterns match parts of dCBOR items.
     - `MAP ( { n , m } )`
         - Matches a map with between `n` and `m` entries, inclusive.
     - `MAP ( pattern: pattern, pattern: pattern, ... )`
+        - Matches if the specified patterns match the map's keys and values (order isn't important).
+- Map (new)
+    - `{ * }`
+        - Matches any map.
+    - `{ { n } }`
+        - Matches a map with exactly `n` entries.
+    - `{ { n , m } }`
+        - Matches a map with between `n` and `m` entries, inclusive.
+    - `{ pattern: pattern, pattern: pattern, ... }`
         - Matches if the specified patterns match the map's keys and values (order isn't important).
 - Tagged
     - `TAG`
