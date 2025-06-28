@@ -348,6 +348,29 @@ impl Pattern {
         ))
     }
 
+    /// Creates a pattern that matches any array.
+    pub fn any_array() -> Self {
+        Pattern::Structure(crate::pattern::structure::StructurePattern::Array(
+            crate::pattern::structure::ArrayPattern::any(),
+        ))
+    }
+
+    /// Creates a pattern that matches any map.
+    pub fn any_map() -> Self {
+        Pattern::Structure(crate::pattern::structure::StructurePattern::Map(
+            crate::pattern::structure::MapPattern::any(),
+        ))
+    }
+
+    /// Creates a pattern that matches any tagged value.
+    pub fn any_tagged() -> Self {
+        Pattern::Structure(crate::pattern::structure::StructurePattern::Tagged(
+            crate::pattern::structure::TaggedPattern::any(),
+        ))
+    }
+}
+
+impl Pattern {
     /// Parse a pattern expression from a string.
     ///
     /// This method supports the full dCBOR pattern syntax including:
@@ -387,26 +410,13 @@ impl Pattern {
             }
         }
     }
+}
 
-    /// Creates a pattern that matches any array.
-    pub fn any_array() -> Self {
-        Pattern::Structure(crate::pattern::structure::StructurePattern::Array(
-            crate::pattern::structure::ArrayPattern::any(),
-        ))
-    }
+impl TryFrom<&str> for Pattern {
+    type Error = Error;
 
-    /// Creates a pattern that matches any map.
-    pub fn any_map() -> Self {
-        Pattern::Structure(crate::pattern::structure::StructurePattern::Map(
-            crate::pattern::structure::MapPattern::any(),
-        ))
-    }
-
-    /// Creates a pattern that matches any tagged value.
-    pub fn any_tagged() -> Self {
-        Pattern::Structure(crate::pattern::structure::StructurePattern::Tagged(
-            crate::pattern::structure::TaggedPattern::any(),
-        ))
+    fn try_from(value: &str) -> Result<Self> {
+        Self::parse(value)
     }
 }
 
