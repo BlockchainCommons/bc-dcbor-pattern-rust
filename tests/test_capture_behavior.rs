@@ -1,7 +1,14 @@
+mod common;
+
+use dcbor_parse::parse_dcbor_item;
+use dcbor_pattern::{
+    FormatPathsOpts, Matcher, Pattern, format_paths_with_captures,
+};
+use indoc::indoc;
+
 #[cfg(test)]
 mod test_capture_behavior {
-    use dcbor_parse::parse_dcbor_item;
-    use dcbor_pattern::{Matcher, Pattern};
+    use super::*;
 
     #[test]
     fn test_capture_deduplication_behavior() {
@@ -11,34 +18,44 @@ mod test_capture_behavior {
 
         let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
-        println!("=== PATHS ===");
-        for (i, path) in paths.iter().enumerate() {
-            println!("{}: {:?}", i, path);
-        }
-
-        println!("\n=== CAPTURES ===");
-        for (name, captured_paths) in &captures {
-            println!("@{}: {} paths", name, captured_paths.len());
-            for (i, path) in captured_paths.iter().enumerate() {
-                println!("  {}: {:?}", i, path);
-            }
-        }
-
-        // The key question: should we capture the value 42 twice (since it appears twice in different positions)
-        // or should we deduplicate and only capture it once?
+        // Test that we get the expected formatted output with captures
+        // The key question: should we capture the value 42 twice (since it
+        // appears twice in different positions) or should we
+        // deduplicate and only capture it once?
 
         // Based on the user's request, captures should be unique paths
-        // But the paths to [array, 42_at_index_0] and [array, 42_at_index_2] are DIFFERENT paths
-        // So both should be captured!
+        // But the paths to [array, 42_at_index_0] and [array, 42_at_index_2]
+        // are DIFFERENT paths So both should be captured!
 
+        #[rustfmt::skip]
+        let expected = indoc! {r#"
+            @item
+                [42, 100, 42]
+                    42
+            [42, 100, 42]
+        "#}.trim();
+
+        assert_actual_expected!(
+            format_paths_with_captures(
+                &paths,
+                &captures,
+                FormatPathsOpts::default()
+            ),
+            expected
+        );
+
+        // Also verify the capture count programmatically
         if let Some(item_captures) = captures.get("item") {
-            // These should be two different paths: [array, 42] where 42 is at different indices
-            // But in CBOR, we don't have index information in the path - just the values
-            // So the paths might actually be identical: [array, 42]
-            println!("Number of captures: {}", item_captures.len());
-            for (i, path) in item_captures.iter().enumerate() {
-                println!("Capture {}: {:?}", i, path);
-            }
+            // The pattern only matches NUMBER(42), so we should only capture it
+            // once even though it appears twice in the array,
+            // because paths are deduplicated
+            assert_eq!(
+                item_captures.len(),
+                1,
+                "Should capture the value 42 only once due to path deduplication"
+            );
+        } else {
+            panic!("Expected 'item' capture to exist");
         }
     }
 
@@ -50,17 +67,39 @@ mod test_capture_behavior {
 
         let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
-        println!("=== PATHS ===");
-        for (i, path) in paths.iter().enumerate() {
-            println!("{}: {:?}", i, path);
-        }
+        // Test the formatted output to understand path uniqueness
+        #[rustfmt::skip]
+        let expected = indoc! {r#"
+            @item
+                [42, 100, 42]
+                    42
+                [42, 100, 42]
+                    100
+            [42, 100, 42]
+                42
+            [42, 100, 42]
+            [42, 100, 42]
+                100
+        "#}.trim();
 
-        println!("\n=== CAPTURES ===");
-        for (name, captured_paths) in &captures {
-            println!("@{}: {} paths", name, captured_paths.len());
-            for (i, path) in captured_paths.iter().enumerate() {
-                println!("  {}: {:?}", i, path);
-            }
+        assert_actual_expected!(
+            format_paths_with_captures(
+                &paths,
+                &captures,
+                FormatPathsOpts::default()
+            ),
+            expected
+        );
+
+        // Verify we capture all unique array elements
+        if let Some(item_captures) = captures.get("item") {
+            assert_eq!(
+                item_captures.len(),
+                2,
+                "Should capture 2 unique elements (42 and 100), with 42 deduplicated"
+            );
+        } else {
+            panic!("Expected 'item' capture to exist");
         }
     }
 }
