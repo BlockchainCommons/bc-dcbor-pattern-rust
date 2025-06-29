@@ -70,7 +70,7 @@ mod test_comprehensive_variadic_sequences {
         );
 
         // Multiple elements should match (multiple repetitions)
-        let (paths, _captures) =
+        let (paths, captures) =
             pattern.paths_with_captures(&multiple_elements);
         assert!(
             !paths.is_empty(),
@@ -85,7 +85,7 @@ mod test_comprehensive_variadic_sequences {
         assert_actual_expected!(
             format_paths_with_captures(
                 &paths,
-                &_captures,
+                &captures,
                 FormatPathsOpts::default()
             ),
             expected_multiple
@@ -210,8 +210,10 @@ mod test_comprehensive_variadic_sequences {
 
     #[test]
     fn test_exactly_once_default() {
-        // Pattern: [(ANY){1}] should match arrays with exactly one element
-        let pattern = Pattern::parse("[(ANY){1}]").unwrap();
+        // Pattern: [(ANY)] should match arrays with exactly one element
+        // This tests that undecorated parentheses are interpreted as
+        // RepeatPattern with "exactly one" quantifier
+        let pattern = Pattern::parse("[(ANY)]").unwrap();
 
         // Test cases
         let empty_array = parse_dcbor_item("[]").unwrap();
@@ -220,16 +222,13 @@ mod test_comprehensive_variadic_sequences {
 
         // Empty array should NOT match (requires exactly one)
         let (paths, _captures) = pattern.paths_with_captures(&empty_array);
-        assert!(
-            paths.is_empty(),
-            "[(ANY){{1}}] should NOT match empty array"
-        );
+        assert!(paths.is_empty(), "[(ANY)] should NOT match empty array");
 
         // Single element should match (exactly one repetition)
-        let (paths, _captures) = pattern.paths_with_captures(&single_element);
+        let (paths, captures) = pattern.paths_with_captures(&single_element);
         assert!(
             !paths.is_empty(),
-            "[(ANY){{1}}] should match single element array"
+            "[(ANY)] should match single element array"
         );
 
         #[rustfmt::skip]
@@ -240,7 +239,7 @@ mod test_comprehensive_variadic_sequences {
         assert_actual_expected!(
             format_paths_with_captures(
                 &paths,
-                &_captures,
+                &captures,
                 FormatPathsOpts::default()
             ),
             expected_single
@@ -251,7 +250,7 @@ mod test_comprehensive_variadic_sequences {
             pattern.paths_with_captures(&multiple_elements);
         assert!(
             paths.is_empty(),
-            "[(ANY){{1}}] should NOT match multiple element array"
+            "[(ANY)] should NOT match multiple element array"
         );
     }
 
@@ -598,7 +597,7 @@ mod test_comprehensive_variadic_sequences {
         let only_numbers = parse_dcbor_item("[1, 2]").unwrap();
 
         // Numbers then text should match and capture the text
-        let (paths, _captures) =
+        let (paths, captures) =
             pattern.paths_with_captures(&numbers_then_text);
         assert!(
             !paths.is_empty(),
@@ -606,27 +605,27 @@ mod test_comprehensive_variadic_sequences {
         );
 
         // Should have captured the text item
-        assert!(_captures.contains_key("item"), "Should have @item capture");
+        assert!(captures.contains_key("item"), "Should have @item capture");
 
         // Only text should match (zero numbers, one text)
-        let (paths, _captures) = pattern.paths_with_captures(&only_text);
+        let (paths, captures) = pattern.paths_with_captures(&only_text);
         assert!(
             !paths.is_empty(),
             "[(NUMBER)*, @item(TEXT)] should match only text"
         );
         assert!(
-            _captures.contains_key("item"),
+            captures.contains_key("item"),
             "Should have @item capture for text-only"
         );
 
         // Only numbers should NOT match (missing required text)
-        let (paths, _captures) = pattern.paths_with_captures(&only_numbers);
+        let (paths, captures) = pattern.paths_with_captures(&only_numbers);
         assert!(
             paths.is_empty(),
             "[(NUMBER)*, @item(TEXT)] should NOT match only numbers"
         );
         assert!(
-            _captures.is_empty(),
+            captures.is_empty(),
             "Should have no captures when no match"
         );
 

@@ -46,7 +46,8 @@ pub(crate) fn parse_primary(
             match lexer.next() {
                 Some(Ok(Token::ParenClose)) => {
                     // After closing parenthesis, check for quantifiers
-                    super::parse_quantifier(pattern, lexer)
+                    // Always force RepeatPattern creation for parentheses
+                    super::parse_quantifier(pattern, lexer, true)
                 }
                 Some(Ok(token)) => {
                     Err(Error::UnexpectedToken(Box::new(token), lexer.span()))

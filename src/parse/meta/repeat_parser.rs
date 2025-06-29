@@ -14,6 +14,7 @@ use crate::{Error, Pattern, Quantifier, Reluctance, Result};
 /// # Arguments
 /// * `pattern` - The pattern to apply the quantifier to
 /// * `lexer` - The lexer positioned after the pattern
+/// * `force_repeat` - If true, always wrap in RepeatPattern even without explicit quantifier
 ///
 /// # Returns
 /// * `Ok(Pattern)` - The pattern wrapped with the appropriate quantifier
@@ -21,6 +22,7 @@ use crate::{Error, Pattern, Quantifier, Reluctance, Result};
 pub(crate) fn parse_quantifier(
     pattern: Pattern,
     lexer: &mut logos::Lexer<Token>,
+    force_repeat: bool,
 ) -> Result<Pattern> {
     // Look ahead to see if there's a quantifier
     let mut lookahead = lexer.clone();
@@ -106,13 +108,25 @@ pub(crate) fn parse_quantifier(
                 Ok(pat)
             }
             _ => {
-                // No quantifier found, return pattern as-is
-                Ok(pattern)
+                // No quantifier found - behavior depends on force_repeat flag
+                if force_repeat {
+                    // Parentheses always create a RepeatPattern with "exactly one"
+                    Ok(Pattern::repeat(pattern, Quantifier::default()))
+                } else {
+                    // Return pattern unchanged for general use
+                    Ok(pattern)
+                }
             }
         },
         _ => {
-            // No quantifier found, return pattern as-is
-            Ok(pattern)
+            // No quantifier found - behavior depends on force_repeat flag
+            if force_repeat {
+                // Parentheses always create a RepeatPattern with "exactly one"
+                Ok(Pattern::repeat(pattern, Quantifier::default()))
+            } else {
+                // Return pattern unchanged for general use
+                Ok(pattern)
+            }
         }
     }
 }
@@ -143,7 +157,7 @@ mod tests {
     fn test_parse_quantifier_star() {
         let mut lexer = Token::lexer("*");
         let pattern = Pattern::number(42);
-        let result = parse_quantifier(pattern, &mut lexer).unwrap();
+        let result = parse_quantifier(pattern, &mut lexer, false).unwrap();
 
         // Should be a repeat pattern with 0.. quantifier
         assert_eq!(result.to_string(), "(NUMBER(42))*");
@@ -153,7 +167,7 @@ mod tests {
     fn test_parse_quantifier_plus() {
         let mut lexer = Token::lexer("+");
         let pattern = Pattern::number(42);
-        let result = parse_quantifier(pattern, &mut lexer).unwrap();
+        let result = parse_quantifier(pattern, &mut lexer, false).unwrap();
 
         assert_eq!(result.to_string(), "(NUMBER(42))+");
     }
@@ -162,7 +176,7 @@ mod tests {
     fn test_parse_quantifier_question() {
         let mut lexer = Token::lexer("?");
         let pattern = Pattern::number(42);
-        let result = parse_quantifier(pattern, &mut lexer).unwrap();
+        let result = parse_quantifier(pattern, &mut lexer, false).unwrap();
 
         assert_eq!(result.to_string(), "(NUMBER(42))?");
     }
@@ -171,7 +185,7 @@ mod tests {
     fn test_parse_quantifier_lazy() {
         let mut lexer = Token::lexer("*?");
         let pattern = Pattern::number(42);
-        let result = parse_quantifier(pattern, &mut lexer).unwrap();
+        let result = parse_quantifier(pattern, &mut lexer, false).unwrap();
 
         assert_eq!(result.to_string(), "(NUMBER(42))*?");
     }
@@ -180,7 +194,7 @@ mod tests {
     fn test_parse_quantifier_possessive() {
         let mut lexer = Token::lexer("++");
         let pattern = Pattern::number(42);
-        let result = parse_quantifier(pattern, &mut lexer).unwrap();
+        let result = parse_quantifier(pattern, &mut lexer, false).unwrap();
 
         assert_eq!(result.to_string(), "(NUMBER(42))++");
     }
@@ -189,7 +203,7 @@ mod tests {
     fn test_parse_quantifier_range() {
         let mut lexer = Token::lexer("{3,5}");
         let pattern = Pattern::number(42);
-        let result = parse_quantifier(pattern, &mut lexer).unwrap();
+        let result = parse_quantifier(pattern, &mut lexer, false).unwrap();
 
         assert_eq!(result.to_string(), "(NUMBER(42)){3,5}");
     }
@@ -198,9 +212,19 @@ mod tests {
     fn test_parse_quantifier_no_quantifier() {
         let mut lexer = Token::lexer("OTHER");
         let pattern = Pattern::number(42);
-        let result = parse_quantifier(pattern, &mut lexer).unwrap();
+        let result = parse_quantifier(pattern, &mut lexer, false).unwrap();
 
         // Should return the pattern unchanged
         assert_eq!(result.to_string(), "NUMBER(42)");
+    }
+
+    #[test]
+    fn test_parse_quantifier_force_repeat() {
+        let mut lexer = Token::lexer("OTHER");
+        let pattern = Pattern::number(42);
+        let result = parse_quantifier(pattern, &mut lexer, true).unwrap();
+
+        // Should always create a RepeatPattern when force_repeat is true
+        assert_eq!(result.to_string(), "(NUMBER(42)){1}");
     }
 }

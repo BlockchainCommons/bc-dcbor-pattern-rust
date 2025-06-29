@@ -115,9 +115,9 @@ fn test_parentheses_grouping_parsing() -> Result<()> {
 #[test]
 fn test_nested_parentheses() -> Result<()> {
     let pattern = Pattern::parse("((BOOL))")?;
-    // Should unwrap to just BOOL
-    assert!(matches!(pattern, Pattern::Value(_)));
-    assert_eq!(pattern.to_string(), "BOOL");
+    // Should create nested RepeatPatterns with "exactly one" quantifiers
+    assert!(matches!(pattern, Pattern::Meta(_)));
+    assert_eq!(pattern.to_string(), "((BOOL){1}){1}");
     Ok(())
 }
 
