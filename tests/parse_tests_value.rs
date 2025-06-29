@@ -6,7 +6,7 @@ fn cbor(s: &str) -> dcbor::CBOR { parse_dcbor_item(s).unwrap() }
 
 #[test]
 fn parse_bool_any() {
-    let src = "BOOL";
+    let src = "bool";
     let p = Pattern::parse(src).unwrap();
     assert_eq!(p, Pattern::any_bool());
     assert_eq!(p.to_string(), src);
@@ -14,28 +14,28 @@ fn parse_bool_any() {
 
 #[test]
 fn parse_bool_true() {
-    let src = "BOOL(true)";
+    let src = "true";
     let p = Pattern::parse(src).unwrap();
     assert_eq!(p, Pattern::bool(true));
     assert_eq!(p.to_string(), src);
 
-    let spaced = "BOOL ( true )";
-    let p_spaced = Pattern::parse(spaced).unwrap();
-    assert_eq!(p_spaced, Pattern::bool(true));
-    assert_eq!(p_spaced.to_string(), src);
+    // Test that the standalone 'true' pattern works correctly
+    let parsed_standalone = Pattern::parse("true").unwrap();
+    assert_eq!(parsed_standalone, Pattern::bool(true));
+    assert_eq!(parsed_standalone.to_string(), "true");
 }
 
 #[test]
 fn parse_bool_false() {
-    let src = "BOOL(false)";
+    let src = "false";
     let p = Pattern::parse(src).unwrap();
     assert_eq!(p, Pattern::bool(false));
     assert_eq!(p.to_string(), src);
 
-    let spaced = "BOOL ( false )";
-    let p_spaced = Pattern::parse(spaced).unwrap();
-    assert_eq!(p_spaced, Pattern::bool(false));
-    assert_eq!(p_spaced.to_string(), src);
+    // Test that the standalone 'false' pattern works correctly
+    let parsed_standalone = Pattern::parse("false").unwrap();
+    assert_eq!(parsed_standalone, Pattern::bool(false));
+    assert_eq!(parsed_standalone.to_string(), "false");
 }
 
 #[test]

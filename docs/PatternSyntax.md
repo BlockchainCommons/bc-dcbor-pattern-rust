@@ -4,7 +4,7 @@ This syntax is inspired by regular expressions but is specifically designed for 
 
 The pattern syntax is designed to be flexible and expressive. Patterns can be composed of *value patterns*, *structure patterns*, and combinators known as *meta-patterns*.
 
-Keywords like `BOOL`, `TAG`, etc., are case-sensitive and must be written in uppercase. Patterns can include specific values, ranges, or regexes to match against the corresponding parts of the dCBOR item.
+Keywords like `TAG`, `NUMBER`, etc., are case-sensitive. Most pattern keywords use uppercase, with some exceptions like boolean patterns (`bool`, `true`, `false`). Patterns can include specific values, ranges, or regexes to match against the corresponding parts of the dCBOR item.
 
 Arrays use bracket syntax `[...]`.
 
@@ -21,11 +21,11 @@ White space is ignored between tokens, so you can use it to make patterns more r
 All value patterns match atomic CBOR values.
 
 - Boolean
-    - `BOOL`
+    - `bool`
         - Matches any boolean value.
-    - `BOOL ( true )`
+    - `true`
         - Matches the boolean value `true`.
-    - `BOOL ( false )`
+    - `false`
         - Matches the boolean value `false`.
 - ByteString
     - `BSTR`

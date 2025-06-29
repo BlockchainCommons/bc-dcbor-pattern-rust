@@ -2,7 +2,7 @@ use super::super::{
     Token,
     structure::parse_tagged,
     value::{
-        parse_bool, parse_bytestring, parse_date, parse_digest,
+        parse_bool, parse_bool_true, parse_bool_false, parse_bytestring, parse_date, parse_digest,
         parse_known_value, parse_null, parse_number, parse_text,
     },
 };
@@ -14,7 +14,7 @@ use crate::{Error, MapPattern, Pattern, Result};
 /// - ANY, NONE, and SEARCH meta patterns
 /// - Parenthesized group patterns
 /// - Capture patterns (@name(...))
-/// - All atomic value patterns (BOOL, TEXT, NUMBER, etc.)
+/// - All atomic value patterns (bool, TEXT, NUMBER, etc.)
 /// - All structure patterns (Array, Map, Tagged)
 pub(crate) fn parse_primary(
     lexer: &mut logos::Lexer<Token>,
@@ -62,6 +62,8 @@ pub(crate) fn parse_primary(
 
         // Value patterns
         Token::Bool => parse_bool(lexer),
+        Token::BoolTrue => parse_bool_true(lexer),
+        Token::BoolFalse => parse_bool_false(lexer),
         Token::ByteString => parse_bytestring(lexer),
         Token::Date => parse_date(lexer),
         Token::Digest => parse_digest(lexer),

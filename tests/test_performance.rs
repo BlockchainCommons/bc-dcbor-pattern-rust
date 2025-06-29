@@ -183,11 +183,11 @@ fn test_complex_or_pattern_performance() {
         TAG(2, TEXT) |
         TAG(3, [NUMBER]) |
         TAG(4, {TEXT: ANY}) |
-        TAG(5, BOOL) |
+        TAG(5, bool) |
         {TEXT("type"): TEXT("user")} |
         {TEXT("type"): TEXT("admin")} |
         [TEXT("start")] |
-        [NUMBER, TEXT, BOOL]
+        [NUMBER, TEXT, bool]
     "#).unwrap();
     let pattern_creation_time = start.elapsed();
 
@@ -259,7 +259,11 @@ fn test_vm_instruction_optimization() {
 
         // Also validate paths for correctness
         let paths = pattern.paths(&data);
-        assert!(!paths.is_empty(), "Should generate paths for test case: {}", test_case);
+        assert!(
+            !paths.is_empty(),
+            "Should generate paths for test case: {}",
+            test_case
+        );
     }
     let total_time = total_start.elapsed();
 
@@ -270,8 +274,8 @@ fn test_vm_instruction_optimization() {
     );
 
     // println!(
-    //     "VM optimization performance - Total time for 4 complex matches: {:?}",
-    //     total_time
+    //     "VM optimization performance - Total time for 4 complex matches:
+    // {:?}",     total_time
     // );
 }
 

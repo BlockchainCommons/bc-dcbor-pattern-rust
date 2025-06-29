@@ -50,8 +50,9 @@ impl Matcher for BoolPattern {
 impl std::fmt::Display for BoolPattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            BoolPattern::Any => write!(f, "BOOL"),
-            BoolPattern::Value(value) => write!(f, "BOOL({})", value),
+            BoolPattern::Any => write!(f, "bool"),
+            BoolPattern::Value(true) => write!(f, "true"),
+            BoolPattern::Value(false) => write!(f, "false"),
         }
     }
 }
@@ -62,9 +63,9 @@ mod tests {
 
     #[test]
     fn test_bool_pattern_display() {
-        assert_eq!(BoolPattern::any().to_string(), "BOOL");
-        assert_eq!(BoolPattern::value(true).to_string(), "BOOL(true)");
-        assert_eq!(BoolPattern::value(false).to_string(), "BOOL(false)");
+        assert_eq!(BoolPattern::any().to_string(), "bool");
+        assert_eq!(BoolPattern::value(true).to_string(), "true");
+        assert_eq!(BoolPattern::value(false).to_string(), "false");
     }
 
     #[test]

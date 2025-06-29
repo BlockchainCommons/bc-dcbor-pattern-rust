@@ -321,7 +321,7 @@ fn test_map_key_value_constraints_pattern_text_parsing() {
 fn test_map_key_value_constraints_complex_patterns() {
     // Test with complex nested patterns
     let pattern =
-        Pattern::parse(r#"{ANY:TEXT("target"), NUMBER(42):BOOL(true)}"#)
+        Pattern::parse(r#"{ANY:TEXT("target"), NUMBER(42):true}"#)
             .unwrap();
 
     let matching_map =

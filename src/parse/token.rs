@@ -52,7 +52,7 @@ pub enum Token {
     Tagged,
 
     // Value Pattern Keywords
-    #[token("BOOL")]
+    #[token("bool")]
     Bool,
 
     #[token("BSTR")]
@@ -351,7 +351,7 @@ mod tests {
         assert_eq!(Token::lexer("TAG").next(), Some(Ok(Token::Tagged)));
 
         // Test leaf pattern keywords
-        assert_eq!(Token::lexer("BOOL").next(), Some(Ok(Token::Bool)));
+        assert_eq!(Token::lexer("bool").next(), Some(Ok(Token::Bool)));
         assert_eq!(Token::lexer("TEXT").next(), Some(Ok(Token::Text)));
         assert_eq!(Token::lexer("NUMBER").next(), Some(Ok(Token::Number)));
 

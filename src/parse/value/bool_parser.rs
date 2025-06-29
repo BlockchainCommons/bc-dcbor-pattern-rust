@@ -1,37 +1,20 @@
 use crate::{Error, Pattern, Result, parse::Token};
 
 pub(crate) fn parse_bool(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
-    let mut lookahead = lexer.clone();
-    match lookahead.next() {
-        Some(Ok(Token::ParenOpen)) => {
-            lexer.next();
+    // Just return the pattern for any boolean
+    Ok(Pattern::any_bool())
+}
 
-            let value_token = match lexer.next() {
-                Some(Ok(tok)) => tok,
-                Some(Err(e)) => return Err(e),
-                None => return Err(Error::UnexpectedEndOfInput),
-            };
+pub(crate) fn parse_bool_true(
+    _lexer: &mut logos::Lexer<Token>,
+) -> Result<Pattern> {
+    // Return pattern for the specific boolean value true
+    Ok(Pattern::bool(true))
+}
 
-            let value = match value_token {
-                Token::BoolTrue => true,
-                Token::BoolFalse => false,
-                t => {
-                    return Err(Error::UnexpectedToken(
-                        Box::new(t),
-                        lexer.span(),
-                    ));
-                }
-            };
-
-            match lexer.next() {
-                Some(Ok(Token::ParenClose)) => Ok(Pattern::bool(value)),
-                Some(Ok(t)) => {
-                    Err(Error::UnexpectedToken(Box::new(t), lexer.span()))
-                }
-                Some(Err(e)) => Err(e),
-                None => Err(Error::ExpectedCloseParen(lexer.span())),
-            }
-        }
-        _ => Ok(Pattern::any_bool()),
-    }
+pub(crate) fn parse_bool_false(
+    _lexer: &mut logos::Lexer<Token>,
+) -> Result<Pattern> {
+    // Return pattern for the specific boolean value false
+    Ok(Pattern::bool(false))
 }

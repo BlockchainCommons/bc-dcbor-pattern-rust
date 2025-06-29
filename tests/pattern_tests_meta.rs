@@ -119,7 +119,7 @@ fn test_or_pattern() {
     assert!(!pattern.matches(&cbor("false")));
 
     // Display should use | operator
-    assert_eq!(pattern.to_string(), r#"NUMBER(5)|TEXT("hello")|BOOL(true)"#);
+    assert_eq!(pattern.to_string(), r#"NUMBER(5)|TEXT("hello")|true"#);
 }
 
 #[test]

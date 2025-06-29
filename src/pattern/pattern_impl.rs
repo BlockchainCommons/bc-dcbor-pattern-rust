@@ -374,7 +374,7 @@ impl Pattern {
     /// Parse a pattern expression from a string.
     ///
     /// This method supports the full dCBOR pattern syntax including:
-    /// - Value patterns: BOOL, TEXT, NUMBER, NULL, BSTR, DATE, DIGEST, KNOWN
+    /// - Value patterns: bool, TEXT, NUMBER, NULL, BSTR, DATE, DIGEST, KNOWN
     /// - Structure patterns: Array, Map, Tagged
     /// - Meta patterns: ANY, NONE, AND (&), OR (|), NOT (!)
     /// - Capture patterns: @name(pattern)
@@ -382,10 +382,12 @@ impl Pattern {
     /// - Quantifiers: *, +, ?, {n,m}
     ///
     /// Examples:
-    /// - `BOOL` - matches any boolean value
+    /// - `bool` - matches any boolean value
+    /// - `true` - matches the boolean value true  
+    /// - `false` - matches the boolean value false
     /// - `TEXT("hello")` - matches the text "hello"
     /// - `NUMBER(1..10)` - matches numbers from 1 to 10
-    /// - `BOOL | TEXT` - matches boolean or text values
+    /// - `bool | TEXT` - matches boolean or text values
     /// - `@name(TEXT)` - captures text with name "name"
     pub fn parse(input: &str) -> Result<Self> {
         use logos::Logos;

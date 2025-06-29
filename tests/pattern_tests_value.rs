@@ -13,7 +13,7 @@ fn parse(s: &str) -> Pattern { Pattern::parse(s).unwrap() }
 
 #[test]
 fn test_bool_pattern_any() {
-    let pattern = parse("BOOL");
+    let pattern = parse("bool");
 
     // Should match true
     let true_cbor = cbor("true");
@@ -40,8 +40,8 @@ fn test_bool_pattern_any() {
 
 #[test]
 fn test_bool_pattern_specific() {
-    let true_pattern = parse("BOOL(true)");
-    let false_pattern = parse("BOOL(false)");
+    let true_pattern = parse("true");
+    let false_pattern = parse("false");
 
     let true_cbor = cbor("true");
     let false_cbor = cbor("false");
@@ -72,9 +72,9 @@ fn test_bool_pattern_specific() {
 
 #[test]
 fn test_bool_pattern_display() {
-    assert_eq!(parse("BOOL").to_string(), "BOOL");
-    assert_eq!(parse("BOOL(true)").to_string(), "BOOL(true)");
-    assert_eq!(parse("BOOL(false)").to_string(), "BOOL(false)");
+    assert_eq!(parse("bool").to_string(), "bool");
+    assert_eq!(parse("true").to_string(), "true");
+    assert_eq!(parse("false").to_string(), "false");
 }
 
 #[test]
