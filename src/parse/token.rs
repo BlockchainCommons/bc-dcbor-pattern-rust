@@ -70,7 +70,7 @@ pub enum Token {
     #[token("NUMBER")]
     Number,
 
-    #[token("TEXT")]
+    #[token("text")]
     Text,
 
     #[token("DIGEST")]
@@ -151,6 +151,9 @@ pub enum Token {
     )]
     GroupName(String),
 
+    #[token("\"", parse_string)]
+    StringLiteral(Result<String>),
+
     #[token("/", parse_regex)]
     Regex(Result<String>),
 
@@ -192,6 +195,46 @@ fn parse_regex(lex: &mut Lexer<Token>) -> Result<String> {
 
     // Unterminated literal – treat as lexing error
     Err(Error::UnterminatedRegex(lex.span()))
+}
+
+/// Callback used by the `StringLiteral` variant above.
+fn parse_string(lex: &mut Lexer<Token>) -> Result<String> {
+    let src = lex.remainder(); // everything after the first '"'
+    let mut escape = false;
+    let mut result = String::new();
+
+    for (i, ch) in src.char_indices() {
+        match (ch, escape) {
+            ('\\', false) => escape = true, // start of an escape
+            ('"', false) => {
+                // Found the closing delimiter
+                lex.bump(i + 1); // +1 to also eat the '"'
+                return Ok(result);
+            }
+            (c, true) => {
+                // Handle escape sequences
+                match c {
+                    '"' => result.push('"'),
+                    '\\' => result.push('\\'),
+                    'n' => result.push('\n'),
+                    'r' => result.push('\r'),
+                    't' => result.push('\t'),
+                    _ => {
+                        result.push('\\');
+                        result.push(c);
+                    }
+                }
+                escape = false;
+            }
+            (c, false) => {
+                result.push(c);
+                escape = false;
+            }
+        }
+    }
+
+    // Unterminated literal – treat as lexing error
+    Err(Error::UnterminatedString(lex.span()))
 }
 
 /// Callback to handle `{` token - determines if it's a Range or BraceOpen
@@ -352,7 +395,7 @@ mod tests {
 
         // Test leaf pattern keywords
         assert_eq!(Token::lexer("bool").next(), Some(Ok(Token::Bool)));
-        assert_eq!(Token::lexer("TEXT").next(), Some(Ok(Token::Text)));
+        assert_eq!(Token::lexer("text").next(), Some(Ok(Token::Text)));
         assert_eq!(Token::lexer("NUMBER").next(), Some(Ok(Token::Number)));
 
         // Test literals

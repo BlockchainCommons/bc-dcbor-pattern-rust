@@ -81,11 +81,11 @@ All value patterns match atomic CBOR values.
     - `NUMBER ( -Infinity )`
         - Matches the negative Infinity value.
 - Text
-    - `TEXT`
+    - `text`
         - Matches any text value.
-    - `TEXT ( "string" )`
+    - `"string"`
         - Matches a text value with the specified string. dCBOR diagnostic notation uses double quotes for text strings, so we use that syntax here for familiarity.
-    - `TEXT ( /regex/ )`
+    - `/text-regex/`
         - Matches a text value that matches the specified regex. No double quotes are used here, as the regex is not a string but a pattern to match against the text value.
 - Digest
     - `DIGEST ( hex )`

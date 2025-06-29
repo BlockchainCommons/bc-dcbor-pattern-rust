@@ -128,7 +128,7 @@ mod tests {
             ("[{3}]", "[1,2]", false),
             ("[NUMBER]", "[42]", true),
             ("[NUMBER]", "[42,43]", false), // Single element only
-            ("[TEXT]", r#"["hello"]"#, true),
+            ("[text]", r#"["hello"]"#, true),
         ];
 
         for (pattern_text, cbor_text, expected_match) in &test_patterns {

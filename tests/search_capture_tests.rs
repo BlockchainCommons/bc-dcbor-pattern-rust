@@ -99,7 +99,7 @@ fn test_search_capture_multiple_matches() {
 
 #[test]
 fn test_search_capture_nested_structure() {
-    let pattern = parse("SEARCH(@deep(TEXT(\"target\")))");
+    let pattern = parse(r#"SEARCH(@deep("target"))"#);
     let cbor_data = cbor(r#"{"level1": {"level2": {"level3": "target"}}}"#);
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
@@ -161,7 +161,7 @@ fn test_search_capture_with_array_elements() {
 
 #[test]
 fn test_search_capture_collect_names() {
-    let pattern = parse("SEARCH(@first(NUMBER)) | SEARCH(@second(TEXT))");
+    let pattern = parse("SEARCH(@first(NUMBER)) | SEARCH(@second(text))");
 
     let mut capture_names = Vec::new();
     pattern.collect_capture_names(&mut capture_names);
@@ -192,7 +192,7 @@ fn test_search_capture_no_match() {
 
 #[test]
 fn test_search_capture_complex_pattern() {
-    let pattern = parse("SEARCH(@found({TEXT(\"id\"): @id_value(NUMBER)}))");
+    let pattern = parse(r#"SEARCH(@found({"id": @id_value(NUMBER)}))"#);
     let cbor_data = cbor(
         r#"{"users": [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]}"#,
     );

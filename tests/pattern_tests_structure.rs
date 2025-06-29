@@ -172,7 +172,7 @@ fn test_tagged_pattern_with_tag() {
 /// Test TaggedPattern::WithContent matches tagged values with matching content
 #[test]
 fn test_tagged_pattern_with_content() {
-    let text_pattern = parse(r#"TEXT("target_content")"#);
+    let text_pattern = parse(r#""target_content""#);
     let pattern = TaggedPattern::with_content(text_pattern);
 
     // Should match tagged value with matching content

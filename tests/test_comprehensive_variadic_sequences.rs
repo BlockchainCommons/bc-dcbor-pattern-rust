@@ -587,10 +587,10 @@ mod test_comprehensive_variadic_sequences {
 
     #[test]
     fn test_quantifiers_with_captures() {
-        // Test: [(NUMBER)*, @item(TEXT)]
+        // Test: [(NUMBER)*, @item(text)]
         // This should match arrays with zero or more numbers followed by a
         // captured text
-        let pattern = Pattern::parse("[(NUMBER)*, @item(TEXT)]").unwrap();
+        let pattern = Pattern::parse("[(NUMBER)*, @item(text)]").unwrap();
 
         let numbers_then_text = parse_dcbor_item(r#"[1, 2, "hello"]"#).unwrap();
         let only_text = parse_dcbor_item(r#"["hello"]"#).unwrap();
@@ -601,7 +601,7 @@ mod test_comprehensive_variadic_sequences {
             pattern.paths_with_captures(&numbers_then_text);
         assert!(
             !paths.is_empty(),
-            "[(NUMBER)*, @item(TEXT)] should match numbers then text"
+            "[(NUMBER)*, @item(text)] should match numbers then text"
         );
 
         // Should have captured the text item
@@ -611,7 +611,7 @@ mod test_comprehensive_variadic_sequences {
         let (paths, captures) = pattern.paths_with_captures(&only_text);
         assert!(
             !paths.is_empty(),
-            "[(NUMBER)*, @item(TEXT)] should match only text"
+            "[(NUMBER)*, @item(text)] should match only text"
         );
         assert!(
             captures.contains_key("item"),
@@ -622,7 +622,7 @@ mod test_comprehensive_variadic_sequences {
         let (paths, captures) = pattern.paths_with_captures(&only_numbers);
         assert!(
             paths.is_empty(),
-            "[(NUMBER)*, @item(TEXT)] should NOT match only numbers"
+            "[(NUMBER)*, @item(text)] should NOT match only numbers"
         );
         assert!(
             captures.is_empty(),
@@ -659,9 +659,9 @@ mod test_comprehensive_variadic_sequences {
 
     #[test]
     fn test_multiple_quantifiers_in_pattern() {
-        // Pattern: [(NUMBER)*, (TEXT)+] should match arrays with zero+ numbers
+        // Pattern: [(NUMBER)*, (text)+] should match arrays with zero+ numbers
         // followed by one+ texts
-        let pattern = Pattern::parse("[(NUMBER)*, (TEXT)+]").unwrap();
+        let pattern = Pattern::parse("[(NUMBER)*, (text)+]").unwrap();
 
         let numbers_then_texts =
             parse_dcbor_item(r#"[1, 2, "a", "b"]"#).unwrap();
@@ -673,28 +673,28 @@ mod test_comprehensive_variadic_sequences {
         let (paths, _) = pattern.paths_with_captures(&numbers_then_texts);
         assert!(
             !paths.is_empty(),
-            "[(NUMBER)*, (TEXT)+] should match numbers then texts"
+            "[(NUMBER)*, (text)+] should match numbers then texts"
         );
 
         // Only texts should match (zero numbers, one+ texts)
         let (paths, _) = pattern.paths_with_captures(&only_texts);
         assert!(
             !paths.is_empty(),
-            "[(NUMBER)*, (TEXT)+] should match only texts"
+            "[(NUMBER)*, (text)+] should match only texts"
         );
 
         // Only numbers should NOT match (missing required texts)
         let (paths, _) = pattern.paths_with_captures(&only_numbers);
         assert!(
             paths.is_empty(),
-            "[(NUMBER)*, (TEXT)+] should NOT match only numbers"
+            "[(NUMBER)*, (text)+] should NOT match only numbers"
         );
 
         // Empty should NOT match (missing required texts)
         let (paths, _) = pattern.paths_with_captures(&empty_array);
         assert!(
             paths.is_empty(),
-            "[(NUMBER)*, (TEXT)+] should NOT match empty array"
+            "[(NUMBER)*, (text)+] should NOT match empty array"
         );
     }
 }

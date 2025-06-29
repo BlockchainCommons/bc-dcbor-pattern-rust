@@ -14,7 +14,7 @@ fn test_deeply_nested_performance() {
     // Create a deeply nested pattern: 5 levels deep
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        TAG(100, {TEXT("a"): {TEXT("b"): {TEXT("c"): {TEXT("d"): [NUMBER(42)]}}}})
+        TAG(100, {"a": {"b": {"c": {"d": [NUMBER(42)]}}}})
     "#).unwrap();
     let pattern_creation_time = start.elapsed();
 
@@ -67,7 +67,7 @@ fn test_complex_repeat_pattern_performance() {
     // Complex pattern with multiple repeat patterns
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        [({TEXT("id"): NUMBER})*, (ANY)*, ({TEXT("name"): TEXT})*]
+        [({"id": NUMBER})*, (ANY)*, ({"name": text})*]
     "#).unwrap();
     let pattern_creation_time = start.elapsed();
 
@@ -118,7 +118,7 @@ fn test_large_array_with_search_performance() {
     // Search pattern that needs to traverse a large structure
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        SEARCH(TEXT("needle"))
+        SEARCH("needle")
     "#).unwrap();
     let pattern_creation_time = start.elapsed();
 
@@ -180,14 +180,14 @@ fn test_complex_or_pattern_performance() {
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
         TAG(1, NUMBER) |
-        TAG(2, TEXT) |
+        TAG(2, text) |
         TAG(3, [NUMBER]) |
-        TAG(4, {TEXT: ANY}) |
+        TAG(4, {text: ANY}) |
         TAG(5, bool) |
-        {TEXT("type"): TEXT("user")} |
-        {TEXT("type"): TEXT("admin")} |
-        [TEXT("start")] |
-        [NUMBER, TEXT, bool]
+        {"type": "user"} |
+        {"type": "admin"} |
+        ["start"] |
+        [NUMBER, text, bool]
     "#).unwrap();
     let pattern_creation_time = start.elapsed();
 
@@ -237,9 +237,7 @@ fn test_vm_instruction_optimization() {
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
         TAG(100, [
-            (
-                {TEXT("key"): NUMBER})*, TEXT("separator"), ({TEXT("value"): TEXT}
-            )*
+            ({"key": NUMBER})*, "separator", ({"value": text})*
         ])
     "#).unwrap();
 

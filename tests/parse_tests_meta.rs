@@ -3,21 +3,21 @@ use dcbor_pattern::{Pattern, Result};
 /// Test the OR parser with various patterns
 #[test]
 fn test_parse_or_simple() -> Result<()> {
-    let pattern = Pattern::parse("bool | TEXT")?;
+    let pattern = Pattern::parse("bool | text")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
 
     // Test display formatting (without spaces around operators)
-    assert_eq!(pattern.to_string(), "bool|TEXT");
+    assert_eq!(pattern.to_string(), "bool|text");
     Ok(())
 }
 
 #[test]
 fn test_parse_or_three_patterns() -> Result<()> {
-    let pattern = Pattern::parse("bool | TEXT | NUMBER")?;
+    let pattern = Pattern::parse("bool | text | NUMBER")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
 
     // Test display formatting
-    assert_eq!(pattern.to_string(), "bool|TEXT|NUMBER");
+    assert_eq!(pattern.to_string(), "bool|text|NUMBER");
     Ok(())
 }
 
@@ -32,21 +32,21 @@ fn test_parse_or_single_pattern() -> Result<()> {
 /// Test the AND parser with various patterns
 #[test]
 fn test_parse_and_simple() -> Result<()> {
-    let pattern = Pattern::parse("bool & TEXT")?;
+    let pattern = Pattern::parse("bool & text")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
 
     // Test display formatting (without spaces around operators)
-    assert_eq!(pattern.to_string(), "bool&TEXT");
+    assert_eq!(pattern.to_string(), "bool&text");
     Ok(())
 }
 
 #[test]
 fn test_parse_and_three_patterns() -> Result<()> {
-    let pattern = Pattern::parse("bool & TEXT & NUMBER")?;
+    let pattern = Pattern::parse("bool & text & NUMBER")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
 
     // Test display formatting
-    assert_eq!(pattern.to_string(), "bool&TEXT&NUMBER");
+    assert_eq!(pattern.to_string(), "bool&text&NUMBER");
     Ok(())
 }
 
@@ -74,8 +74,8 @@ fn test_parse_not_double() -> Result<()> {
 /// Test operator precedence parsing (but not necessarily display)
 #[test]
 fn test_precedence_or_and_parsing() -> Result<()> {
-    let pattern = Pattern::parse("bool | TEXT & NUMBER")?;
-    // Should parse as: bool | (TEXT & NUMBER)
+    let pattern = Pattern::parse("bool | text & NUMBER")?;
+    // Should parse as: bool | (text & NUMBER)
     // The exact display format may vary but it should parse correctly
     assert!(matches!(pattern, Pattern::Meta(_)));
     assert!(!pattern.to_string().is_empty());
@@ -84,8 +84,8 @@ fn test_precedence_or_and_parsing() -> Result<()> {
 
 #[test]
 fn test_precedence_and_not_parsing() -> Result<()> {
-    let pattern = Pattern::parse("bool & !TEXT")?;
-    // Should parse as: bool & (!TEXT)
+    let pattern = Pattern::parse("bool & !text")?;
+    // Should parse as: bool & (!text)
     assert!(matches!(pattern, Pattern::Meta(_)));
     assert!(!pattern.to_string().is_empty());
     Ok(())
@@ -93,8 +93,8 @@ fn test_precedence_and_not_parsing() -> Result<()> {
 
 #[test]
 fn test_precedence_or_not_parsing() -> Result<()> {
-    let pattern = Pattern::parse("bool | !TEXT")?;
-    // Should parse as: bool | (!TEXT)
+    let pattern = Pattern::parse("bool | !text")?;
+    // Should parse as: bool | (!text)
     assert!(matches!(pattern, Pattern::Meta(_)));
     assert!(!pattern.to_string().is_empty());
     Ok(())
@@ -103,8 +103,8 @@ fn test_precedence_or_not_parsing() -> Result<()> {
 /// Test parentheses grouping
 #[test]
 fn test_parentheses_grouping_parsing() -> Result<()> {
-    let pattern = Pattern::parse("(bool | TEXT) & NUMBER")?;
-    // Should parse as: (bool | TEXT) & NUMBER
+    let pattern = Pattern::parse("(bool | text) & NUMBER")?;
+    // Should parse as: (bool | text) & NUMBER
     assert!(matches!(pattern, Pattern::Meta(_)));
     // The grouping should affect the parsing structure even if display doesn't
     // show parens
@@ -149,10 +149,10 @@ fn test_parse_capture_simple() -> Result<()> {
 
 #[test]
 fn test_parse_capture_complex() -> Result<()> {
-    let pattern = Pattern::parse("@item(bool | TEXT)")?;
+    let pattern = Pattern::parse("@item(bool | text)")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
     // Display format may not include spaces
-    assert_eq!(pattern.to_string(), "@item(bool|TEXT)");
+    assert_eq!(pattern.to_string(), "@item(bool|text)");
     Ok(())
 }
 
@@ -200,16 +200,16 @@ fn test_integration_with_structure_patterns() -> Result<()> {
 
 #[test]
 fn test_integration_with_value_patterns() -> Result<()> {
-    let pattern = Pattern::parse(r#"TEXT("hello") | NUMBER(42)"#)?;
+    let pattern = Pattern::parse(r#""hello" | NUMBER(42)"#)?;
     assert!(matches!(pattern, Pattern::Meta(_)));
-    assert_eq!(pattern.to_string(), r#"TEXT("hello")|NUMBER(42)"#);
+    assert_eq!(pattern.to_string(), r#""hello"|NUMBER(42)"#);
     Ok(())
 }
 
 #[test]
 fn test_complex_mixed_pattern() -> Result<()> {
     let pattern =
-        Pattern::parse("@result(bool | (TEXT & !NULL)) | @number(NUMBER)")?;
+        Pattern::parse("@result(bool | (text & !NULL)) | @number(NUMBER)")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
     // The exact formatting might vary, just check it parses successfully
     assert!(!pattern.to_string().is_empty());
@@ -222,11 +222,11 @@ fn test_precedence_functionality() -> Result<()> {
     use dcbor::CBOR;
     use dcbor_pattern::Matcher;
 
-    // Test that "bool | TEXT & NUMBER" is parsed as "bool | (TEXT & NUMBER)"
-    // This means a boolean should match, but for the right side, both TEXT and
+    // Test that "bool | text & NUMBER" is parsed as "bool | (text & NUMBER)"
+    // This means a boolean should match, but for the right side, both text and
     // NUMBER would need to match (which is impossible, so only bool can
     // match)
-    let pattern = Pattern::parse("bool | TEXT & NUMBER")?;
+    let pattern = Pattern::parse("bool | text & NUMBER")?;
 
     let bool_value = CBOR::from(true);
     let text_value = CBOR::from("hello");
@@ -235,10 +235,10 @@ fn test_precedence_functionality() -> Result<()> {
     // Boolean should match because of the OR
     assert!(pattern.matches(&bool_value));
 
-    // Text should NOT match because "TEXT & NUMBER" can never be true
+    // Text should NOT match because "text & NUMBER" can never be true
     assert!(!pattern.matches(&text_value));
 
-    // Number should NOT match because "TEXT & NUMBER" can never be true
+    // Number should NOT match because "text & NUMBER" can never be true
     assert!(!pattern.matches(&number_value));
 
     Ok(())
@@ -249,10 +249,10 @@ fn test_grouping_functionality() -> Result<()> {
     use dcbor::CBOR;
     use dcbor_pattern::Matcher;
 
-    // Test that "(bool | TEXT) & NUMBER" groups correctly
+    // Test that "(bool | text) & NUMBER" groups correctly
     // This should never match anything since no value can be both (bool or
-    // TEXT) AND NUMBER
-    let pattern = Pattern::parse("(bool | TEXT) & NUMBER")?;
+    // text) AND NUMBER
+    let pattern = Pattern::parse("(bool | text) & NUMBER")?;
 
     let bool_value = CBOR::from(true);
     let text_value = CBOR::from("hello");
@@ -280,11 +280,11 @@ fn test_parse_search_simple() -> Result<()> {
 
 #[test]
 fn test_parse_search_with_text() -> Result<()> {
-    let pattern = Pattern::parse(r#"SEARCH(TEXT("hello"))"#)?;
+    let pattern = Pattern::parse(r#"SEARCH("hello")"#)?;
     assert!(matches!(pattern, Pattern::Meta(_)));
 
     // Test display formatting
-    assert_eq!(pattern.to_string(), r#"SEARCH(TEXT("hello"))"#);
+    assert_eq!(pattern.to_string(), r#"SEARCH("hello")"#);
     Ok(())
 }
 
@@ -300,11 +300,11 @@ fn test_parse_search_with_any() -> Result<()> {
 
 #[test]
 fn test_parse_search_with_complex_pattern() -> Result<()> {
-    let pattern = Pattern::parse("SEARCH(bool | TEXT)")?;
+    let pattern = Pattern::parse("SEARCH(bool | text)")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
 
     // Test display formatting
-    assert_eq!(pattern.to_string(), "SEARCH(bool|TEXT)");
+    assert_eq!(pattern.to_string(), "SEARCH(bool|text)");
     Ok(())
 }
 
@@ -344,11 +344,11 @@ fn test_parse_search_errors() {
 #[test]
 fn test_parse_search_in_combinations() -> Result<()> {
     // Search within OR pattern
-    let pattern = Pattern::parse("SEARCH(NUMBER(42)) | TEXT")?;
+    let pattern = Pattern::parse("SEARCH(NUMBER(42)) | text")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
 
     // AND with search
-    let pattern = Pattern::parse("SEARCH(NUMBER(42)) & SEARCH(TEXT)")?;
+    let pattern = Pattern::parse("SEARCH(NUMBER(42)) & SEARCH(text)")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
 
     Ok(())

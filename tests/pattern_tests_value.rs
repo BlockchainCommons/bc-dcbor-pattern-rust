@@ -79,7 +79,7 @@ fn test_bool_pattern_display() {
 
 #[test]
 fn test_text_pattern_any() {
-    let pattern = parse("TEXT");
+    let pattern = parse("text");
 
     // Should match any text
     let hello_cbor = cbor(r#""Hello""#);
@@ -105,8 +105,8 @@ fn test_text_pattern_any() {
 
 #[test]
 fn test_text_pattern_specific() {
-    let hello_pattern = parse(r#"TEXT("Hello")"#);
-    let world_pattern = parse(r#"TEXT("World")"#);
+    let hello_pattern = parse(r#""Hello""#);
+    let world_pattern = parse(r#""World""#);
 
     let hello_cbor = cbor(r#""Hello""#);
     let world_cbor = cbor(r#""World""#);
@@ -161,12 +161,12 @@ fn test_text_pattern_regex() {
 
 #[test]
 fn test_text_pattern_display() {
-    assert_eq!(parse("TEXT").to_string(), "TEXT");
-    assert_eq!(parse(r#"TEXT("Hello")"#).to_string(), r#"TEXT("Hello")"#);
+    assert_eq!(parse("text").to_string(), "text");
+    assert_eq!(parse(r#""Hello""#).to_string(), r#""Hello""#);
 
     let regex_pattern =
         Pattern::text_regex(regex::Regex::new(r"^\d+$").unwrap());
-    assert_eq!(regex_pattern.to_string(), r#"TEXT(/^\d+$/)"#);
+    assert_eq!(regex_pattern.to_string(), r#"/^\d+$/"#);
 }
 
 #[test]

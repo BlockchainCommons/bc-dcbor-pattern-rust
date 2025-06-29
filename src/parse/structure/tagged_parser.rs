@@ -218,7 +218,7 @@ mod tests {
 
     #[test]
     fn test_parse_tagged_with_value() {
-        let pattern = Pattern::parse("TAG(1234, TEXT)").unwrap();
+        let pattern = Pattern::parse("TAG(1234, text)").unwrap();
         let tag = Tag::new(1234, "");
         assert_eq!(
             pattern,
@@ -230,7 +230,7 @@ mod tests {
 
     #[test]
     fn test_parse_tagged_with_regex() {
-        let pattern = Pattern::parse("TAG(/test.*/, TEXT)").unwrap();
+        let pattern = Pattern::parse("TAG(/test.*/, text)").unwrap();
         match pattern {
             Pattern::Structure(crate::pattern::StructurePattern::Tagged(
                 TaggedPattern::WithTagNameRegexAndContent { .. },
@@ -254,7 +254,7 @@ mod tests {
 
     #[test]
     fn test_parse_complex_regex() {
-        let pattern = Pattern::parse("TAG(/^test[0-9]+$/, TEXT)").unwrap();
+        let pattern = Pattern::parse("TAG(/^test[0-9]+$/, text)").unwrap();
         match pattern {
             Pattern::Structure(crate::pattern::StructurePattern::Tagged(
                 TaggedPattern::WithTagNameRegexAndContent { tag_regex, .. },

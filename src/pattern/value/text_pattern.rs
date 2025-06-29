@@ -92,12 +92,12 @@ impl Matcher for TextPattern {
 impl std::fmt::Display for TextPattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            TextPattern::Any => write!(f, "TEXT"),
+            TextPattern::Any => write!(f, "text"),
             TextPattern::Value(value) => {
                 let escaped = value.replace("\\", "\\\\").replace("\"", "\\\"");
-                write!(f, r#"TEXT("{}")"#, escaped)
+                write!(f, "\"{}\"", escaped)
             }
-            TextPattern::Regex(regex) => write!(f, r#"TEXT(/{}/)"#, regex),
+            TextPattern::Regex(regex) => write!(f, "/{}/", regex),
         }
     }
 }
@@ -108,12 +108,12 @@ mod tests {
 
     #[test]
     fn test_text_pattern_display() {
-        assert_eq!(TextPattern::any().to_string(), "TEXT");
-        assert_eq!(TextPattern::value("Hello").to_string(), r#"TEXT("Hello")"#);
+        assert_eq!(TextPattern::any().to_string(), "text");
+        assert_eq!(TextPattern::value("Hello").to_string(), "\"Hello\"");
         assert_eq!(
             TextPattern::regex(regex::Regex::new(r"^\d+$").unwrap())
                 .to_string(),
-            r#"TEXT(/^\d+$/)"#
+            "/^\\d+$/"
         );
     }
 

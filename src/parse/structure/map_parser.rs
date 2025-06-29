@@ -205,7 +205,7 @@ mod tests {
     #[test]
     fn test_parse_bracket_map_key_value_constraints() {
         let pattern =
-            Pattern::parse(r#"{TEXT("key"): TEXT, NUMBER: TEXT("value")}"#)
+            Pattern::parse(r#"{"key": text, NUMBER: "value"}"#)
                 .unwrap();
         assert!(matches!(
             pattern,

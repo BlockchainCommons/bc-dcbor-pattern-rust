@@ -72,6 +72,20 @@ pub(crate) fn parse_primary(
         Token::Number => parse_number(lexer),
         Token::Text => parse_text(lexer),
 
+        // Direct string literal
+        Token::StringLiteral(res) => {
+            let value = res?;
+            Ok(Pattern::text(value))
+        }
+
+        // Direct regex literal  
+        Token::Regex(res) => {
+            let regex_str = res?;
+            let regex = regex::Regex::new(&regex_str)
+                .map_err(|_| Error::InvalidRegex(lexer.span()))?;
+            Ok(Pattern::text_regex(regex))
+        }
+
         // Structure patterns
         Token::Tagged => parse_tagged(lexer),
 

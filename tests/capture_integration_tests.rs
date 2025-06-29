@@ -36,7 +36,7 @@ fn test_capture_basic_number() -> Result<()> {
 /// Test capture with text patterns
 #[test]
 fn test_capture_basic_text() -> Result<()> {
-    let pattern = Pattern::parse(r#"@greeting(TEXT("hello"))"#)?;
+    let pattern = Pattern::parse(r#"@greeting("hello")"#)?;
     let cbor = parse_dcbor_item(r#""hello""#).unwrap();
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
@@ -86,7 +86,7 @@ fn test_capture_no_match() -> Result<()> {
 #[test]
 fn test_multiple_captures_or() -> Result<()> {
     let pattern =
-        Pattern::parse("@first(NUMBER(42)) | @second(TEXT(\"hello\"))")?;
+        Pattern::parse("@first(NUMBER(42)) | @second(\"hello\")")?;
 
     // Test matching the first alternative
     let cbor1 = parse_dcbor_item("42").unwrap();
@@ -191,7 +191,7 @@ fn test_capture_in_array() -> Result<()> {
 #[test]
 fn test_capture_in_array_sequence() -> Result<()> {
     let pattern =
-        Pattern::parse(r#"[@first(TEXT("a")), @second(NUMBER(42))]"#)?;
+        Pattern::parse(r#"[@first("a"), @second(NUMBER(42))]"#)?;
     let cbor = parse_dcbor_item(r#"["a", 42]"#).unwrap();
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
@@ -223,7 +223,7 @@ fn test_capture_in_array_sequence() -> Result<()> {
 #[test]
 fn test_capture_in_map() -> Result<()> {
     let pattern =
-        Pattern::parse(r#"{@key(TEXT("name")): @value(TEXT("Alice"))}"#)?;
+        Pattern::parse(r#"{@key("name"): @value("Alice")}"#)?;
     let cbor = parse_dcbor_item(r#"{"name": "Alice"}"#).unwrap();
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
@@ -468,10 +468,10 @@ fn test_complex_nested_captures() -> Result<()> {
     let pattern = Pattern::parse(r#"
         [
             @first_map({
-                @key1(TEXT("type")): @val1(TEXT("person"))
+                @key1("type"): @val1("person")
             }),
             @second_map({
-                @key2(TEXT("name")): @val2(TEXT)
+                @key2("name"): @val2(text)
             })
         ]
     "#)?;

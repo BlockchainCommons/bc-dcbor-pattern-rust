@@ -27,6 +27,9 @@ pub enum Error {
     #[error("Unterminated regex pattern at {0:?}")]
     UnterminatedRegex(Span),
 
+    #[error("Unterminated string literal at {0:?}")]
+    UnterminatedString(Span),
+
     #[error("Invalid range at {0:?}")]
     InvalidRange(Span),
 

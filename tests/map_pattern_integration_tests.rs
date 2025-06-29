@@ -297,7 +297,7 @@ fn test_map_key_value_constraints_empty_map() {
 fn test_map_key_value_constraints_pattern_text_parsing() {
     // Test the unified {pattern:pattern, ...} syntax from text
     let pattern =
-        Pattern::parse(r#"{TEXT("name"):TEXT, TEXT("age"):NUMBER}"#)
+        Pattern::parse(r#"{"name":text, "age":NUMBER}"#)
             .unwrap();
 
     let matching_map =
@@ -313,7 +313,7 @@ fn test_map_key_value_constraints_pattern_text_parsing() {
     // Test display format
     assert_eq!(
         pattern.to_string(),
-        r#"{TEXT("name"): TEXT, TEXT("age"): NUMBER}"#
+        r#"{"name": text, "age": NUMBER}"#
     );
 }
 
@@ -321,7 +321,7 @@ fn test_map_key_value_constraints_pattern_text_parsing() {
 fn test_map_key_value_constraints_complex_patterns() {
     // Test with complex nested patterns
     let pattern =
-        Pattern::parse(r#"{ANY:TEXT("target"), NUMBER(42):true}"#)
+        Pattern::parse(r#"{ANY:"target", NUMBER(42):true}"#)
             .unwrap();
 
     let matching_map =

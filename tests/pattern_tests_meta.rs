@@ -119,7 +119,7 @@ fn test_or_pattern() {
     assert!(!pattern.matches(&cbor("false")));
 
     // Display should use | operator
-    assert_eq!(pattern.to_string(), r#"NUMBER(5)|TEXT("hello")|true"#);
+    assert_eq!(pattern.to_string(), r#"NUMBER(5)|"hello"|true"#);
 }
 
 #[test]
@@ -211,7 +211,7 @@ fn test_nested_meta_patterns() {
     // Display should properly nest the operators
     assert_eq!(
         pattern.to_string(),
-        r#"NUMBER(>5)&NUMBER(<10)|TEXT("hello")"#
+        r#"NUMBER(>5)&NUMBER(<10)|"hello""#
     );
 }
 
@@ -272,7 +272,7 @@ fn test_capture_pattern_text() {
     assert!(!pattern.matches(&cbor("42")));
 
     // Display should show capture syntax
-    assert_eq!(pattern.to_string(), r#"@name(TEXT("hello"))"#);
+    assert_eq!(pattern.to_string(), r#"@name("hello")"#);
 }
 
 #[test]
@@ -532,7 +532,7 @@ fn test_repeat_pattern_display_with_reluctance() {
         Quantifier::new(0..=1, Reluctance::Lazy),
     );
 
-    assert_eq!(lazy_pattern.to_string(), r#"(TEXT("test"))??"#);
+    assert_eq!(lazy_pattern.to_string(), r#"("test")??"#);
 
     // Test possessive quantifier
     let possessive_pattern = Pattern::repeat(
@@ -540,7 +540,7 @@ fn test_repeat_pattern_display_with_reluctance() {
         Quantifier::new(1.., Reluctance::Possessive),
     );
 
-    assert_eq!(possessive_pattern.to_string(), r#"(TEXT("test"))++"#);
+    assert_eq!(possessive_pattern.to_string(), r#"("test")++"#);
 }
 
 #[test]
@@ -627,7 +627,7 @@ fn test_search_pattern_text() {
     assert!(!pattern.matches(&cbor(r#"["goodbye", "world"]"#)));
 
     // Display should show SEARCH(...)
-    assert_eq!(pattern.to_string(), r#"SEARCH(TEXT("hello"))"#);
+    assert_eq!(pattern.to_string(), r#"SEARCH("hello")"#);
 }
 
 #[test]

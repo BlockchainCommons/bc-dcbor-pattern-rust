@@ -4,9 +4,9 @@ mod test_array_comma_display {
 
     #[test]
     fn test_array_sequence_display_format() {
-        let pattern = Pattern::parse(r#"[TEXT("a"), TEXT("b")]"#).unwrap();
+        let pattern = Pattern::parse(r#"["a", "b"]"#).unwrap();
         let display = pattern.to_string();
-        assert_eq!(display, r#"[TEXT("a"), TEXT("b")]"#);
+        assert_eq!(display, r#"["a", "b"]"#);
     }
 
     #[test]

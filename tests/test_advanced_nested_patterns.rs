@@ -8,7 +8,7 @@ use indoc::indoc;
 fn test_simple_nested_tagged_array() {
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        TAG(100, [TEXT("target")])
+        TAG(100, ["target"])
     "#).unwrap();
 
     // Should match: 100(["target"])
@@ -48,7 +48,7 @@ fn test_simple_nested_tagged_array() {
 fn test_complex_nested_tagged_array_with_repeat() {
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        TAG( 100, [(ANY)*, TEXT("target"), (ANY)*] )
+        TAG( 100, [(ANY)*, "target", (ANY)*] )
     "#).unwrap();
 
     // Should match: 100(["target"])
@@ -117,7 +117,7 @@ fn test_complex_nested_tagged_array_with_repeat() {
 fn test_map_with_array_constraints() {
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        {TEXT("users"): [{3,}]}
+        {"users": [{3,}]}
     "#).unwrap();
 
     // Should match: {"users": [1, 2, 3]}
@@ -172,7 +172,7 @@ fn test_map_with_array_constraints() {
 fn test_array_starting_with_maps() {
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        [{TEXT("id"): NUMBER}, (ANY)*]
+        [{"id": NUMBER}, (ANY)*]
     "#).unwrap();
 
     // Should match: [{"id": 42}]
@@ -235,8 +235,8 @@ fn test_deeply_nested_structures() {
     let pattern = Pattern::parse(r#"
         TAG(200,
             {
-                TEXT("data"):
-                [{TEXT("value"): NUMBER}]
+                "data":
+                [{"value": NUMBER}]
             }
         )
     "#).unwrap();
@@ -270,7 +270,7 @@ fn test_deeply_nested_structures_with_multiple_maps() {
     let pattern = Pattern::parse(r#"
         TAG(200,
             {
-                TEXT("data"): [({TEXT("value"): NUMBER})*]
+                "data": [({"value": NUMBER})*]
             }
         )
     "#).unwrap();
@@ -365,7 +365,7 @@ fn test_multiple_levels_of_nesting_with_any() {
 #[test]
 fn test_extreme_nesting_depth() {
     // Test deeply nested structures for performance
-    let pattern = Pattern::parse(r#"TAG(400, {TEXT("level1"): {TEXT("level2"): {TEXT("level3"): [NUMBER(42)]}}})"#).unwrap();
+    let pattern = Pattern::parse(r#"TAG(400, {"level1": {"level2": {"level3": [NUMBER(42)]}}})"#).unwrap();
 
     let deep_structure =
         parse_dcbor_item(r#"400({"level1": {"level2": {"level3": [42]}}})"#)
@@ -397,9 +397,9 @@ fn test_complex_combined_patterns() {
     let pattern = Pattern::parse(r#"
         TAG(500,
             [
-                {TEXT("type"): TEXT("user")},
-                {TEXT("id"): NUMBER},
-                ( {TEXT("name"): TEXT} | {TEXT("email"): TEXT} )*
+                {"type": "user"},
+                {"id": NUMBER},
+                ( {"name": text} | {"email": text} )*
             ]
         )
     "#).unwrap();

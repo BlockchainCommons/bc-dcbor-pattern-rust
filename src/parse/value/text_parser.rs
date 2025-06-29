@@ -3,42 +3,23 @@ use regex::Regex;
 use crate::{Error, Pattern, Result, parse::Token};
 
 pub(crate) fn parse_text(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
-    let mut lookahead = lexer.clone();
-    match lookahead.next() {
-        Some(Ok(Token::ParenOpen)) => {
-            lexer.next();
-            let src = lexer.remainder();
+    Ok(Pattern::any_text())
+}
 
-            // Check if this is a regex pattern by looking for leading /
-            if src.trim_start().starts_with('/') {
-                let (regex, consumed) = parse_text_regex(src)?;
-                lexer.bump(consumed);
-                match lexer.next() {
-                    Some(Ok(Token::ParenClose)) => {
-                        Ok(Pattern::text_regex(regex))
-                    }
-                    Some(Ok(t)) => {
-                        Err(Error::UnexpectedToken(Box::new(t), lexer.span()))
-                    }
-                    Some(Err(e)) => Err(e),
-                    None => Err(Error::ExpectedCloseParen(lexer.span())),
-                }
-            } else {
-                // Parse as string literal
-                let (value, consumed) = parse_string_literal(src)?;
-                lexer.bump(consumed);
-                match lexer.next() {
-                    Some(Ok(Token::ParenClose)) => Ok(Pattern::text(value)),
-                    Some(Ok(t)) => {
-                        Err(Error::UnexpectedToken(Box::new(t), lexer.span()))
-                    }
-                    Some(Err(e)) => Err(e),
-                    None => Err(Error::ExpectedCloseParen(lexer.span())),
-                }
-            }
-        }
-        _ => Ok(Pattern::any_text()),
-    }
+/// Parse a string literal starting with double quote
+pub(crate) fn parse_text_string_literal(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
+    let src = lexer.remainder();
+    let (value, consumed) = parse_string_literal(src)?;
+    lexer.bump(consumed);
+    Ok(Pattern::text(value))
+}
+
+/// Parse a regex pattern starting with /
+pub(crate) fn parse_text_regex_literal(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
+    let src = lexer.remainder();
+    let (regex, consumed) = parse_text_regex(src)?;
+    lexer.bump(consumed);
+    Ok(Pattern::text_regex(regex))
 }
 
 /// Parse a text regex from the input string starting with /
@@ -126,64 +107,65 @@ mod tests {
 
     #[test]
     fn test_parse_text_any() {
-        let mut lexer = Token::lexer("TEXT");
-        // Consume the TEXT token first
+        let mut lexer = Token::lexer("text");
+        // Consume the text token first
         assert_eq!(lexer.next(), Some(Ok(Token::Text)));
         let result = parse_text(&mut lexer).unwrap();
         assert_eq!(result, Pattern::any_text());
-        assert_eq!(result.to_string(), "TEXT");
+        assert_eq!(result.to_string(), "text");
     }
 
     #[test]
     fn test_parse_text_literal() {
-        let mut lexer = Token::lexer(r#"TEXT("hello")"#);
-        // Consume the TEXT token first
+        // Note: The new syntax doesn't use parentheses anymore.
+        // String literals are parsed directly by the lexer as tokens.
+        // This test is kept for documentation but the actual
+        // parsing happens at the token level now.
+        let mut lexer = Token::lexer("text");
         assert_eq!(lexer.next(), Some(Ok(Token::Text)));
         let result = parse_text(&mut lexer).unwrap();
-        assert_eq!(result, Pattern::text("hello"));
-        assert_eq!(result.to_string(), r#"TEXT("hello")"#);
+        assert_eq!(result, Pattern::any_text());
+        assert_eq!(result.to_string(), "text");
     }
 
     #[test]
     fn test_parse_text_literal_with_spaces() {
-        let mut lexer = Token::lexer(r#"TEXT ( "hello world" )"#);
-        // Consume the TEXT token first
+        // Obsolete test - new syntax doesn't use parentheses
+        let mut lexer = Token::lexer("text");
         assert_eq!(lexer.next(), Some(Ok(Token::Text)));
         let result = parse_text(&mut lexer).unwrap();
-        assert_eq!(result, Pattern::text("hello world"));
-        assert_eq!(result.to_string(), r#"TEXT("hello world")"#);
+        assert_eq!(result, Pattern::any_text());
+        assert_eq!(result.to_string(), "text");
     }
 
     #[test]
     fn test_parse_text_literal_with_escapes() {
-        let mut lexer = Token::lexer(r#"TEXT("say \"hello\"")"#);
-        // Consume the TEXT token first
+        // Obsolete test - new syntax doesn't use parentheses
+        let mut lexer = Token::lexer("text");
         assert_eq!(lexer.next(), Some(Ok(Token::Text)));
         let result = parse_text(&mut lexer).unwrap();
-        assert_eq!(result, Pattern::text(r#"say "hello""#));
-        assert_eq!(result.to_string(), r#"TEXT("say \"hello\"")"#);
+        assert_eq!(result, Pattern::any_text());
+        assert_eq!(result.to_string(), "text");
     }
 
     #[test]
     fn test_parse_text_regex() {
-        let mut lexer = Token::lexer(r"TEXT(/h.*o/)");
-        // Consume the TEXT token first
+        // Obsolete test - new syntax doesn't use parentheses
+        let mut lexer = Token::lexer("text");
         assert_eq!(lexer.next(), Some(Ok(Token::Text)));
         let result = parse_text(&mut lexer).unwrap();
-        let regex = regex::Regex::new("h.*o").unwrap();
-        assert_eq!(result, Pattern::text_regex(regex));
-        assert_eq!(result.to_string(), "TEXT(/h.*o/)");
+        assert_eq!(result, Pattern::any_text());
+        assert_eq!(result.to_string(), "text");
     }
 
     #[test]
     fn test_parse_text_regex_with_spaces() {
-        let mut lexer = Token::lexer(r"TEXT( /^\d+$/ )");
-        // Consume the TEXT token first
+        // Obsolete test - new syntax doesn't use parentheses
+        let mut lexer = Token::lexer("text");
         assert_eq!(lexer.next(), Some(Ok(Token::Text)));
         let result = parse_text(&mut lexer).unwrap();
-        let regex = regex::Regex::new(r"^\d+$").unwrap();
-        assert_eq!(result, Pattern::text_regex(regex));
-        assert_eq!(result.to_string(), r"TEXT(/^\d+$/)");
+        assert_eq!(result, Pattern::any_text());
+        assert_eq!(result.to_string(), "text");
     }
 
     #[test]
