@@ -23,15 +23,15 @@ mod tests {
         ];
 
         println!("\n--- Testing parsed pattern matching ---");
-        for (cbor_text, description, expected_match) in &test_cases {
+        for (cbor_text, _description, expected_match) in &test_cases {
             let cbor = parse_dcbor_item(cbor_text).unwrap();
             let matches = pattern.matches(&cbor);
-            println!(
-                "{} ({}): {}",
-                cbor_text,
-                description,
-                if matches { "✅ MATCH" } else { "❌ NO MATCH" }
-            );
+            // println!(
+            //     "{} ({}): {}",
+            //     cbor_text,
+            //     description,
+            //     if matches { "✅ MATCH" } else { "❌ NO MATCH" }
+            // );
 
             assert_eq!(
                 matches, *expected_match,

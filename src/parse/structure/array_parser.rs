@@ -4,10 +4,14 @@ use crate::{ArrayPattern, Error, Pattern, Result, parse::Token};
 ///
 /// Supports the following syntax:
 /// - `[*]` - matches any array (wildcard)
+/// - `[{0}]` - matches empty array (no elements)
 /// - `[{n}]` - matches array with exactly n elements
 /// - `[{n,m}]` - matches array with n to m elements (inclusive)
 /// - `[{n,}]` - matches array with at least n elements
-/// - `[pattern]` - matches array with elements matching the given pattern
+/// - `[pattern, pattern, ...]` - matches array with elements matching the given
+///   patterns in order
+///
+/// `[]` is not a valid array pattern and will return an error.
 pub(crate) fn parse_bracket_array(
     lexer: &mut logos::Lexer<Token>,
 ) -> Result<Pattern> {

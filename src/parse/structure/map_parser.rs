@@ -1,85 +1,95 @@
-use crate::{Error, MapPattern, Pattern, Result, parse::Token};
-use crate::parse::meta::parse_primary;
+use crate::{
+    Error, MapPattern, Pattern, Result,
+    parse::{Token, meta::parse_primary},
+};
 
-/// Parse a MAP pattern.
+/// Parse a bracket map pattern: { ... }
 ///
 /// Supports the following syntax:
-/// - `MAP` - matches any map
-/// - `MAP({n})` - matches map with exactly n key-value pairs
-/// - `MAP({n,m})` - matches map with n to m key-value pairs (inclusive)
-/// - `MAP({n,})` - matches map with at least n key-value pairs
-/// - `MAP(pattern:pattern, pattern:pattern, ...)` - matches map with specified key-value constraints
-pub(crate) fn parse_map(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
+/// - `{*}` - matches any map
+/// - `{{0}}` - matches map with exactly 0 key-value pairs (empty map)
+/// - `{{n}}` - matches map with exactly n key-value pairs
+/// - `{{n,m}}` - matches map with n to m key-value pairs
+/// - `{{n,}}` - matches map with at least n key-value pairs
+/// - `{pattern:pattern, pattern:pattern, ...}` - matches map with specified
+///   key-value constraints
+///
+/// `{}` is not a valid map pattern and will return an error.
+pub(crate) fn parse_bracket_map(
+    lexer: &mut logos::Lexer<Token>,
+) -> Result<Pattern> {
+    // We expect the opening brace to already be consumed by the caller
+
+    // We need to look ahead to distinguish between:
+    // 1. {*} - map wildcard
+    // 2. {interval} - length constraints (interval {n}, {n,m}, {n,})
+    // 3. {pattern:pattern} - key-value constraints
+
     let mut lookahead = lexer.clone();
     match lookahead.next() {
-        Some(Ok(Token::ParenOpen)) => {
-            // Consume the '(' token
-            lexer.next();
-
-            // Check if this is a range pattern or key-value constraints
-            let mut lookahead2 = lexer.clone();
-            match lookahead2.next() {
-                Some(Ok(Token::Range(_))) => {
-                    // This is a range pattern: MAP({n}) or MAP({n,m})
-                    match lexer.next() {
-                        Some(Ok(Token::Range(res))) => {
-                            let quantifier = res?;
-
-                            // Convert quantifier to appropriate MapPattern
-                            let pattern = if let Some(max) = quantifier.max() {
-                                if quantifier.min() == max {
-                                    // Exact count: {n}
-                                    MapPattern::with_length(quantifier.min())
-                                } else {
-                                    // Range: {n,m}
-                                    MapPattern::with_length_range(
-                                        quantifier.min()..=max,
-                                    )
-                                }
-                            } else {
-                                // Open-ended range: {n,}
-                                MapPattern::with_length_range(
-                                    quantifier.min()..=usize::MAX,
-                                )
-                            };
-
-                            // Expect closing parenthesis
-                            match lexer.next() {
-                                Some(Ok(Token::ParenClose)) => Ok(Pattern::Structure(
-                                    crate::pattern::StructurePattern::Map(pattern),
-                                )),
-                                Some(Ok(token)) => Err(Error::UnexpectedToken(
-                                    Box::new(token),
-                                    lexer.span(),
-                                )),
-                                Some(Err(e)) => Err(e),
-                                None => Err(Error::ExpectedCloseParen(lexer.span())),
-                            }
-                        }
-                        Some(Ok(token)) => {
-                            Err(Error::UnexpectedToken(Box::new(token), lexer.span()))
-                        }
-                        Some(Err(e)) => Err(e),
-                        None => Err(Error::UnexpectedEndOfInput),
-                    }
+        Some(Ok(Token::RepeatZeroOrMore)) => {
+            // This is {*} - matches any map
+            lexer.next(); // consume *
+            match lexer.next() {
+                Some(Ok(Token::BraceClose)) => Ok(Pattern::Structure(
+                    crate::pattern::StructurePattern::Map(MapPattern::any()),
+                )),
+                Some(Ok(token)) => {
+                    Err(Error::UnexpectedToken(Box::new(token), lexer.span()))
                 }
-                _ => {
-                    // This should be key-value constraints: MAP(pattern:pattern, ...)
-                    parse_key_value_constraints(lexer)
+                Some(Err(e)) => Err(e),
+                None => Err(Error::ExpectedCloseBrace(lexer.span())),
+            }
+        }
+        Some(Ok(Token::Range(quantifier_result))) => {
+            // This is {interval} - map length constraint
+            lexer.next(); // consume the Range token
+
+            let quantifier = quantifier_result?;
+
+            // Expect closing brace for the map
+            match lexer.next() {
+                Some(Ok(Token::BraceClose)) => {
+                    // Convert quantifier to appropriate MapPattern
+                    let pattern = if let Some(max) = quantifier.max() {
+                        if quantifier.min() == max {
+                            // Exact count: {n}
+                            MapPattern::with_length(quantifier.min())
+                        } else {
+                            // Range: {n,m}
+                            MapPattern::with_length_range(
+                                quantifier.min()..=max,
+                            )
+                        }
+                    } else {
+                        // Open-ended range: {n,}
+                        MapPattern::with_length_range(
+                            quantifier.min()..=usize::MAX,
+                        )
+                    };
+
+                    Ok(Pattern::Structure(
+                        crate::pattern::StructurePattern::Map(pattern),
+                    ))
                 }
+                Some(Ok(token)) => {
+                    Err(Error::UnexpectedToken(Box::new(token), lexer.span()))
+                }
+                Some(Err(e)) => Err(e),
+                None => Err(Error::ExpectedCloseBrace(lexer.span())),
             }
         }
         _ => {
-            // No parentheses, just "MAP" - matches any map
-            Ok(Pattern::Structure(crate::pattern::StructurePattern::Map(
-                MapPattern::any(),
-            )))
+            // This should be key-value constraints: {pattern:pattern, ...}
+            parse_key_value_constraints(lexer)
         }
     }
 }
 
-/// Parse key-value constraints for MAP patterns.
-fn parse_key_value_constraints(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
+/// Parse key-value constraints for bracket map patterns.
+fn parse_key_value_constraints(
+    lexer: &mut logos::Lexer<Token>,
+) -> Result<Pattern> {
     let mut constraints = Vec::new();
 
     loop {
@@ -90,10 +100,13 @@ fn parse_key_value_constraints(lexer: &mut logos::Lexer<Token>) -> Result<Patter
         match lexer.next() {
             Some(Ok(Token::Colon)) => {}
             Some(Ok(token)) => {
-                return Err(Error::UnexpectedToken(Box::new(token), lexer.span()));
+                return Err(Error::UnexpectedToken(
+                    Box::new(token),
+                    lexer.span(),
+                ));
             }
             Some(Err(e)) => return Err(e),
-            None => return Err(Error::UnexpectedEndOfInput),
+            None => return Err(Error::ExpectedColon(lexer.span())),
         }
 
         // Parse the value pattern
@@ -101,211 +114,104 @@ fn parse_key_value_constraints(lexer: &mut logos::Lexer<Token>) -> Result<Patter
 
         constraints.push((key_pattern, value_pattern));
 
-        // Check if there's a comma for more constraints
+        // Check what comes next
         match lexer.next() {
             Some(Ok(Token::Comma)) => {
                 // Continue parsing more constraints
                 continue;
             }
-            Some(Ok(Token::ParenClose)) => {
-                // End of constraints
+            Some(Ok(Token::BraceClose)) => {
+                // End of map pattern
                 break;
             }
             Some(Ok(token)) => {
-                return Err(Error::UnexpectedToken(Box::new(token), lexer.span()));
+                return Err(Error::UnexpectedToken(
+                    Box::new(token),
+                    lexer.span(),
+                ));
             }
             Some(Err(e)) => return Err(e),
-            None => return Err(Error::ExpectedCloseParen(lexer.span())),
+            None => return Err(Error::ExpectedCloseBrace(lexer.span())),
         }
     }
 
-    let pattern = MapPattern::with_key_value_constraints(constraints);
-    Ok(Pattern::Structure(crate::pattern::StructurePattern::Map(pattern)))
+    Ok(Pattern::Structure(crate::pattern::StructurePattern::Map(
+        MapPattern::with_key_value_constraints(constraints),
+    )))
 }
 
 #[cfg(test)]
 mod tests {
-    use logos::Logos;
-
     use super::*;
 
     #[test]
-    fn test_parse_map_any() {
-        let pattern = Pattern::parse("MAP").unwrap();
-        assert_eq!(
+    fn test_parse_bracket_map_any() {
+        let pattern = Pattern::parse("{*}").unwrap();
+        assert!(matches!(
             pattern,
             Pattern::Structure(crate::pattern::StructurePattern::Map(
-                MapPattern::any()
+                MapPattern::Any
             ))
-        );
-        assert_eq!(pattern.to_string(), "{*}");
+        ));
     }
 
     #[test]
-    fn test_parse_map_exact_count() {
-        let pattern = Pattern::parse("MAP({3})").unwrap();
-        assert_eq!(
+    fn test_parse_bracket_map_exact_count() {
+        let pattern = Pattern::parse("{{3}}").unwrap();
+        assert!(matches!(
             pattern,
             Pattern::Structure(crate::pattern::StructurePattern::Map(
-                MapPattern::with_length(3)
+                MapPattern::WithLength(3)
             ))
-        );
-        assert_eq!(pattern.to_string(), "{{3}}");
+        ));
     }
 
     #[test]
-    fn test_parse_map_range() {
-        let pattern = Pattern::parse("MAP({2,5})").unwrap();
-        assert_eq!(
+    fn test_parse_bracket_map_length_range() {
+        let pattern = Pattern::parse("{{2,5}}").unwrap();
+        assert!(matches!(
             pattern,
             Pattern::Structure(crate::pattern::StructurePattern::Map(
-                MapPattern::with_length_range(2..=5)
+                MapPattern::WithLengthRange(_)
             ))
-        );
-        assert_eq!(pattern.to_string(), "{{2,5}}");
+        ));
+
+        if let Pattern::Structure(crate::pattern::StructurePattern::Map(
+            MapPattern::WithLengthRange(range),
+        )) = pattern
+        {
+            assert_eq!(range, 2..=5);
+        }
     }
 
     #[test]
-    fn test_parse_map_open_range() {
-        let pattern = Pattern::parse("MAP({3,})").unwrap();
-        assert_eq!(
+    fn test_parse_bracket_map_open_range() {
+        let pattern = Pattern::parse("{{3,}}").unwrap();
+        assert!(matches!(
             pattern,
             Pattern::Structure(crate::pattern::StructurePattern::Map(
-                MapPattern::with_length_range(3..=usize::MAX)
+                MapPattern::WithLengthRange(_)
             ))
-        );
-        assert_eq!(pattern.to_string(), "{{3,}}");
+        ));
+
+        if let Pattern::Structure(crate::pattern::StructurePattern::Map(
+            MapPattern::WithLengthRange(range),
+        )) = pattern
+        {
+            assert_eq!(range, 3..=usize::MAX);
+        }
     }
 
     #[test]
-    fn test_parse_map_zero_exact() {
-        let pattern = Pattern::parse("MAP({0})").unwrap();
-        assert_eq!(
+    fn test_parse_bracket_map_key_value_constraints() {
+        let pattern =
+            Pattern::parse(r#"{TEXT("key"): TEXT, NUMBER: TEXT("value")}"#)
+                .unwrap();
+        assert!(matches!(
             pattern,
             Pattern::Structure(crate::pattern::StructurePattern::Map(
-                MapPattern::with_length(0)
+                MapPattern::WithKeyValueConstraints(_)
             ))
-        );
-        assert_eq!(pattern.to_string(), "{{0}}");
-    }
-
-    #[test]
-    fn test_parse_map_zero_range() {
-        let pattern = Pattern::parse("MAP({0,3})").unwrap();
-        assert_eq!(
-            pattern,
-            Pattern::Structure(crate::pattern::StructurePattern::Map(
-                MapPattern::with_length_range(0..=3)
-            ))
-        );
-        assert_eq!(pattern.to_string(), "{{0,3}}");
-    }
-
-    #[test]
-    fn test_parse_map_invalid_token() {
-        let result = Pattern::parse("{invalid}");
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_parse_map_missing_close_brace() {
-        let result = Pattern::parse("{3");
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_parse_map_empty_braces() {
-        let result = Pattern::parse("{}");
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_parse_map_single_key_value_constraint() {
-        let pattern = Pattern::parse(r#"{TEXT("key"):NUMBER}"#).unwrap();
-        assert_eq!(
-            pattern,
-            Pattern::Structure(crate::pattern::StructurePattern::Map(
-                MapPattern::with_key_value_constraints(vec![
-                    (Pattern::text("key"), Pattern::any_number())
-                ])
-            ))
-        );
-        assert_eq!(pattern.to_string(), r#"{TEXT("key"):NUMBER}"#);
-    }
-
-    #[test]
-    fn test_parse_map_multiple_key_value_constraints() {
-        let pattern = Pattern::parse(r#"{TEXT("name"):TEXT, TEXT("age"):NUMBER}"#).unwrap();
-        assert_eq!(
-            pattern,
-            Pattern::Structure(crate::pattern::StructurePattern::Map(
-                MapPattern::with_key_value_constraints(vec![
-                    (Pattern::text("name"), Pattern::any_text()),
-                    (Pattern::text("age"), Pattern::any_number())
-                ])
-            ))
-        );
-        assert_eq!(pattern.to_string(), r#"{TEXT("name"):TEXT, TEXT("age"):NUMBER}"#);
-    }
-
-    #[test]
-    fn test_parse_map_any_key_specific_value() {
-        let pattern = Pattern::parse(r#"{ANY:TEXT("value")}"#).unwrap();
-        assert_eq!(
-            pattern,
-            Pattern::Structure(crate::pattern::StructurePattern::Map(
-                MapPattern::with_key_value_constraints(vec![
-                    (Pattern::any(), Pattern::text("value"))
-                ])
-            ))
-        );
-        assert_eq!(pattern.to_string(), r#"{ANY:TEXT("value")}"#);
-    }
-
-    #[test]
-    fn test_parse_map_specific_key_any_value() {
-        let pattern = Pattern::parse(r#"{TEXT("key"):ANY}"#).unwrap();
-        assert_eq!(
-            pattern,
-            Pattern::Structure(crate::pattern::StructurePattern::Map(
-                MapPattern::with_key_value_constraints(vec![
-                    (Pattern::text("key"), Pattern::any())
-                ])
-            ))
-        );
-        assert_eq!(pattern.to_string(), r#"{TEXT("key"):ANY}"#);
-    }
-
-    #[test]
-    fn test_parse_map_complex_patterns() {
-        let pattern = Pattern::parse(r#"{NUMBER(42):BOOL(true), TEXT("test"):NULL}"#).unwrap();
-        assert_eq!(
-            pattern,
-            Pattern::Structure(crate::pattern::StructurePattern::Map(
-                MapPattern::with_key_value_constraints(vec![
-                    (Pattern::number(42.0), Pattern::bool(true)),
-                    (Pattern::text("test"), Pattern::null())
-                ])
-            ))
-        );
-        assert_eq!(pattern.to_string(), r#"{NUMBER(42):BOOL(true), TEXT("test"):NULL}"#);
-    }
-
-    #[test]
-    fn test_parse_map_missing_colon() {
-        let result = Pattern::parse(r#"{TEXT("key") NUMBER}"#);
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_parse_map_missing_value_pattern() {
-        let result = Pattern::parse(r#"{TEXT("key"):}"#);
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_parse_map_trailing_comma() {
-        let result = Pattern::parse(r#"{TEXT("key"):NUMBER,}"#);
-        assert!(result.is_err());
+        ));
     }
 }

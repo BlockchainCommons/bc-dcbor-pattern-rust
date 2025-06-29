@@ -38,6 +38,4 @@ fn test_infinity_pattern_integration() {
     assert!(!nan_pattern.matches(&neg_inf_cbor));
     assert!(nan_pattern.matches(&nan_cbor));
     assert!(!nan_pattern.matches(&regular_cbor));
-
-    println!("✅ All infinity pattern tests passed!");
 }

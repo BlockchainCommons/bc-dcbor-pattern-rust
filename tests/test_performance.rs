@@ -269,10 +269,10 @@ fn test_vm_instruction_optimization() {
         "VM optimization should enable fast repeated matching"
     );
 
-    println!(
-        "VM optimization performance - Total time for 4 complex matches: {:?}",
-        total_time
-    );
+    // println!(
+    //     "VM optimization performance - Total time for 4 complex matches: {:?}",
+    //     total_time
+    // );
 }
 
 #[test]
