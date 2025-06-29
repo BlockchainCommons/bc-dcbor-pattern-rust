@@ -64,7 +64,7 @@ pub enum Token {
     #[token("KNOWN")]
     Known,
 
-    #[token("NULL")]
+    #[token("null")]
     Null,
 
     #[token("NUMBER")]

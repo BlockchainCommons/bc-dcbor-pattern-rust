@@ -55,8 +55,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // Test parsing
-    println!("\nParsing 'NULL' pattern:");
-    let parsed_pattern = Pattern::parse("NULL")?;
+    println!("\nParsing 'null' pattern:");
+    let parsed_pattern = Pattern::parse("null")?;
     println!("  Parsed: {}", parsed_pattern);
     println!("  Equals original: {}", parsed_pattern == null_pattern);
 

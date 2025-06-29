@@ -209,7 +209,7 @@ fn test_integration_with_value_patterns() -> Result<()> {
 #[test]
 fn test_complex_mixed_pattern() -> Result<()> {
     let pattern =
-        Pattern::parse("@result(bool | (text & !NULL)) | @number(NUMBER)")?;
+        Pattern::parse("@result(bool | (text & !null)) | @number(NUMBER)")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
     // The exact formatting might vary, just check it parses successfully
     assert!(!pattern.to_string().is_empty());

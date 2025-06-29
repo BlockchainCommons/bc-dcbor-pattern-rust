@@ -55,7 +55,7 @@ fn parse_bool_patterns_round_trip() {
 
 #[test]
 fn parse_null() {
-    let src = "NULL";
+    let src = "null";
     let p = Pattern::parse(src).unwrap();
     assert_eq!(p, Pattern::null());
     assert_eq!(p.to_string(), src);

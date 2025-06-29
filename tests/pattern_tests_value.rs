@@ -778,7 +778,7 @@ fn test_date_pattern_display() {
 
 #[test]
 fn test_null_pattern() {
-    let pattern = parse("NULL");
+    let pattern = parse("null");
 
     // Should match null
     let null_cbor = cbor("null");
@@ -808,7 +808,7 @@ fn test_null_pattern() {
 
 #[test]
 fn test_null_pattern_display() {
-    assert_eq!(parse("NULL").to_string(), "NULL");
+    assert_eq!(parse("null").to_string(), "null");
 }
 
 #[test]

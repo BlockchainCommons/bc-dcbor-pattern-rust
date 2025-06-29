@@ -57,7 +57,7 @@ All value patterns match atomic CBOR values.
     - `KNOWN ( /regex/ )`
         - Matches a known value with a name that matches the specified regex. We do not use the single quotes here.
 - Null
-    - `NULL`
+    - `null`
         - Matches the null value.
 - Number
     - `NUMBER`

@@ -40,7 +40,7 @@ impl Matcher for NullPattern {
 
 impl std::fmt::Display for NullPattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "NULL")
+        write!(f, "null")
     }
 }
 
@@ -68,7 +68,7 @@ mod tests {
 
     #[test]
     fn test_null_pattern_display() {
-        assert_eq!(NullPattern::new().to_string(), "NULL");
+        assert_eq!(NullPattern::new().to_string(), "null");
     }
 
     #[test]

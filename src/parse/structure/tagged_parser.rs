@@ -267,7 +267,7 @@ mod tests {
 
     #[test]
     fn test_parse_tagged_value_zero() {
-        let pattern = Pattern::parse("TAG(0, NULL)").unwrap();
+        let pattern = Pattern::parse("TAG(0, null)").unwrap();
         match pattern {
             Pattern::Structure(crate::pattern::StructurePattern::Tagged(
                 TaggedPattern::WithTagAndContent { tag, .. },
