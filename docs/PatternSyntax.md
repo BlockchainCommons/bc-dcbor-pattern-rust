@@ -35,17 +35,17 @@ All value patterns match atomic CBOR values.
     - `h'/regex/'`
         - Matches a byte string that matches the specified binary regex.
 - Date
-    - `DATE`
+    - `date`
         - Matches any date value.
-    - `DATE ( iso-8601 )`
-        - Matches a date value with the specified ISO 8601 format. This is a bare string with no delimiters apart from the enclosing parentheses.
-    - `DATE ( iso-8601 ... iso-8601 )`
+    - `date'iso-8601'`
+        - Matches a date value with the specified ISO 8601 format.
+    - `date'iso-8601...iso-8601'`
         - Matches a date value within the specified range.
-    - `DATE ( iso-8601 ... )`
+    - `date'iso-8601...'`
         - Matches a date value greater than or equal to the specified ISO 8601 date.
-    - `DATE ( ... iso-8601 )`
+    - `date'...iso-8601'`
         - Matches a date value less than or equal to the specified ISO 8601 date.
-    - `DATE ( /regex/ )`
+    - `date'/regex/'`
         - Matches a date value that matches the specified regex.
 - Known Value
     - `KNOWN`
@@ -88,10 +88,14 @@ All value patterns match atomic CBOR values.
     - `/text-regex/`
         - Matches a text value that matches the specified regex. No double quotes are used here, as the regex is not a string but a pattern to match against the text value.
 - Digest
-    - `DIGEST ( hex )`
+    - `digest`
+        - Matches any digest value.
+    - `digest'hex'`
         - Matches a digest whose value starts with the specified hex prefix. Up to 32 bytes can be specified, which is the length of the full SHA-256 digest.
-    - `DIGEST ( ur:digest/value )`
+    - `digest'ur:digest/value'`
         - Matches the specified `ur:digest` value, parsed using `Digest::from_ur_string()`.
+    - `digest'/regex/'`
+        - Matches a digest value that matches the specified binary regex.
 
 ## Structure Patterns
 

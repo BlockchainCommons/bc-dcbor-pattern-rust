@@ -71,7 +71,7 @@ fn parse_null_pattern_round_trip() {
 
 #[test]
 fn parse_date_any() {
-    let src = "DATE";
+    let src = "date";
     let p = Pattern::parse(src).unwrap();
     assert_eq!(p, Pattern::any_date());
     assert_eq!(p.to_string(), src);
@@ -79,7 +79,7 @@ fn parse_date_any() {
 
 #[test]
 fn parse_date_value() {
-    let src = "DATE(2023-12-25)";
+    let src = "date'2023-12-25'";
     let p = Pattern::parse(src).unwrap();
 
     // Create expected date using dcbor-parse
@@ -88,12 +88,12 @@ fn parse_date_value() {
 
     assert_eq!(p, Pattern::date(expected_date.clone()));
     // The display format may be different than input due to date normalization
-    assert!(p.to_string().starts_with("DATE("));
+    assert!(p.to_string().starts_with("date'"));
 }
 
 #[test]
 fn parse_date_with_time() {
-    let src = "DATE(2023-12-25T15:30:45Z)";
+    let src = "date'2023-12-25T15:30:45Z'";
     let p = Pattern::parse(src).unwrap();
 
     // Create expected date using dcbor-parse
@@ -101,12 +101,12 @@ fn parse_date_with_time() {
     let expected_date = dcbor::Date::try_from(date_cbor).unwrap();
 
     assert_eq!(p, Pattern::date(expected_date));
-    assert!(p.to_string().starts_with("DATE("));
+    assert!(p.to_string().starts_with("date'"));
 }
 
 #[test]
 fn parse_date_range() {
-    let src = "DATE(2023-12-24...2023-12-26)";
+    let src = "date'2023-12-24...2023-12-26'";
     let p = Pattern::parse(src).unwrap();
 
     // Create expected dates using dcbor-parse
@@ -121,7 +121,7 @@ fn parse_date_range() {
 
 #[test]
 fn parse_date_earliest() {
-    let src = "DATE(2023-12-24...)";
+    let src = "date'2023-12-24...'";
     let p = Pattern::parse(src).unwrap();
 
     // Create expected date using dcbor-parse
@@ -129,12 +129,12 @@ fn parse_date_earliest() {
     let expected_date = dcbor::Date::try_from(date_cbor).unwrap();
 
     assert_eq!(p, Pattern::date_earliest(expected_date));
-    assert!(p.to_string().ends_with("...)"));
+    assert!(p.to_string().ends_with("...'"));
 }
 
 #[test]
 fn parse_date_latest() {
-    let src = "DATE(...2023-12-26)";
+    let src = "date'...2023-12-26'";
     let p = Pattern::parse(src).unwrap();
 
     // Create expected date using dcbor-parse
@@ -142,17 +142,17 @@ fn parse_date_latest() {
     let expected_date = dcbor::Date::try_from(date_cbor).unwrap();
 
     assert_eq!(p, Pattern::date_latest(expected_date));
-    assert!(p.to_string().starts_with("DATE(..."));
+    assert!(p.to_string().starts_with("date'..."));
 }
 
 #[test]
 fn parse_date_regex() {
-    let src = "DATE(/2023-.*/)";
+    let src = "date'/2023-.*/'";
     let p = Pattern::parse(src).unwrap();
 
     let regex = regex::Regex::new("2023-.*").unwrap();
     assert_eq!(p, Pattern::date_regex(regex));
-    assert_eq!(p.to_string(), "DATE(/2023-.*/)");
+    assert_eq!(p.to_string(), "date'/2023-.*/'");
 }
 
 #[test]
@@ -174,17 +174,6 @@ fn parse_date_patterns_round_trip() {
         let parsed = Pattern::parse(&string_repr).unwrap();
         assert_eq!(parsed, pattern);
     }
-}
-
-#[test]
-fn parse_date_spaced() {
-    let spaced = "DATE ( 2023-12-25 )";
-    let p = Pattern::parse(spaced).unwrap();
-
-    let date_cbor = cbor("2023-12-25");
-    let expected_date = dcbor::Date::try_from(date_cbor).unwrap();
-
-    assert_eq!(p, Pattern::date(expected_date));
 }
 
 #[test]

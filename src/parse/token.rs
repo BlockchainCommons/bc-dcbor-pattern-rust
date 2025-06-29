@@ -58,8 +58,11 @@ pub enum Token {
     #[token("bstr")]
     ByteString,
 
-    #[token("DATE")]
+    #[token("date")]
     Date,
+
+    #[token("date'", parse_date_quoted)]
+    DateQuoted(Result<crate::pattern::DatePattern>),
 
     #[token("KNOWN")]
     Known,
@@ -249,7 +252,7 @@ fn parse_string(lex: &mut Lexer<Token>) -> Result<String> {
 /// Callback used by the `HexString` variant above.
 fn parse_hex_string(lex: &mut Lexer<Token>) -> Result<Vec<u8>> {
     let src = lex.remainder(); // everything after the first h'
-    
+
     // Parse as hex string h'...'
     for (i, ch) in src.char_indices() {
         match ch {
@@ -313,20 +316,20 @@ fn parse_hex_regex(lex: &mut Lexer<Token>) -> Result<String> {
 fn parse_digest_quoted(lex: &mut Lexer<Token>) -> Result<DigestPattern> {
     use bc_components::Digest;
     use bc_ur::{URDecodable, UREncodable};
-    
+
     let src = lex.remainder(); // everything after "digest'"
-    
+
     // Find the closing quote
     for (i, ch) in src.char_indices() {
         if ch == '\'' {
             let content = &src[..i];
             lex.bump(i + 1); // +1 to eat the closing quote
-            
+
             // Check for empty content
             if content.is_empty() {
                 return Err(Error::InvalidDigestPattern("empty content".to_string(), lex.span()));
             }
-            
+
             // Check if it's a UR string
             if content.starts_with("ur:") {
                 match Digest::from_ur_string(content) {
@@ -334,7 +337,7 @@ fn parse_digest_quoted(lex: &mut Lexer<Token>) -> Result<DigestPattern> {
                     Err(_) => return Err(Error::InvalidUr(content.to_string(), lex.span())),
                 }
             }
-            
+
             // Check if it's a regex pattern /.../
             if content.starts_with('/') && content.ends_with('/') && content.len() > 2 {
                 let regex_content = &content[1..content.len()-1];
@@ -343,7 +346,7 @@ fn parse_digest_quoted(lex: &mut Lexer<Token>) -> Result<DigestPattern> {
                     Err(_) => return Err(Error::InvalidRegex(lex.span())),
                 }
             }
-            
+
             // Try to parse as hex
             if content.chars().all(|c| c.is_ascii_hexdigit()) {
                 if content.len() % 2 == 0 {
@@ -361,14 +364,101 @@ fn parse_digest_quoted(lex: &mut Lexer<Token>) -> Result<DigestPattern> {
                     return Err(Error::InvalidHexString(lex.span()));
                 }
             }
-            
+
             // If it's not UR, regex, or hex, it's an error
             return Err(Error::InvalidDigestPattern(content.to_string(), lex.span()));
         }
     }
-    
+
     // Unterminated literal
     Err(Error::UnterminatedDigestQuoted(lex.span()))
+}
+
+/// Callback used by the `DateQuoted` variant above.
+fn parse_date_quoted(lex: &mut Lexer<Token>) -> Result<crate::pattern::DatePattern> {
+    use dcbor::Date;
+    use dcbor_parse::parse_dcbor_item;
+
+    let src = lex.remainder(); // everything after "date'"
+
+    // Find the closing quote
+    for (i, ch) in src.char_indices() {
+        if ch == '\'' {
+            let content = &src[..i];
+            lex.bump(i + 1); // +1 to eat the closing quote
+
+            // Check for empty content
+            if content.is_empty() {
+                return Err(Error::InvalidDateFormat(lex.span()));
+            }
+
+            // Check if it's a regex pattern /.../
+            if content.starts_with('/') && content.ends_with('/') && content.len() > 2 {
+                let regex_content = &content[1..content.len()-1];
+                match regex::Regex::new(regex_content) {
+                    Ok(regex) => return Ok(crate::pattern::DatePattern::regex(regex)),
+                    Err(_) => return Err(Error::InvalidRegex(lex.span())),
+                }
+            }
+
+            // Check for range patterns
+            if content.contains("...") {
+                if let Some(iso_str) = content.strip_prefix("...") {
+                    // Latest pattern: "...iso-8601"
+                    match parse_dcbor_item(iso_str) {
+                        Ok(cbor) => match Date::try_from(cbor) {
+                            Ok(date) => return Ok(crate::pattern::DatePattern::latest(date)),
+                            Err(_) => return Err(Error::InvalidDateFormat(lex.span())),
+                        },
+                        Err(_) => return Err(Error::InvalidDateFormat(lex.span())),
+                    }
+                } else if let Some(iso_str) = content.strip_suffix("...") {
+                    // Earliest pattern: "iso-8601..."
+                    match parse_dcbor_item(iso_str) {
+                        Ok(cbor) => match Date::try_from(cbor) {
+                            Ok(date) => return Ok(crate::pattern::DatePattern::earliest(date)),
+                            Err(_) => return Err(Error::InvalidDateFormat(lex.span())),
+                        },
+                        Err(_) => return Err(Error::InvalidDateFormat(lex.span())),
+                    }
+                } else {
+                    // Range pattern: "iso-8601...iso-8601"
+                    let parts: Vec<&str> = content.split("...").collect();
+                    if parts.len() == 2 {
+                        let start_date = match parse_dcbor_item(parts[0]) {
+                            Ok(cbor) => match Date::try_from(cbor) {
+                                Ok(date) => date,
+                                Err(_) => return Err(Error::InvalidDateFormat(lex.span())),
+                            },
+                            Err(_) => return Err(Error::InvalidDateFormat(lex.span())),
+                        };
+                        let end_date = match parse_dcbor_item(parts[1]) {
+                            Ok(cbor) => match Date::try_from(cbor) {
+                                Ok(date) => date,
+                                Err(_) => return Err(Error::InvalidDateFormat(lex.span())),
+                            },
+                            Err(_) => return Err(Error::InvalidDateFormat(lex.span())),
+                        };
+                        return Ok(crate::pattern::DatePattern::range(start_date..=end_date));
+                    } else {
+                        return Err(Error::InvalidDateFormat(lex.span()));
+                    }
+                }
+            }
+
+            // Try to parse as single ISO-8601 date
+            match parse_dcbor_item(content) {
+                Ok(cbor) => match Date::try_from(cbor) {
+                    Ok(date) => return Ok(crate::pattern::DatePattern::value(date)),
+                    Err(_) => return Err(Error::InvalidDateFormat(lex.span())),
+                },
+                Err(_) => return Err(Error::InvalidDateFormat(lex.span())),
+            }
+        }
+    }
+
+    // Unterminated literal
+    Err(Error::UnterminatedDateQuoted(lex.span()))
 }
 
 /// Callback to handle `{` token - determines if it's a Range or BraceOpen

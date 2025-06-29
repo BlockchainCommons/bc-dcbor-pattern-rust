@@ -81,6 +81,9 @@ pub enum Error {
     #[error("Unterminated digest quoted pattern at {0:?}")]
     UnterminatedDigestQuoted(Span),
 
+    #[error("Unterminated date quoted pattern at {0:?}")]
+    UnterminatedDateQuoted(Span),
+
     #[error("Unknown error")]
     #[default]
     Unknown,

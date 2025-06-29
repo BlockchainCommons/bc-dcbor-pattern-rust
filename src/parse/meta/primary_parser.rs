@@ -71,6 +71,10 @@ pub(crate) fn parse_primary(
             let digest_pattern = res?;
             Ok(Pattern::Value(crate::pattern::ValuePattern::Digest(digest_pattern)))
         },
+        Token::DateQuoted(res) => {
+            let date_pattern = res?;
+            Ok(Pattern::Value(crate::pattern::ValuePattern::Date(date_pattern)))
+        },
         Token::Known => parse_known_value(lexer),
         Token::Null => parse_null(lexer),
         Token::Number => parse_number(lexer),

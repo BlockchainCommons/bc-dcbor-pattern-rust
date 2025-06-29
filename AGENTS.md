@@ -135,7 +135,7 @@ Tests now use `assert_actual_expected!` with `format_paths_with_captures()` for 
         - Matches the specified `ur:digest` value, parsed using `Digest::from_ur_string()`.
     - `digest'/regex/'`
         - Matches a digest value that matches the specified binary regex.
-- Date
+- ✅ Date **COMPLETE**:
     - `date`
         - Matches any date value.
     - `date'iso-8601'`

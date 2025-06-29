@@ -171,18 +171,18 @@ impl Matcher for DatePattern {
 impl std::fmt::Display for DatePattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            DatePattern::Any => write!(f, "DATE"),
-            DatePattern::Value(date) => write!(f, "DATE({})", date),
+            DatePattern::Any => write!(f, "date"),
+            DatePattern::Value(date) => write!(f, "date'{}'", date),
             DatePattern::Range(range) => {
-                write!(f, "DATE({}...{})", range.start(), range.end())
+                write!(f, "date'{}...{}'", range.start(), range.end())
             }
-            DatePattern::Earliest(date) => write!(f, "DATE({}...)", date),
-            DatePattern::Latest(date) => write!(f, "DATE(...{})", date),
+            DatePattern::Earliest(date) => write!(f, "date'{}...'", date),
+            DatePattern::Latest(date) => write!(f, "date'...{}'", date),
             DatePattern::Iso8601(iso_string) => {
-                write!(f, "DATE({})", iso_string)
+                write!(f, "date'{}'", iso_string)
             }
             DatePattern::Regex(regex) => {
-                write!(f, "DATE(/{}/)", regex.as_str())
+                write!(f, "date'/{}/'", regex.as_str())
             }
         }
     }
@@ -322,36 +322,36 @@ mod tests {
 
     #[test]
     fn test_date_pattern_display() {
-        assert_eq!(DatePattern::any().to_string(), "DATE");
+        assert_eq!(DatePattern::any().to_string(), "date");
 
         let date = Date::from_ymd(2023, 12, 25);
         assert_eq!(
             DatePattern::value(date.clone()).to_string(),
-            format!("DATE({})", date)
+            format!("date'{}'", date)
         );
 
         let date1 = Date::from_ymd(2023, 12, 20);
         let date2 = Date::from_ymd(2023, 12, 30);
         assert_eq!(
             DatePattern::range(date1.clone()..=date2.clone()).to_string(),
-            format!("DATE({}...{})", date1, date2)
+            format!("date'{}...{}'", date1, date2)
         );
 
         assert_eq!(
             DatePattern::earliest(date.clone()).to_string(),
-            format!("DATE({}...)", date)
+            format!("date'{}...'", date)
         );
         assert_eq!(
             DatePattern::latest(date.clone()).to_string(),
-            format!("DATE(...{})", date)
+            format!("date'...{}'", date)
         );
 
         assert_eq!(
             DatePattern::iso8601("2023-12-25T00:00:00Z").to_string(),
-            "DATE(2023-12-25T00:00:00Z)"
+            "date'2023-12-25T00:00:00Z'"
         );
 
         let regex = regex::Regex::new(r"2023-.*").unwrap();
-        assert_eq!(DatePattern::regex(regex).to_string(), "DATE(/2023-.*/)");
+        assert_eq!(DatePattern::regex(regex).to_string(), "date'/2023-.*/'");
     }
 }

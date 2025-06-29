@@ -497,7 +497,7 @@ fn test_byte_string_pattern_display() {
 
 #[test]
 fn test_date_pattern_any() {
-    let pattern = parse("DATE");
+    let pattern = parse("date");
 
     // Should match any date
     let date = Date::from_ymd(2023, 12, 25);
@@ -710,7 +710,7 @@ fn test_date_pattern_regex() {
 fn test_date_pattern_with_time() {
     // Test with dates that include time components
     let datetime = Date::from_timestamp(1703462400.0); // 2023-12-25 00:00:00 UTC
-    let pattern = parse("DATE");
+    let pattern = parse("date");
 
     let datetime_cbor = datetime.to_cbor();
     let paths = pattern.paths(&datetime_cbor);
@@ -742,38 +742,38 @@ fn test_date_pattern_with_time() {
 
 #[test]
 fn test_date_pattern_display() {
-    assert_eq!(parse("DATE").to_string(), "DATE");
+    assert_eq!(parse("date").to_string(), "date");
 
     let date = Date::from_ymd(2023, 12, 25);
     assert_eq!(
         Pattern::date(date.clone()).to_string(),
-        format!("DATE({})", date)
+        format!("date'{}'", date)
     );
 
     let start_date = Date::from_ymd(2023, 12, 20);
     let end_date = Date::from_ymd(2023, 12, 30);
     assert_eq!(
         Pattern::date_range(start_date.clone()..=end_date.clone()).to_string(),
-        format!("DATE({}...{})", start_date, end_date)
+        format!("date'{}...{}'", start_date, end_date)
     );
 
     assert_eq!(
         Pattern::date_earliest(date.clone()).to_string(),
-        format!("DATE({}...)", date)
+        format!("date'{}...'", date)
     );
 
     assert_eq!(
         Pattern::date_latest(date.clone()).to_string(),
-        format!("DATE(...{})", date)
+        format!("date'...{}'", date)
     );
 
     assert_eq!(
         Pattern::date_iso8601("2023-12-25T00:00:00Z").to_string(),
-        "DATE(2023-12-25T00:00:00Z)"
+        "date'2023-12-25T00:00:00Z'"
     );
 
     let regex = regex::Regex::new(r"^2023-").unwrap();
-    assert_eq!(Pattern::date_regex(regex).to_string(), "DATE(/^2023-/)");
+    assert_eq!(Pattern::date_regex(regex).to_string(), "date'/^2023-/'");
 }
 
 #[test]
