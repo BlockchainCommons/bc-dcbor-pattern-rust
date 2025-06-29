@@ -73,7 +73,7 @@ fn parse_number_inner(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
             lexer.next();
             Some("le")
         }
-        Some(Ok(Token::GreaterThan)) | Some(Ok(Token::Sequence)) => {
+        Some(Ok(Token::GreaterThan)) => {
             lexer.next();
             Some("gt")
         }
