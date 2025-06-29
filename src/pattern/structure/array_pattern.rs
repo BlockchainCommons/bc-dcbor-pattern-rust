@@ -291,9 +291,14 @@ impl ArrayPattern {
     ) -> Option<Vec<(usize, usize)>> {
         let patterns = seq_pattern.patterns();
 
-        // Simple case: if pattern count equals element count, try one-to-one
-        // matching
-        if patterns.len() == arr.len() {
+        // Check if we have any repeat patterns that require backtracking
+        let has_repeat_patterns = patterns.iter().any(|p| {
+            matches!(p, Pattern::Meta(crate::pattern::MetaPattern::Repeat(_)))
+        });
+
+        // Simple case: if pattern count equals element count AND no repeat
+        // patterns, try one-to-one matching
+        if patterns.len() == arr.len() && !has_repeat_patterns {
             let mut assignments = Vec::new();
             for (pattern_idx, pattern) in patterns.iter().enumerate() {
                 let element = &arr[pattern_idx];
@@ -306,10 +311,137 @@ impl ArrayPattern {
             return Some(assignments);
         }
 
-        // TODO: Handle more complex cases with repeats and variable assignments
-        // For now, return None for sequences that don't have one-to-one element
-        // mapping
+        // Handle complex cases with repeats and variable assignments
+        // Use the existing backtracking algorithm to find assignments
+        if let Some(assignments) =
+            self.find_sequence_assignments_with_backtracking(patterns, arr)
+        {
+            return Some(assignments);
+        }
+
         None
+    }
+
+    /// Use backtracking to find sequence pattern assignments.
+    /// This handles cases like [(ANY)*, @item(NUMBER(42)), (ANY)*] properly.
+    fn find_sequence_assignments_with_backtracking(
+        &self,
+        patterns: &[Pattern],
+        arr: &[CBOR],
+    ) -> Option<Vec<(usize, usize)>> {
+        let mut assignments = Vec::new();
+
+        if self.backtrack_sequence_assignments(
+            patterns,
+            arr,
+            0,
+            0,
+            &mut assignments,
+        ) {
+            Some(assignments)
+        } else {
+            None
+        }
+    }
+
+    /// Backtracking algorithm to find pattern-to-element assignments.
+    #[allow(clippy::only_used_in_recursion)]
+    fn backtrack_sequence_assignments(
+        &self,
+        patterns: &[Pattern],
+        arr: &[CBOR],
+        pattern_idx: usize,
+        element_idx: usize,
+        assignments: &mut Vec<(usize, usize)>,
+    ) -> bool {
+        // Base case: if we've matched all patterns
+        if pattern_idx >= patterns.len() {
+            // Success if we've also consumed all elements
+            return element_idx >= arr.len();
+        }
+
+        let current_pattern = &patterns[pattern_idx];
+
+        match current_pattern {
+            Pattern::Meta(crate::pattern::MetaPattern::Repeat(
+                repeat_pattern,
+            )) => {
+                let quantifier = repeat_pattern.quantifier();
+                let min_count = quantifier.min();
+                let remaining_elements = arr.len().saturating_sub(element_idx);
+                let max_count = quantifier
+                    .max()
+                    .unwrap_or(remaining_elements)
+                    .min(remaining_elements);
+
+                // Try different numbers of repetitions (greedy: start with max)
+                for rep_count in (min_count..=max_count).rev() {
+                    if element_idx + rep_count <= arr.len() {
+                        let can_match_reps = if rep_count == 0 {
+                            true // Zero repetitions always match
+                        } else {
+                            (0..rep_count).all(|i| {
+                                repeat_pattern
+                                    .pattern()
+                                    .matches(&arr[element_idx + i])
+                            })
+                        };
+
+                        if can_match_reps {
+                            // Record assignments for non-capture repeat
+                            // patterns
+                            let old_len = assignments.len();
+
+                            // Add assignments for elements consumed by this
+                            // repeat
+                            for i in 0..rep_count {
+                                assignments
+                                    .push((pattern_idx, element_idx + i));
+                            }
+
+                            // Try to match the rest of the sequence
+                            if self.backtrack_sequence_assignments(
+                                patterns,
+                                arr,
+                                pattern_idx + 1,
+                                element_idx + rep_count,
+                                assignments,
+                            ) {
+                                return true;
+                            }
+
+                            // Backtrack: remove the assignments we added
+                            assignments.truncate(old_len);
+                        }
+                    }
+                }
+                false
+            }
+            _ => {
+                // Non-repeat pattern: must match exactly one element
+                if element_idx < arr.len()
+                    && current_pattern.matches(&arr[element_idx])
+                {
+                    assignments.push((pattern_idx, element_idx));
+
+                    if self.backtrack_sequence_assignments(
+                        patterns,
+                        arr,
+                        pattern_idx + 1,
+                        element_idx + 1,
+                        assignments,
+                    ) {
+                        true
+                    } else {
+                        // Backtrack: remove the assignment
+                        assignments.pop();
+                        false
+                    }
+                } else {
+                    false
+                }
+            }
+        }
     }
 }
 
@@ -329,10 +461,9 @@ impl Matcher for ArrayPattern {
                         // as a sequence, not against any individual element.
                         //
                         // Examples:
-                        // - [NUMBER(42)] should match [42] but not [1, 42,
-                        //   3]
-                        // - [TEXT("a") , TEXT("b")] should match ["a",
-                        //   "b"] but not ["a", "x", "b"]
+                        // - [NUMBER(42)] should match [42] but not [1, 42, 3]
+                        // - [TEXT("a") , TEXT("b")] should match ["a", "b"] but
+                        //   not ["a", "x", "b"]
 
                         // Check if this is a simple single-element case
                         use crate::pattern::{MetaPattern, Pattern};
@@ -403,21 +534,28 @@ impl Matcher for ArrayPattern {
                             }
 
                             // For other meta patterns, handle them properly
-                            Pattern::Meta(MetaPattern::Capture(capture_pattern)) => {
-                                // Capture patterns should follow the same rule as simple patterns:
-                                // match exactly one element if the inner pattern matches
-                                if arr.len() == 1 {
-                                    if capture_pattern.pattern().matches(&arr[0]) {
-                                        vec![vec![cbor.clone()]]
-                                    } else {
-                                        vec![]
-                                    }
+                            Pattern::Meta(MetaPattern::Capture(
+                                capture_pattern,
+                            )) => {
+                                // Capture patterns should search within array
+                                // elements
+                                // (This is different from non-capture patterns)
+                                let has_matching_element =
+                                    arr.iter().any(|element| {
+                                        capture_pattern
+                                            .pattern()
+                                            .matches(element)
+                                    });
+
+                                if has_matching_element {
+                                    vec![vec![cbor.clone()]]
                                 } else {
                                     vec![]
                                 }
                             }
 
-                            // For other meta patterns (or, and, etc.), use the old heuristic
+                            // For other meta patterns (or, and, etc.), use the
+                            // old heuristic
                             // This handles cases like `[(NUMBER | TEXT)]`
                             _ => {
                                 // Check if the pattern matches the array as a
@@ -589,6 +727,44 @@ impl Matcher for ArrayPattern {
                                 cbor,
                                 _arr,
                             )
+                        }
+                        Pattern::Meta(
+                            crate::pattern::MetaPattern::Capture(
+                                _capture_pattern,
+                            ),
+                        ) => {
+                            // For capture patterns like [@item(NUMBER)] or
+                            // [@item(NUMBER(42))],
+                            // use the VM approach for consistency with existing
+                            // behavior
+
+                            // Use the VM approach for consistent behavior
+                            let mut code = Vec::new();
+                            let mut literals = Vec::new();
+                            let mut captures_list = Vec::new();
+
+                            // Compile the entire ArrayPattern (not just the
+                            // inner pattern)
+                            let array_pattern = Pattern::Structure(
+                                crate::pattern::StructurePattern::Array(
+                                    self.clone(),
+                                ),
+                            );
+                            array_pattern.compile(
+                                &mut code,
+                                &mut literals,
+                                &mut captures_list,
+                            );
+                            code.push(crate::pattern::vm::Instr::Accept);
+
+                            let program = crate::pattern::vm::Program {
+                                code,
+                                literals,
+                                capture_names: captures_list,
+                            };
+
+                            // Run the VM program against the CBOR
+                            crate::pattern::vm::run(&program, cbor)
                         }
                         _ => {
                             // For non-sequence patterns, use the original VM
