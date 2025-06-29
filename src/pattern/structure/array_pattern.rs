@@ -402,8 +402,22 @@ impl Matcher for ArrayPattern {
                                 self.match_complex_sequence(cbor, pattern)
                             }
 
-                            // For other meta patterns (or, and, etc.), delegate
-                            // to the pattern matcher
+                            // For other meta patterns, handle them properly
+                            Pattern::Meta(MetaPattern::Capture(capture_pattern)) => {
+                                // Capture patterns should follow the same rule as simple patterns:
+                                // match exactly one element if the inner pattern matches
+                                if arr.len() == 1 {
+                                    if capture_pattern.pattern().matches(&arr[0]) {
+                                        vec![vec![cbor.clone()]]
+                                    } else {
+                                        vec![]
+                                    }
+                                } else {
+                                    vec![]
+                                }
+                            }
+
+                            // For other meta patterns (or, and, etc.), use the old heuristic
                             // This handles cases like `[(NUMBER | TEXT)]`
                             _ => {
                                 // Check if the pattern matches the array as a

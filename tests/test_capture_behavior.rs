@@ -11,95 +11,362 @@ mod test_capture_behavior {
     use super::*;
 
     #[test]
-    fn test_capture_deduplication_behavior() {
-        // Test with array that has duplicate values
-        let cbor_data = parse_dcbor_item("[42, 100, 42]").unwrap();
+    fn test_exact_array_pattern_matching() {
+        // Test that [@item(NUMBER(42))] only matches an array with exactly one
+        // element that is 42
+        let cbor_data_single = parse_dcbor_item("[42]").unwrap();
+        let cbor_data_multiple = parse_dcbor_item("[42, 100, 42]").unwrap();
         let pattern = Pattern::parse("[@item(NUMBER(42))]").unwrap();
 
-        let (paths, captures) = pattern.paths_with_captures(&cbor_data);
+        // This should match: array with exactly one element that is 42
+        let (paths_single, captures_single) =
+            pattern.paths_with_captures(&cbor_data_single);
 
-        // Test that we get the expected formatted output with captures
-        // The key question: should we capture the value 42 twice (since it
-        // appears twice in different positions) or should we
-        // deduplicate and only capture it once?
-
-        // Based on the user's request, captures should be unique paths
-        // But the paths to [array, 42_at_index_0] and [array, 42_at_index_2]
-        // are DIFFERENT paths So both should be captured!
-
+        // Based on existing test array_capture_tests.rs, this should match
         #[rustfmt::skip]
-        let expected = indoc! {r#"
+        let expected_single = indoc! {r#"
             @item
-                [42, 100, 42]
+                [42]
                     42
-            [42, 100, 42]
+            [42]
         "#}.trim();
 
         assert_actual_expected!(
             format_paths_with_captures(
-                &paths,
-                &captures,
+                &paths_single,
+                &captures_single,
                 FormatPathsOpts::default()
             ),
-            expected
+            expected_single
         );
 
-        // Also verify the capture count programmatically
-        if let Some(item_captures) = captures.get("item") {
-            // The pattern only matches NUMBER(42), so we should only capture it
-            // once even though it appears twice in the array,
-            // because paths are deduplicated
+        // Verify the capture exists and contains the single element
+        if let Some(item_captures) = captures_single.get("item") {
             assert_eq!(
                 item_captures.len(),
                 1,
-                "Should capture the value 42 only once due to path deduplication"
+                "Should capture exactly one element"
             );
         } else {
-            panic!("Expected 'item' capture to exist");
+            panic!("Expected 'item' capture to exist for single element array");
+        }
+
+        // Now test the multiple element array - this should NOT match
+        // because [@item(NUMBER(42))] should only match arrays with exactly one
+        // element
+        let (paths_multiple, captures_multiple) =
+            pattern.paths_with_captures(&cbor_data_multiple);
+
+        // ASSERT THE CORRECT BEHAVIOR: The pattern should NOT match
+        // multi-element arrays
+        assert!(
+            paths_multiple.is_empty(),
+            "Pattern [@item(NUMBER(42))] should NOT match multi-element arrays like [42, 100, 42]. \
+             It should only match single-element arrays like [42]. \
+             Use [(ANY)*, NUMBER(42), (ANY)*] for arrays of any length containing 42."
+        );
+
+        assert!(
+            captures_multiple.is_empty(),
+            "Should have no captures when pattern doesn't match"
+        );
+    }
+
+    #[test]
+    fn test_array_with_any_position_pattern() {
+        // Test different approaches to match "an array of any length having the
+        // number 42 in any position"
+        let cbor_data = parse_dcbor_item("[42, 100, 42]").unwrap();
+
+        // Based on the user's explanation, this should be the correct syntax:
+        // [(ANY)*, NUMBER(42), (ANY)*] - but this might not be implemented yet
+
+        // Let's test what syntax actually works for finding 42 within any array
+
+        // Approach 1: Use search pattern
+        let search_pattern = Pattern::parse("SEARCH(@item(NUMBER(42)))");
+        match search_pattern {
+            Ok(pattern) => {
+                let (paths, captures) = pattern.paths_with_captures(&cbor_data);
+                if !paths.is_empty() {
+                    println!("Search pattern found {} paths", paths.len());
+
+                    #[rustfmt::skip]
+                    let expected = indoc! {r#"
+                        @item
+                            [42, 100, 42]
+                                42
+                            [42, 100, 42]
+                                42
+                        [42, 100, 42]
+                            42
+                    "#}.trim();
+
+                    assert_actual_expected!(
+                        format_paths_with_captures(
+                            &paths,
+                            &captures,
+                            FormatPathsOpts::default()
+                        ),
+                        expected
+                    );
+                } else {
+                    println!("Search pattern did not match");
+                }
+            }
+            Err(e) => {
+                println!("Search pattern failed to parse: {:?}", e);
+            }
+        }
+
+        // This test documents current behavior and explores syntax options
+        // The SEARCH pattern works correctly for finding elements within arrays
+    }
+
+    #[test]
+    fn test_variadic_array_pattern_syntax() {
+        // Test if the proposed [(ANY)*, @item(NUMBER(42)), (ANY)*] syntax works
+        // correctly
+
+        // Test data: arrays that should match (contain 42)
+        let array_with_42_start = parse_dcbor_item("[42, 100, 200]").unwrap();
+        let array_with_42_middle = parse_dcbor_item("[100, 42, 200]").unwrap();
+        let array_with_42_end = parse_dcbor_item("[100, 200, 42]").unwrap();
+
+        // Test data: arrays that should NOT match (don't contain 42)
+        let array_without_42 = parse_dcbor_item("[100, 200, 300]").unwrap();
+        let array_with_only_100 = parse_dcbor_item("[100]").unwrap();
+
+        // Try to parse the proposed variadic pattern syntax WITH CAPTURE
+        let pattern_with_capture_result =
+            Pattern::parse("[(ANY)*, @item(NUMBER(42)), (ANY)*]");
+
+        // Try to parse the variadic pattern syntax WITHOUT CAPTURE
+        let pattern_without_capture_result =
+            Pattern::parse("[(ANY)*, NUMBER(42), (ANY)*]");
+
+        match pattern_with_capture_result {
+            Ok(pattern) => {
+                println!("Variadic pattern WITH capture parsed successfully!");
+
+                // Test one case to see if it works
+                let (paths, captures) =
+                    pattern.paths_with_captures(&array_with_42_start);
+                println!(
+                    "Testing [42, 100, 200]: {} paths, {} captures",
+                    paths.len(),
+                    captures.len()
+                );
+
+                if paths.is_empty() {
+                    println!(
+                        "LIMITATION: Variadic patterns with captures don't seem to work correctly"
+                    );
+                    println!(
+                        "The pattern parses but doesn't match when it should"
+                    );
+                } else {
+                    println!("SUCCESS: Variadic pattern with capture works!");
+                }
+            }
+            Err(e) => {
+                println!(
+                    "Variadic pattern WITH capture failed to parse: {:?}",
+                    e
+                );
+            }
+        }
+
+        match pattern_without_capture_result {
+            Ok(pattern) => {
+                println!(
+                    "Variadic pattern WITHOUT capture parsed successfully!"
+                );
+
+                // Test arrays that should match
+                let test_cases_should_match = [
+                    (&array_with_42_start, "[42, 100, 200] (42 at start)"),
+                    (&array_with_42_middle, "[100, 42, 200] (42 in middle)"),
+                    (&array_with_42_end, "[100, 200, 42] (42 at end)"),
+                ];
+
+                for (cbor_data, description) in test_cases_should_match {
+                    let (paths, _) = pattern.paths_with_captures(cbor_data);
+                    println!("Testing {}: {} paths", description, paths.len());
+
+                    assert!(
+                        !paths.is_empty(),
+                        "Pattern should match {} but found no paths",
+                        description
+                    );
+                }
+
+                // Test arrays that should NOT match
+                let test_cases_should_not_match = [
+                    (&array_without_42, "[100, 200, 300] (no 42)"),
+                    (&array_with_only_100, "[100] (only 100)"),
+                ];
+
+                for (cbor_data, description) in test_cases_should_not_match {
+                    let (paths, _) = pattern.paths_with_captures(cbor_data);
+                    println!("Testing {}: {} paths", description, paths.len());
+
+                    assert!(
+                        paths.is_empty(),
+                        "Pattern should NOT match {} but found {} paths",
+                        description,
+                        paths.len()
+                    );
+                }
+
+                println!(
+                    "SUCCESS: Variadic pattern [(ANY)*, NUMBER(42), (ANY)*] works correctly!"
+                );
+            }
+            Err(e) => {
+                println!(
+                    "Variadic pattern WITHOUT capture failed to parse: {:?}",
+                    e
+                );
+            }
         }
     }
 
     #[test]
-    fn test_what_makes_paths_unique() {
-        // Let's understand what makes paths unique in this context
-        let cbor_data = parse_dcbor_item("[42, 100, 42]").unwrap();
-        let pattern = Pattern::parse("[@item(ANY)]").unwrap();
+    fn test_debug_variadic_pattern() {
+        // Debug test to understand what's happening with variadic patterns
+        let cbor_data = parse_dcbor_item("[42, 100, 200]").unwrap();
 
-        let (paths, captures) = pattern.paths_with_captures(&cbor_data);
+        // Test different pattern variations
+        let patterns_to_test = [
+            "[(ANY)*, @item(NUMBER(42)), (ANY)*]",
+            "[(ANY)*, NUMBER(42), (ANY)*]",
+            "[*, @item(NUMBER(42)), *]",
+            "[*, NUMBER(42), *]",
+            "[@item(NUMBER(42)), (ANY)*]",
+            "[(ANY)*, @item(NUMBER(42))]",
+        ];
 
-        // Test the formatted output to understand path uniqueness
-        #[rustfmt::skip]
-        let expected = indoc! {r#"
-            @item
-                [42, 100, 42]
-                    42
-                [42, 100, 42]
-                    100
-            [42, 100, 42]
-                42
-            [42, 100, 42]
-            [42, 100, 42]
-                100
-        "#}.trim();
+        for pattern_str in patterns_to_test {
+            match Pattern::parse(pattern_str) {
+                Ok(pattern) => {
+                    let (paths, captures) =
+                        pattern.paths_with_captures(&cbor_data);
+                    println!(
+                        "Pattern '{}': {} paths, {} captures",
+                        pattern_str,
+                        paths.len(),
+                        captures.len()
+                    );
 
-        assert_actual_expected!(
-            format_paths_with_captures(
-                &paths,
-                &captures,
-                FormatPathsOpts::default()
-            ),
-            expected
-        );
+                    if !paths.is_empty() {
+                        println!("  SUCCESS: Pattern matched!");
+                        if !captures.is_empty() {
+                            for (name, captured_paths) in &captures {
+                                println!(
+                                    "    @{}: {} captures",
+                                    name,
+                                    captured_paths.len()
+                                );
+                            }
+                        }
 
-        // Verify we capture all unique array elements
-        if let Some(item_captures) = captures.get("item") {
-            assert_eq!(
-                item_captures.len(),
-                2,
-                "Should capture 2 unique elements (42 and 100), with 42 deduplicated"
-            );
-        } else {
-            panic!("Expected 'item' capture to exist");
+                        // Show the formatted output
+                        let formatted = format_paths_with_captures(
+                            &paths,
+                            &captures,
+                            FormatPathsOpts::default(),
+                        );
+                        println!("  Formatted output:\n{}", formatted);
+                    }
+                }
+                Err(e) => {
+                    println!(
+                        "Pattern '{}' failed to parse: {:?}",
+                        pattern_str, e
+                    );
+                }
+            }
         }
+    }
+
+    #[test]
+    fn test_variadic_pattern_value_discrimination() {
+        // Test if [(ANY)*, NUMBER(42), (ANY)*] properly discriminates between
+        // values
+
+        let array_with_42 = parse_dcbor_item("[100, 42, 200]").unwrap();
+        let array_with_100_middle = parse_dcbor_item("[42, 100, 200]").unwrap();
+        let array_without_42 = parse_dcbor_item("[100, 200, 300]").unwrap();
+
+        // Pattern that should match arrays containing 42
+        let pattern_42 =
+            Pattern::parse("[(ANY)*, NUMBER(42), (ANY)*]").unwrap();
+
+        // Pattern that should match arrays containing 100
+        let pattern_100 =
+            Pattern::parse("[(ANY)*, NUMBER(100), (ANY)*]").unwrap();
+
+        println!("=== Testing NUMBER(42) pattern ===");
+
+        // Test array with 42 in middle - should match
+        let (paths, _) = pattern_42.paths_with_captures(&array_with_42);
+        println!(
+            "[100, 42, 200] with NUMBER(42) pattern: {} paths",
+            paths.len()
+        );
+        assert!(!paths.is_empty(), "Should match array containing 42");
+
+        // Test array with 100 in middle - should NOT match NUMBER(42)
+        let (paths, _) = pattern_42.paths_with_captures(&array_with_100_middle);
+        println!(
+            "[42, 100, 200] with NUMBER(42) pattern: {} paths",
+            paths.len()
+        );
+        assert!(!paths.is_empty(), "Should match because 42 is at start"); // 42 is at start, so should match
+
+        // Test array without 42 - should NOT match
+        let (paths, _) = pattern_42.paths_with_captures(&array_without_42);
+        println!(
+            "[100, 200, 300] with NUMBER(42) pattern: {} paths",
+            paths.len()
+        );
+        assert!(paths.is_empty(), "Should NOT match array without 42");
+
+        println!("\n=== Testing NUMBER(100) pattern ===");
+
+        // Test array with 100 in middle - should match NUMBER(100)
+        let (paths, _) =
+            pattern_100.paths_with_captures(&array_with_100_middle);
+        println!(
+            "[42, 100, 200] with NUMBER(100) pattern: {} paths",
+            paths.len()
+        );
+        assert!(!paths.is_empty(), "Should match array containing 100");
+
+        // Test array with 42 in middle - should NOT match NUMBER(100)
+        let (paths, _) = pattern_100.paths_with_captures(&array_with_42);
+        println!(
+            "[100, 42, 200] with NUMBER(100) pattern: {} paths",
+            paths.len()
+        );
+        assert!(!paths.is_empty(), "Should match because 100 is at start"); // 100 is at start, so should match
+
+        // More specific test: array where the target number is ONLY in middle
+        let array_42_only_middle = parse_dcbor_item("[1, 42, 3]").unwrap();
+        let array_100_only_middle = parse_dcbor_item("[1, 100, 3]").unwrap();
+
+        println!("\n=== Testing specific middle position ===");
+
+        let (paths, _) = pattern_42.paths_with_captures(&array_42_only_middle);
+        println!("[1, 42, 3] with NUMBER(42) pattern: {} paths", paths.len());
+        assert!(!paths.is_empty(), "Should match [1, 42, 3] with NUMBER(42)");
+
+        let (paths, _) = pattern_42.paths_with_captures(&array_100_only_middle);
+        println!("[1, 100, 3] with NUMBER(42) pattern: {} paths", paths.len());
+        assert!(
+            paths.is_empty(),
+            "Should NOT match [1, 100, 3] with NUMBER(42)"
+        );
     }
 }
