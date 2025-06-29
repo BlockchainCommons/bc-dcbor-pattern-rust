@@ -14,7 +14,7 @@ fn parse(s: &str) -> Pattern { Pattern::parse(s).unwrap() }
 
 #[test]
 fn test_array_capture_basic() {
-    let pattern = parse("[@item(NUMBER(42))]");
+    let pattern = parse("[@item(42)]");
     let cbor_data = cbor("[42]");
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
@@ -47,7 +47,7 @@ fn test_array_capture_basic() {
 
 #[test]
 fn test_array_capture_multiple_items() {
-    let pattern = parse("[@first(NUMBER), @second(NUMBER)]");
+    let pattern = parse("[@first(number), @second(number)]");
     let cbor_data = cbor("[42, 100]");
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
@@ -75,7 +75,7 @@ fn test_array_capture_multiple_items() {
 
 #[test]
 fn test_array_capture_with_any_pattern() {
-    let pattern = parse("[@any_item(ANY)]");
+    let pattern = parse("[@any_item(*)]");
     let cbor_data = cbor("[\"hello\"]");
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
@@ -102,7 +102,7 @@ fn test_array_capture_with_any_pattern() {
 
 #[test]
 fn test_array_vm_compilation_and_execution() {
-    let pattern = parse("[@item(NUMBER(42))]");
+    let pattern = parse("[@item(42)]");
 
     let mut code = Vec::new();
     let mut literals = Vec::new();
@@ -148,7 +148,7 @@ fn test_array_vm_compilation_and_execution() {
 
 #[test]
 fn test_array_nested_capture() {
-    let pattern = parse("@arr([@item(NUMBER)])");
+    let pattern = parse("@arr([@item(number)])");
     let cbor_data = cbor("[99]");
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
@@ -175,7 +175,7 @@ fn test_array_nested_capture() {
 
 #[test]
 fn test_array_capture_non_matching() {
-    let pattern = Pattern::parse("[@item(NUMBER(42))]").unwrap();
+    let pattern = Pattern::parse("[@item(42)]").unwrap();
     let cbor_data = cbor("[100]"); // Different number
 
     // Should not match

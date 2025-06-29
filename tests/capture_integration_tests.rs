@@ -9,7 +9,7 @@ use indoc::indoc;
 /// Test basic capture functionality with simple patterns
 #[test]
 fn test_capture_basic_number() -> Result<()> {
-    let pattern = Pattern::parse("@num(NUMBER(42))")?;
+    let pattern = Pattern::parse("@num(42)")?;
     let cbor = parse_dcbor_item("42").unwrap();
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
@@ -63,7 +63,7 @@ fn test_capture_basic_text() -> Result<()> {
 /// Test capture with patterns that don't match
 #[test]
 fn test_capture_no_match() -> Result<()> {
-    let pattern = Pattern::parse("@num(NUMBER(42))")?;
+    let pattern = Pattern::parse("@num(42)")?;
     let cbor = parse_dcbor_item("24").unwrap();
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
@@ -86,7 +86,7 @@ fn test_capture_no_match() -> Result<()> {
 #[test]
 fn test_multiple_captures_or() -> Result<()> {
     let pattern =
-        Pattern::parse("@first(NUMBER(42)) | @second(\"hello\")")?;
+        Pattern::parse("@first(42) | @second(\"hello\")")?;
 
     // Test matching the first alternative
     let cbor1 = parse_dcbor_item("42").unwrap();
@@ -132,7 +132,7 @@ fn test_multiple_captures_or() -> Result<()> {
 /// Test nested captures
 #[test]
 fn test_nested_captures() -> Result<()> {
-    let pattern = Pattern::parse("@outer(@inner(NUMBER(42)))")?;
+    let pattern = Pattern::parse("@outer(@inner(42))")?;
     let cbor = parse_dcbor_item("42").unwrap();
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
@@ -162,7 +162,7 @@ fn test_nested_captures() -> Result<()> {
 /// Test captures in array patterns
 #[test]
 fn test_capture_in_array() -> Result<()> {
-    let pattern = Pattern::parse("[@item(NUMBER(42))]")?;
+    let pattern = Pattern::parse("[@item(42)]")?;
     let cbor = parse_dcbor_item("[42]").unwrap();
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
@@ -191,7 +191,7 @@ fn test_capture_in_array() -> Result<()> {
 #[test]
 fn test_capture_in_array_sequence() -> Result<()> {
     let pattern =
-        Pattern::parse(r#"[@first("a"), @second(NUMBER(42))]"#)?;
+        Pattern::parse(r#"[@first("a"), @second(42)]"#)?;
     let cbor = parse_dcbor_item(r#"["a", 42]"#).unwrap();
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
@@ -254,7 +254,7 @@ fn test_capture_in_map() -> Result<()> {
 /// Test captures with search patterns
 #[test]
 fn test_capture_with_search() -> Result<()> {
-    let pattern = Pattern::parse("SEARCH(@found(NUMBER(42)))")?;
+    let pattern = Pattern::parse("SEARCH(@found(42))")?;
     let cbor = parse_dcbor_item(r#"[1, [2, 42], 3]"#).unwrap();
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
@@ -285,7 +285,7 @@ fn test_capture_with_search() -> Result<()> {
 /// Test captures with tagged patterns
 #[test]
 fn test_capture_with_tagged() -> Result<()> {
-    let pattern = Pattern::parse("TAG(1, @content(NUMBER(42)))")?;
+    let pattern = Pattern::parse("TAG(1, @content(42))")?;
     let cbor = parse_dcbor_item("1(42)").unwrap();
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
@@ -320,7 +320,7 @@ fn test_capture_performance() -> Result<()> {
     .unwrap();
 
     // Pattern that will search through the structure
-    let pattern = Pattern::parse("SEARCH(@nums(NUMBER))")?;
+    let pattern = Pattern::parse("SEARCH(@nums(number))")?;
 
     let start = std::time::Instant::now();
     let (paths, captures) = pattern.paths_with_captures(&cbor);
@@ -426,7 +426,7 @@ fn test_capture_performance() -> Result<()> {
 /// Test patterns without captures use the optimized path
 #[test]
 fn test_no_captures_optimization() -> Result<()> {
-    let pattern = Pattern::parse("NUMBER(42)")?;
+    let pattern = Pattern::parse("42")?;
     let cbor = parse_dcbor_item("42").unwrap();
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
@@ -452,13 +452,13 @@ fn test_no_captures_optimization() -> Result<()> {
 #[test]
 fn test_capture_parsing_errors() {
     // Missing closing parenthesis
-    assert!(Pattern::parse("@name(NUMBER(42)").is_err());
+    assert!(Pattern::parse("@name(42").is_err());
 
     // Missing pattern inside capture
     assert!(Pattern::parse("@name()").is_err());
 
     // Invalid capture name (empty)
-    assert!(Pattern::parse("@(NUMBER(42))").is_err());
+    assert!(Pattern::parse("@(42)").is_err());
 }
 
 /// Test complex nested captures with multiple levels

@@ -2,8 +2,9 @@ use super::super::{
     Token,
     structure::parse_tagged,
     value::{
-        parse_bool, parse_bool_true, parse_bool_false, parse_bytestring, parse_date, parse_digest,
-        parse_known_value, parse_null, parse_number, parse_text,
+        parse_bool, parse_bool_false, parse_bool_true, parse_bytestring,
+        parse_date, parse_digest, parse_known_value, parse_null, parse_number,
+        parse_text,
     },
 };
 use crate::{Error, MapPattern, Pattern, Result};
@@ -36,6 +37,9 @@ pub(crate) fn parse_primary(
     match token {
         // Meta patterns
         Token::Any => Ok(Pattern::any()),
+        Token::RepeatZeroOrMore => Ok(Pattern::any()), /* '*' as standalone
+                                                         * pattern means
+                                                         * "any" */
         Token::None => Ok(Pattern::none()),
         Token::Search => super::parse_search(lexer),
 
@@ -69,12 +73,16 @@ pub(crate) fn parse_primary(
         Token::Digest => parse_digest(lexer),
         Token::DigestQuoted(res) => {
             let digest_pattern = res?;
-            Ok(Pattern::Value(crate::pattern::ValuePattern::Digest(digest_pattern)))
-        },
+            Ok(Pattern::Value(crate::pattern::ValuePattern::Digest(
+                digest_pattern,
+            )))
+        }
         Token::DateQuoted(res) => {
             let date_pattern = res?;
-            Ok(Pattern::Value(crate::pattern::ValuePattern::Date(date_pattern)))
-        },
+            Ok(Pattern::Value(crate::pattern::ValuePattern::Date(
+                date_pattern,
+            )))
+        }
         Token::Known => parse_known_value(lexer),
         Token::Null => parse_null(lexer),
         Token::Number => parse_number(lexer),
@@ -86,7 +94,7 @@ pub(crate) fn parse_primary(
             Ok(Pattern::text(value))
         }
 
-        // Direct regex literal  
+        // Direct regex literal
         Token::Regex(res) => {
             let regex_str = res?;
             let regex = regex::Regex::new(&regex_str)
@@ -140,6 +148,83 @@ pub(crate) fn parse_primary(
                 pattern,
             )))
         }
+
+        // New simplified number syntax
+        Token::NumberLiteral(res) => {
+            let value = res?;
+
+            // Look ahead for range operator
+            match lexer.clone().next() {
+                Some(Ok(Token::Ellipsis)) => {
+                    lexer.next(); // consume the ellipsis
+                    match lexer.next() {
+                        Some(Ok(Token::NumberLiteral(Ok(end_value)))) => {
+                            Ok(Pattern::number_range(value..=end_value))
+                        }
+                        Some(Ok(Token::NumberLiteral(Err(e)))) => Err(e),
+                        Some(Ok(token)) => Err(Error::UnexpectedToken(
+                            Box::new(token),
+                            lexer.span(),
+                        )),
+                        Some(Err(e)) => Err(e),
+                        None => Err(Error::UnexpectedEndOfInput),
+                    }
+                }
+                _ => Ok(Pattern::number(value)),
+            }
+        }
+
+        Token::NaN => Ok(Pattern::number_nan()),
+        Token::Infinity => Ok(Pattern::number_infinity()),
+        Token::NegInfinity => Ok(Pattern::number_neg_infinity()),
+
+        Token::GreaterThanOrEqual => match lexer.next() {
+            Some(Ok(Token::NumberLiteral(Ok(value)))) => {
+                Ok(Pattern::number_greater_than_or_equal(value))
+            }
+            Some(Ok(Token::NumberLiteral(Err(e)))) => Err(e),
+            Some(Ok(token)) => {
+                Err(Error::UnexpectedToken(Box::new(token), lexer.span()))
+            }
+            Some(Err(e)) => Err(e),
+            None => Err(Error::UnexpectedEndOfInput),
+        },
+
+        Token::LessThanOrEqual => match lexer.next() {
+            Some(Ok(Token::NumberLiteral(Ok(value)))) => {
+                Ok(Pattern::number_less_than_or_equal(value))
+            }
+            Some(Ok(Token::NumberLiteral(Err(e)))) => Err(e),
+            Some(Ok(token)) => {
+                Err(Error::UnexpectedToken(Box::new(token), lexer.span()))
+            }
+            Some(Err(e)) => Err(e),
+            None => Err(Error::UnexpectedEndOfInput),
+        },
+
+        Token::GreaterThan => match lexer.next() {
+            Some(Ok(Token::NumberLiteral(Ok(value)))) => {
+                Ok(Pattern::number_greater_than(value))
+            }
+            Some(Ok(Token::NumberLiteral(Err(e)))) => Err(e),
+            Some(Ok(token)) => {
+                Err(Error::UnexpectedToken(Box::new(token), lexer.span()))
+            }
+            Some(Err(e)) => Err(e),
+            None => Err(Error::UnexpectedEndOfInput),
+        },
+
+        Token::LessThan => match lexer.next() {
+            Some(Ok(Token::NumberLiteral(Ok(value)))) => {
+                Ok(Pattern::number_less_than(value))
+            }
+            Some(Ok(Token::NumberLiteral(Err(e)))) => Err(e),
+            Some(Ok(token)) => {
+                Err(Error::UnexpectedToken(Box::new(token), lexer.span()))
+            }
+            Some(Err(e)) => Err(e),
+            None => Err(Error::UnexpectedEndOfInput),
+        },
 
         // Unexpected tokens
         _ => Err(Error::UnexpectedToken(Box::new(token), lexer.span())),

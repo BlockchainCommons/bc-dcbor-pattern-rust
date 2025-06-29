@@ -15,7 +15,7 @@ fn parse(s: &str) -> Pattern { Pattern::parse(s).unwrap() }
 
 #[test]
 fn test_simple_pattern_without_capture() -> Result<()> {
-    let pattern = parse("NUMBER(42)");
+    let pattern = parse("42");
     let cbor_data = cbor("42");
 
     let paths = pattern.paths(&cbor_data);
@@ -30,7 +30,7 @@ fn test_simple_pattern_without_capture() -> Result<()> {
 
 #[test]
 fn test_simple_pattern_with_capture() -> Result<()> {
-    let pattern = parse("@num(NUMBER(42))");
+    let pattern = parse("@num(42)");
     let cbor_data = cbor("42");
 
     // Test normal paths
@@ -63,7 +63,7 @@ fn test_simple_pattern_with_capture() -> Result<()> {
 
 #[test]
 fn test_vm_compilation_and_execution() -> Result<()> {
-    let pattern = parse("@num(NUMBER(42))");
+    let pattern = parse("@num(42)");
 
     let mut code = Vec::new();
     let mut literals = Vec::new();
@@ -104,7 +104,7 @@ fn test_vm_compilation_and_execution() -> Result<()> {
 
 #[test]
 fn test_capture_with_array_pattern() -> Result<()> {
-    let pattern = parse("@arr([NUMBER(42)])");
+    let pattern = parse("@arr([42])");
     let cbor_data = cbor("[42]");
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
@@ -129,7 +129,7 @@ fn test_capture_with_array_pattern() -> Result<()> {
 
 #[test]
 fn test_capture_with_nested_pattern() -> Result<()> {
-    let pattern = parse("@outer([@inner(NUMBER(42))])");
+    let pattern = parse("@outer([@inner(42)])");
     let cbor_data = cbor("[42]");
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);

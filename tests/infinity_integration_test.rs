@@ -5,13 +5,13 @@ use dcbor::prelude::*;
 fn test_infinity_pattern_integration() {
     // Test parsing and matching of infinity patterns
 
-    // Parse NUMBER(Infinity) pattern
-    let inf_pattern = Pattern::parse("NUMBER(Infinity)").unwrap();
-    assert_eq!(inf_pattern.to_string(), "NUMBER(Infinity)");
+    // Parse Infinity pattern
+    let inf_pattern = Pattern::parse("Infinity").unwrap();
+    assert_eq!(inf_pattern.to_string(), "Infinity");
 
-    // Parse NUMBER(-Infinity) pattern
-    let neg_inf_pattern = Pattern::parse("NUMBER(-Infinity)").unwrap();
-    assert_eq!(neg_inf_pattern.to_string(), "NUMBER(-Infinity)");
+    // Parse -Infinity pattern
+    let neg_inf_pattern = Pattern::parse("-Infinity").unwrap();
+    assert_eq!(neg_inf_pattern.to_string(), "-Infinity");
 
     // Create CBOR values
     let inf_cbor = f64::INFINITY.to_cbor();
@@ -32,8 +32,8 @@ fn test_infinity_pattern_integration() {
     assert!(!neg_inf_pattern.matches(&regular_cbor));
 
     // Test parsing still works for NaN
-    let nan_pattern = Pattern::parse("NUMBER(NaN)").unwrap();
-    assert_eq!(nan_pattern.to_string(), "NUMBER(NaN)");
+    let nan_pattern = Pattern::parse("NaN").unwrap();
+    assert_eq!(nan_pattern.to_string(), "NaN");
     assert!(!nan_pattern.matches(&inf_cbor));
     assert!(!nan_pattern.matches(&neg_inf_cbor));
     assert!(nan_pattern.matches(&nan_cbor));

@@ -255,24 +255,24 @@ impl Matcher for NumberPattern {
 impl std::fmt::Display for NumberPattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            NumberPattern::Any => write!(f, "NUMBER"),
-            NumberPattern::Exact(value) => write!(f, "NUMBER({})", value),
+            NumberPattern::Any => write!(f, "number"),
+            NumberPattern::Exact(value) => write!(f, "{}", value),
             NumberPattern::Range(range) => {
-                write!(f, "NUMBER({}...{})", range.start(), range.end())
+                write!(f, "{}...{}", range.start(), range.end())
             }
             NumberPattern::GreaterThan(value) => {
-                write!(f, "NUMBER(>{})", value)
+                write!(f, ">{}", value)
             }
             NumberPattern::GreaterThanOrEqual(value) => {
-                write!(f, "NUMBER(>={})", value)
+                write!(f, ">={}", value)
             }
-            NumberPattern::LessThan(value) => write!(f, "NUMBER(<{})", value),
+            NumberPattern::LessThan(value) => write!(f, "<{}", value),
             NumberPattern::LessThanOrEqual(value) => {
-                write!(f, "NUMBER(<={})", value)
+                write!(f, "<={}", value)
             }
-            NumberPattern::NaN => write!(f, "NUMBER(NaN)"),
-            NumberPattern::Infinity => write!(f, "NUMBER(Infinity)"),
-            NumberPattern::NegInfinity => write!(f, "NUMBER(-Infinity)"),
+            NumberPattern::NaN => write!(f, "NaN"),
+            NumberPattern::Infinity => write!(f, "Infinity"),
+            NumberPattern::NegInfinity => write!(f, "-Infinity"),
         }
     }
 }
@@ -283,25 +283,19 @@ mod tests {
 
     #[test]
     fn test_number_pattern_display() {
-        assert_eq!(NumberPattern::any().to_string(), "NUMBER");
-        assert_eq!(NumberPattern::exact(42.0).to_string(), "NUMBER(42)");
-        assert_eq!(
-            NumberPattern::range(1.0..=10.0).to_string(),
-            "NUMBER(1...10)"
-        );
-        assert_eq!(NumberPattern::greater_than(5.0).to_string(), "NUMBER(>5)");
+        assert_eq!(NumberPattern::any().to_string(), "number");
+        assert_eq!(NumberPattern::exact(42.0).to_string(), "42");
+        assert_eq!(NumberPattern::range(1.0..=10.0).to_string(), "1...10");
+        assert_eq!(NumberPattern::greater_than(5.0).to_string(), ">5");
         assert_eq!(
             NumberPattern::greater_than_or_equal(5.0).to_string(),
-            "NUMBER(>=5)"
+            ">=5"
         );
-        assert_eq!(NumberPattern::less_than(5.0).to_string(), "NUMBER(<5)");
-        assert_eq!(
-            NumberPattern::less_than_or_equal(5.0).to_string(),
-            "NUMBER(<=5)"
-        );
-        assert_eq!(NumberPattern::nan().to_string(), "NUMBER(NaN)");
-        assert_eq!(NumberPattern::infinity().to_string(), "NUMBER(Infinity)");
-        assert_eq!(NumberPattern::neg_infinity().to_string(), "NUMBER(-Infinity)");
+        assert_eq!(NumberPattern::less_than(5.0).to_string(), "<5");
+        assert_eq!(NumberPattern::less_than_or_equal(5.0).to_string(), "<=5");
+        assert_eq!(NumberPattern::nan().to_string(), "NaN");
+        assert_eq!(NumberPattern::infinity().to_string(), "Infinity");
+        assert_eq!(NumberPattern::neg_infinity().to_string(), "-Infinity");
     }
 
     #[test]
@@ -423,7 +417,7 @@ mod tests {
         assert!(!any_pattern.matches(&text_cbor));
 
         // Test display formatting
-        assert_eq!(inf_pattern.to_string(), "NUMBER(Infinity)");
-        assert_eq!(neg_inf_pattern.to_string(), "NUMBER(-Infinity)");
+        assert_eq!(inf_pattern.to_string(), "Infinity");
+        assert_eq!(neg_inf_pattern.to_string(), "-Infinity");
     }
 }

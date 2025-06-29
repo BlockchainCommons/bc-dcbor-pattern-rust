@@ -14,7 +14,8 @@ use crate::{Error, Pattern, Quantifier, Reluctance, Result};
 /// # Arguments
 /// * `pattern` - The pattern to apply the quantifier to
 /// * `lexer` - The lexer positioned after the pattern
-/// * `force_repeat` - If true, always wrap in RepeatPattern even without explicit quantifier
+/// * `force_repeat` - If true, always wrap in RepeatPattern even without
+///   explicit quantifier
 ///
 /// # Returns
 /// * `Ok(Pattern)` - The pattern wrapped with the appropriate quantifier
@@ -110,7 +111,8 @@ pub(crate) fn parse_quantifier(
             _ => {
                 // No quantifier found - behavior depends on force_repeat flag
                 if force_repeat {
-                    // Parentheses always create a RepeatPattern with "exactly one"
+                    // Parentheses always create a RepeatPattern with "exactly
+                    // one"
                     Ok(Pattern::repeat(pattern, Quantifier::default()))
                 } else {
                     // Return pattern unchanged for general use
@@ -160,7 +162,7 @@ mod tests {
         let result = parse_quantifier(pattern, &mut lexer, false).unwrap();
 
         // Should be a repeat pattern with 0.. quantifier
-        assert_eq!(result.to_string(), "(NUMBER(42))*");
+        assert_eq!(result.to_string(), "(42)*");
     }
 
     #[test]
@@ -169,7 +171,7 @@ mod tests {
         let pattern = Pattern::number(42);
         let result = parse_quantifier(pattern, &mut lexer, false).unwrap();
 
-        assert_eq!(result.to_string(), "(NUMBER(42))+");
+        assert_eq!(result.to_string(), "(42)+");
     }
 
     #[test]
@@ -178,7 +180,7 @@ mod tests {
         let pattern = Pattern::number(42);
         let result = parse_quantifier(pattern, &mut lexer, false).unwrap();
 
-        assert_eq!(result.to_string(), "(NUMBER(42))?");
+        assert_eq!(result.to_string(), "(42)?");
     }
 
     #[test]
@@ -187,7 +189,7 @@ mod tests {
         let pattern = Pattern::number(42);
         let result = parse_quantifier(pattern, &mut lexer, false).unwrap();
 
-        assert_eq!(result.to_string(), "(NUMBER(42))*?");
+        assert_eq!(result.to_string(), "(42)*?");
     }
 
     #[test]
@@ -196,7 +198,7 @@ mod tests {
         let pattern = Pattern::number(42);
         let result = parse_quantifier(pattern, &mut lexer, false).unwrap();
 
-        assert_eq!(result.to_string(), "(NUMBER(42))++");
+        assert_eq!(result.to_string(), "(42)++");
     }
 
     #[test]
@@ -205,7 +207,7 @@ mod tests {
         let pattern = Pattern::number(42);
         let result = parse_quantifier(pattern, &mut lexer, false).unwrap();
 
-        assert_eq!(result.to_string(), "(NUMBER(42)){3,5}");
+        assert_eq!(result.to_string(), "(42){3,5}");
     }
 
     #[test]
@@ -215,7 +217,7 @@ mod tests {
         let result = parse_quantifier(pattern, &mut lexer, false).unwrap();
 
         // Should return the pattern unchanged
-        assert_eq!(result.to_string(), "NUMBER(42)");
+        assert_eq!(result.to_string(), "42");
     }
 
     #[test]
@@ -225,6 +227,6 @@ mod tests {
         let result = parse_quantifier(pattern, &mut lexer, true).unwrap();
 
         // Should always create a RepeatPattern when force_repeat is true
-        assert_eq!(result.to_string(), "(NUMBER(42)){1}");
+        assert_eq!(result.to_string(), "(42){1}");
     }
 }

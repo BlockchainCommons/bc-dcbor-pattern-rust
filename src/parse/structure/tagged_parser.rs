@@ -241,7 +241,7 @@ mod tests {
 
     #[test]
     fn test_parse_tagged_with_name() {
-        let pattern = Pattern::parse("TAG(myTag, NUMBER)").unwrap();
+        let pattern = Pattern::parse("TAG(myTag, number)").unwrap();
         match pattern {
             Pattern::Structure(crate::pattern::StructurePattern::Tagged(
                 TaggedPattern::WithTagNameAndContent { tag_name, .. },

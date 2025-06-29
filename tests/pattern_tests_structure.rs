@@ -69,7 +69,7 @@ fn test_array_pattern_with_length() {
 /// the array as a sequence
 #[test]
 fn test_array_pattern_with_elements() {
-    let number_pattern = parse("NUMBER(42)");
+    let number_pattern = parse("42");
     let pattern = ArrayPattern::with_elements(number_pattern);
 
     // Should match array with exactly one element: 42
@@ -86,7 +86,7 @@ fn test_array_pattern_with_elements() {
     let multi_element = cbor("[1, 42, 3]");
     assert!(
         !pattern.matches(&multi_element),
-        "[NUMBER(42)] should only match [42], not [1, 42, 3]"
+        "[42] should only match [42], not [1, 42, 3]"
     );
 
     // Should not match array without 42

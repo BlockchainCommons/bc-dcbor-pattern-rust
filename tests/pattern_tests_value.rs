@@ -171,7 +171,7 @@ fn test_text_pattern_display() {
 
 #[test]
 fn test_number_pattern_any() {
-    let pattern = parse("NUMBER");
+    let pattern = parse("number");
 
     // Should match integers
     let int_cbor = cbor("42");
@@ -207,8 +207,8 @@ fn test_number_pattern_any() {
 
 #[test]
 fn test_number_pattern_specific() {
-    let int_pattern = parse("NUMBER(42)");
-    let float_pattern = parse("NUMBER(3.2222)");
+    let int_pattern = parse("42");
+    let float_pattern = parse("3.2222");
 
     let int_cbor = cbor("42");
     let float_cbor = cbor("3.2222");
@@ -241,7 +241,7 @@ fn test_number_pattern_specific() {
 
 #[test]
 fn test_number_pattern_range() {
-    let range_pattern = parse("NUMBER(10...20)");
+    let range_pattern = parse("10...20");
 
     let in_range_cbor = cbor("15");
     let boundary_low_cbor = cbor("10");
@@ -280,10 +280,10 @@ fn test_number_pattern_range() {
 
 #[test]
 fn test_number_pattern_comparisons() {
-    let gt_pattern = parse("NUMBER(>10)");
-    let gte_pattern = parse("NUMBER(>=10)");
-    let lt_pattern = parse("NUMBER(<10)");
-    let lte_pattern = parse("NUMBER(<=10)");
+    let gt_pattern = parse(">10");
+    let gte_pattern = parse(">=10");
+    let lt_pattern = parse("<10");
+    let lte_pattern = parse("<=10");
 
     let equal_cbor = cbor("10");
     let greater_cbor = cbor("15");
@@ -327,7 +327,7 @@ fn test_number_pattern_comparisons() {
 
 #[test]
 fn test_number_pattern_nan() {
-    let nan_pattern = parse("NUMBER(NaN)");
+    let nan_pattern = parse("NaN");
 
     let nan_cbor = cbor("NaN");
     let number_cbor = cbor("42");
@@ -348,15 +348,15 @@ fn test_number_pattern_nan() {
 
 #[test]
 fn test_number_pattern_display() {
-    assert_eq!(parse("NUMBER").to_string(), "NUMBER");
-    assert_eq!(parse("NUMBER(42)").to_string(), "NUMBER(42)");
-    assert_eq!(parse("NUMBER(3.2222)").to_string(), "NUMBER(3.2222)");
-    assert_eq!(parse("NUMBER(10...20)").to_string(), "NUMBER(10...20)");
-    assert_eq!(parse("NUMBER(>10)").to_string(), "NUMBER(>10)");
-    assert_eq!(parse("NUMBER(>=10)").to_string(), "NUMBER(>=10)");
-    assert_eq!(parse("NUMBER(<10)").to_string(), "NUMBER(<10)");
-    assert_eq!(parse("NUMBER(<=10)").to_string(), "NUMBER(<=10)");
-    assert_eq!(parse("NUMBER(NaN)").to_string(), "NUMBER(NaN)");
+    assert_eq!(parse("number").to_string(), "number");
+    assert_eq!(parse("42").to_string(), "42");
+    assert_eq!(parse("3.2222").to_string(), "3.2222");
+    assert_eq!(parse("10...20").to_string(), "10...20");
+    assert_eq!(parse(">10").to_string(), ">10");
+    assert_eq!(parse(">=10").to_string(), ">=10");
+    assert_eq!(parse("<10").to_string(), "<10");
+    assert_eq!(parse("<=10").to_string(), "<=10");
+    assert_eq!(parse("NaN").to_string(), "NaN");
 }
 
 #[test]

@@ -86,7 +86,7 @@ fn test_and_pattern() {
     assert!(!pattern.matches(&cbor(r#""hello""#))); // not a number
 
     // Display should use & operator
-    assert_eq!(pattern.to_string(), "NUMBER(>5)&NUMBER(<10)");
+    assert_eq!(pattern.to_string(), ">5&<10");
 }
 
 #[test]
@@ -119,7 +119,7 @@ fn test_or_pattern() {
     assert!(!pattern.matches(&cbor("false")));
 
     // Display should use | operator
-    assert_eq!(pattern.to_string(), r#"NUMBER(5)|"hello"|true"#);
+    assert_eq!(pattern.to_string(), r#"5|"hello"|true"#);
 }
 
 #[test]
@@ -146,7 +146,7 @@ fn test_not_pattern() {
     assert!(!pattern.matches(&cbor("5")));
 
     // Display should use ! operator
-    assert_eq!(pattern.to_string(), "!NUMBER(5)");
+    assert_eq!(pattern.to_string(), "!5");
 }
 
 #[test]
@@ -177,7 +177,7 @@ fn test_not_pattern_complex() {
     assert!(!pattern.matches(&cbor("7")));
 
     // Display should wrap complex patterns in parentheses
-    assert_eq!(pattern.to_string(), "!(NUMBER(>5)&NUMBER(<10))");
+    assert_eq!(pattern.to_string(), "!(>5&<10)");
 }
 
 #[test]
@@ -211,7 +211,7 @@ fn test_nested_meta_patterns() {
     // Display should properly nest the operators
     assert_eq!(
         pattern.to_string(),
-        r#"NUMBER(>5)&NUMBER(<10)|"hello""#
+        r#">5&<10|"hello""#
     );
 }
 
@@ -254,7 +254,7 @@ fn test_capture_pattern_basic() {
     assert!(!pattern.matches(&cbor(r#""hello""#)));
 
     // Display should show capture syntax
-    assert_eq!(pattern.to_string(), "@test(NUMBER(42))");
+    assert_eq!(pattern.to_string(), "@test(42)");
 }
 
 #[test]
@@ -435,7 +435,7 @@ fn test_repeat_pattern_basic() {
     assert!(!pattern.matches(&cbor(r#""hello""#)));
 
     // Display should show pattern with {1} quantifier
-    assert_eq!(pattern.to_string(), "(NUMBER(42)){1}");
+    assert_eq!(pattern.to_string(), "(42){1}");
 }
 
 #[test]
@@ -455,7 +455,7 @@ fn test_repeat_pattern_with_quantifier() {
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Display should show pattern with ? quantifier
-    assert_eq!(optional_pattern.to_string(), "(NUMBER(42))?");
+    assert_eq!(optional_pattern.to_string(), "(42)?");
 }
 
 #[test]
@@ -479,7 +479,7 @@ fn test_repeat_pattern_zero_or_more() {
     assert!(star_pattern.matches(&cbor("41"))); // Succeeds with 0 matches
 
     // Display should show pattern with * quantifier
-    assert_eq!(star_pattern.to_string(), "(NUMBER(42))*");
+    assert_eq!(star_pattern.to_string(), "(42)*");
 }
 
 #[test]
@@ -502,7 +502,7 @@ fn test_repeat_pattern_one_or_more() {
     assert!(!plus_pattern.matches(&cbor("41")));
 
     // Display should show pattern with + quantifier
-    assert_eq!(plus_pattern.to_string(), "(NUMBER(42))+");
+    assert_eq!(plus_pattern.to_string(), "(42)+");
 }
 
 #[test]
@@ -519,7 +519,7 @@ fn test_repeat_pattern_exact_count() {
     assert!(!exact_pattern.matches(&cbor("42")));
 
     // Display should show pattern with {3} quantifier
-    assert_eq!(exact_pattern.to_string(), "(NUMBER(42)){3}");
+    assert_eq!(exact_pattern.to_string(), "(42){3}");
 }
 
 #[test]
@@ -588,7 +588,7 @@ fn test_search_pattern_basic() {
     assert!(!pattern.matches(&cbor("{1: 2}")));
 
     // Display should show SEARCH(...)
-    assert_eq!(pattern.to_string(), "SEARCH(NUMBER(42))");
+    assert_eq!(pattern.to_string(), "SEARCH(42)");
 }
 
 #[test]
@@ -726,7 +726,7 @@ fn test_search_pattern_with_captures() {
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Display should show the capture in the search
-    assert_eq!(pattern.to_string(), "SEARCH(@found(NUMBER(42)))");
+    assert_eq!(pattern.to_string(), "SEARCH(@found(42))");
 }
 
 #[test]
@@ -816,7 +816,7 @@ fn test_search_array_order() {
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
-    let pattern = Pattern::parse("SEARCH(NUMBER)").unwrap();
+    let pattern = Pattern::parse("SEARCH(number)").unwrap();
     let paths = pattern.paths(&data);
     #[rustfmt::skip]
     let expected = indoc! {r#"

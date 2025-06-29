@@ -587,10 +587,10 @@ mod test_comprehensive_variadic_sequences {
 
     #[test]
     fn test_quantifiers_with_captures() {
-        // Test: [(NUMBER)*, @item(text)]
+        // Test: [(number)*, @item(text)]
         // This should match arrays with zero or more numbers followed by a
         // captured text
-        let pattern = Pattern::parse("[(NUMBER)*, @item(text)]").unwrap();
+        let pattern = Pattern::parse("[(number)*, @item(text)]").unwrap();
 
         let numbers_then_text = parse_dcbor_item(r#"[1, 2, "hello"]"#).unwrap();
         let only_text = parse_dcbor_item(r#"["hello"]"#).unwrap();
@@ -601,7 +601,7 @@ mod test_comprehensive_variadic_sequences {
             pattern.paths_with_captures(&numbers_then_text);
         assert!(
             !paths.is_empty(),
-            "[(NUMBER)*, @item(text)] should match numbers then text"
+            "[(number)*, @item(text)] should match numbers then text"
         );
 
         // Should have captured the text item
@@ -611,7 +611,7 @@ mod test_comprehensive_variadic_sequences {
         let (paths, captures) = pattern.paths_with_captures(&only_text);
         assert!(
             !paths.is_empty(),
-            "[(NUMBER)*, @item(text)] should match only text"
+            "[(number)*, @item(text)] should match only text"
         );
         assert!(
             captures.contains_key("item"),
@@ -622,17 +622,17 @@ mod test_comprehensive_variadic_sequences {
         let (paths, captures) = pattern.paths_with_captures(&only_numbers);
         assert!(
             paths.is_empty(),
-            "[(NUMBER)*, @item(text)] should NOT match only numbers"
+            "[(number)*, @item(text)] should NOT match only numbers"
         );
         assert!(
             captures.is_empty(),
             "Should have no captures when no match"
         );
 
-        // Test another pattern: [@first(NUMBER), (ANY)*]
+        // Test another pattern: [@first(number), (ANY)*]
         // This captures the first number and allows any additional elements
         let first_capture_pattern =
-            Pattern::parse("[@first(NUMBER), (ANY)*]").unwrap();
+            Pattern::parse("[@first(number), (ANY)*]").unwrap();
 
         let multi_element = parse_dcbor_item(r#"[42, "text", true]"#).unwrap();
         let (paths, captures) =
@@ -640,7 +640,7 @@ mod test_comprehensive_variadic_sequences {
 
         assert!(
             !paths.is_empty(),
-            "[@first(NUMBER), (ANY)*] should match multi-element array"
+            "[@first(number), (ANY)*] should match multi-element array"
         );
         assert!(
             captures.contains_key("first"),
@@ -659,9 +659,9 @@ mod test_comprehensive_variadic_sequences {
 
     #[test]
     fn test_multiple_quantifiers_in_pattern() {
-        // Pattern: [(NUMBER)*, (text)+] should match arrays with zero+ numbers
+        // Pattern: [(number)*, (text)+] should match arrays with zero+ numbers
         // followed by one+ texts
-        let pattern = Pattern::parse("[(NUMBER)*, (text)+]").unwrap();
+        let pattern = Pattern::parse("[(number)*, (text)+]").unwrap();
 
         let numbers_then_texts =
             parse_dcbor_item(r#"[1, 2, "a", "b"]"#).unwrap();
@@ -673,28 +673,28 @@ mod test_comprehensive_variadic_sequences {
         let (paths, _) = pattern.paths_with_captures(&numbers_then_texts);
         assert!(
             !paths.is_empty(),
-            "[(NUMBER)*, (text)+] should match numbers then texts"
+            "[(number)*, (text)+] should match numbers then texts"
         );
 
         // Only texts should match (zero numbers, one+ texts)
         let (paths, _) = pattern.paths_with_captures(&only_texts);
         assert!(
             !paths.is_empty(),
-            "[(NUMBER)*, (text)+] should match only texts"
+            "[(number)*, (text)+] should match only texts"
         );
 
         // Only numbers should NOT match (missing required texts)
         let (paths, _) = pattern.paths_with_captures(&only_numbers);
         assert!(
             paths.is_empty(),
-            "[(NUMBER)*, (text)+] should NOT match only numbers"
+            "[(number)*, (text)+] should NOT match only numbers"
         );
 
         // Empty should NOT match (missing required texts)
         let (paths, _) = pattern.paths_with_captures(&empty_array);
         assert!(
             paths.is_empty(),
-            "[(NUMBER)*, (text)+] should NOT match empty array"
+            "[(number)*, (text)+] should NOT match empty array"
         );
     }
 }

@@ -50,7 +50,7 @@ fn test_map_capture_key_value() {
 #[test]
 fn test_map_capture_multiple_entries() {
     let pattern = parse(
-        r#"{@name_key("name"): @name_val(text), @age_key("age"): @age_val(NUMBER)}"#,
+        r#"{@name_key("name"): @name_val(text), @age_key("age"): @age_val(number)}"#,
     );
     let cbor_data = cbor(r#"{"name": "Bob", "age": 30}"#);
 
@@ -160,7 +160,7 @@ fn test_map_capture_nested() {
 #[test]
 fn test_map_capture_collect_names() {
     let pattern =
-        parse(r#"{@key1(text): @val1(NUMBER), @key2(text): @val2(text)}"#);
+        parse(r#"{@key1(text): @val1(number), @key2(text): @val2(text)}"#);
 
     let mut capture_names = Vec::new();
     pattern.collect_capture_names(&mut capture_names);

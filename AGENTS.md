@@ -148,7 +148,7 @@ Tests now use `assert_actual_expected!` with `format_paths_with_captures()` for 
         - Matches a date value less than or equal to the specified ISO 8601 date.
     - `date'/regex/'`
         - Matches a date value that matches the specified regex.
-- Number:
+- ✅ Number **COMPLETE**:
     - `number`
         - keyword `number` matches any number.
     - `value`

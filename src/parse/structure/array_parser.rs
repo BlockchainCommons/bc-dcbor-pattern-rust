@@ -228,7 +228,7 @@ mod tests {
 
     #[test]
     fn test_parse_bracket_array_with_pattern() {
-        let mut lexer = Token::lexer("[NUMBER(42)]");
+        let mut lexer = Token::lexer("[42]");
         lexer.next(); // consume the '['
         let pattern = parse_bracket_array(&mut lexer).unwrap();
 

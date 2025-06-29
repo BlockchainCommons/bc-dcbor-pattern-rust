@@ -31,7 +31,8 @@ impl Matcher for NotPattern {
         cbor: &dcbor::CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         // For NOT patterns, we match if the inner pattern does NOT match
-        let (inner_paths, _inner_captures) = self.pattern().paths_with_captures(cbor);
+        let (inner_paths, _inner_captures) =
+            self.pattern().paths_with_captures(cbor);
         if inner_paths.is_empty() {
             // Inner pattern doesn't match, so NOT matches
             (vec![vec![cbor.clone()]], std::collections::HashMap::new())
@@ -85,7 +86,7 @@ mod tests {
     #[test]
     fn test_not_pattern_display() {
         let not_pattern = NotPattern::new(Pattern::number(5));
-        assert_eq!(not_pattern.to_string(), "!NUMBER(5)");
+        assert_eq!(not_pattern.to_string(), "!5");
     }
 
     #[test]
@@ -98,7 +99,7 @@ mod tests {
                 ]),
             ));
         let not_pattern = NotPattern::new(and_pattern);
-        assert_eq!(not_pattern.to_string(), r#"!(NUMBER(5)&"hello")"#);
+        assert_eq!(not_pattern.to_string(), r#"!(5&"hello")"#);
     }
 
     #[test]

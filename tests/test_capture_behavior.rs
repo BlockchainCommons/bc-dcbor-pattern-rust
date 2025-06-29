@@ -12,12 +12,12 @@ mod test_capture_behavior {
 
     #[test]
     fn test_exact_array_pattern_matching() {
-        // Test that [@item(NUMBER(42))] captures all instances of 42 in an
+        // Test that [@item(42)] captures all instances of 42 in an
         // array
         let cbor_data_single = parse_dcbor_item("[42]").unwrap();
         let cbor_data_multiple = parse_dcbor_item("[42, 100, 42]").unwrap();
         let cbor_data_no_match = parse_dcbor_item("[100, 200]").unwrap();
-        let pattern = Pattern::parse("[@item(NUMBER(42))]").unwrap();
+        let pattern = Pattern::parse("[@item(42)]").unwrap();
 
         // This should match: array with exactly one element that is 42
         let (paths_single, captures_single) =
@@ -61,7 +61,7 @@ mod test_capture_behavior {
         // of 42
         assert!(
             !paths_multiple.is_empty(),
-            "Pattern [@item(NUMBER(42))] should match arrays containing 42, including multi-element arrays"
+            "Pattern [@item(42)] should match arrays containing 42, including multi-element arrays"
         );
 
         if let Some(item_captures) = captures_multiple.get("item") {
@@ -97,12 +97,12 @@ mod test_capture_behavior {
         let cbor_data = parse_dcbor_item("[42, 100, 42]").unwrap();
 
         // Based on the user's explanation, this should be the correct syntax:
-        // [(ANY)*, NUMBER(42), (ANY)*] - but this might not be implemented yet
+        // [(ANY)*, 42, (ANY)*] - but this might not be implemented yet
 
         // Let's test what syntax actually works for finding 42 within any array
 
         // Approach 1: Use search pattern
-        let search_pattern = Pattern::parse("SEARCH(@item(NUMBER(42)))");
+        let search_pattern = Pattern::parse("SEARCH(@item(42))");
         match search_pattern {
             Ok(pattern) => {
                 let (paths, captures) = pattern.paths_with_captures(&cbor_data);
@@ -143,7 +143,7 @@ mod test_capture_behavior {
 
     #[test]
     fn test_variadic_array_pattern_syntax() {
-        // Test if the proposed [(ANY)*, @item(NUMBER(42)), (ANY)*] syntax works
+        // Test if the proposed [(ANY)*, @item(42), (ANY)*] syntax works
         // correctly
 
         // Test data: arrays that should match (contain 42)
@@ -157,11 +157,11 @@ mod test_capture_behavior {
 
         // Try to parse the proposed variadic pattern syntax WITH CAPTURE
         let pattern_with_capture_result =
-            Pattern::parse("[(ANY)*, @item(NUMBER(42)), (ANY)*]");
+            Pattern::parse("[(ANY)*, @item(42), (ANY)*]");
 
         // Try to parse the variadic pattern syntax WITHOUT CAPTURE
         let pattern_without_capture_result =
-            Pattern::parse("[(ANY)*, NUMBER(42), (ANY)*]");
+            Pattern::parse("[(ANY)*, 42, (ANY)*]");
 
         match pattern_with_capture_result {
             Ok(pattern) => {
@@ -238,7 +238,7 @@ mod test_capture_behavior {
                 }
 
                 println!(
-                    "SUCCESS: Variadic pattern [(ANY)*, NUMBER(42), (ANY)*] works correctly!"
+                    "SUCCESS: Variadic pattern [(ANY)*, 42, (ANY)*] works correctly!"
                 );
             }
             Err(e) => {
@@ -257,12 +257,12 @@ mod test_capture_behavior {
 
         // Test different pattern variations
         let patterns_to_test = [
-            "[(ANY)*, @item(NUMBER(42)), (ANY)*]",
-            "[(ANY)*, NUMBER(42), (ANY)*]",
-            "[*, @item(NUMBER(42)), *]",
-            "[*, NUMBER(42), *]",
-            "[@item(NUMBER(42)), (ANY)*]",
-            "[(ANY)*, @item(NUMBER(42))]",
+            "[(ANY)*, @item(42), (ANY)*]",
+            "[(ANY)*, 42, (ANY)*]",
+            "[*, @item(42), *]",
+            "[*, 42, *]",
+            "[@item(42), (ANY)*]",
+            "[(ANY)*, @item(42)]",
         ];
 
         for pattern_str in patterns_to_test {
@@ -310,7 +310,7 @@ mod test_capture_behavior {
 
     #[test]
     fn test_variadic_pattern_value_discrimination() {
-        // Test if [(ANY)*, NUMBER(42), (ANY)*] properly discriminates between
+        // Test if [(ANY)*, 42, (ANY)*] properly discriminates between
         // values
 
         let array_with_42 = parse_dcbor_item("[100, 42, 200]").unwrap();
@@ -319,26 +319,26 @@ mod test_capture_behavior {
 
         // Pattern that should match arrays containing 42
         let pattern_42 =
-            Pattern::parse("[(ANY)*, NUMBER(42), (ANY)*]").unwrap();
+            Pattern::parse("[(ANY)*, 42, (ANY)*]").unwrap();
 
         // Pattern that should match arrays containing 100
         let pattern_100 =
-            Pattern::parse("[(ANY)*, NUMBER(100), (ANY)*]").unwrap();
+            Pattern::parse("[(ANY)*, 100, (ANY)*]").unwrap();
 
-        println!("=== Testing NUMBER(42) pattern ===");
+        println!("=== Testing 42 pattern ===");
 
         // Test array with 42 in middle - should match
         let (paths, _) = pattern_42.paths_with_captures(&array_with_42);
         println!(
-            "[100, 42, 200] with NUMBER(42) pattern: {} paths",
+            "[100, 42, 200] with 42 pattern: {} paths",
             paths.len()
         );
         assert!(!paths.is_empty(), "Should match array containing 42");
 
-        // Test array with 100 in middle - should NOT match NUMBER(42)
+        // Test array with 100 in middle - should NOT match 42
         let (paths, _) = pattern_42.paths_with_captures(&array_with_100_middle);
         println!(
-            "[42, 100, 200] with NUMBER(42) pattern: {} paths",
+            "[42, 100, 200] with 42 pattern: {} paths",
             paths.len()
         );
         assert!(!paths.is_empty(), "Should match because 42 is at start"); // 42 is at start, so should match
@@ -346,26 +346,26 @@ mod test_capture_behavior {
         // Test array without 42 - should NOT match
         let (paths, _) = pattern_42.paths_with_captures(&array_without_42);
         println!(
-            "[100, 200, 300] with NUMBER(42) pattern: {} paths",
+            "[100, 200, 300] with 42 pattern: {} paths",
             paths.len()
         );
         assert!(paths.is_empty(), "Should NOT match array without 42");
 
-        println!("\n=== Testing NUMBER(100) pattern ===");
+        println!("\n=== Testing 100 pattern ===");
 
-        // Test array with 100 in middle - should match NUMBER(100)
+        // Test array with 100 in middle - should match 100
         let (paths, _) =
             pattern_100.paths_with_captures(&array_with_100_middle);
         println!(
-            "[42, 100, 200] with NUMBER(100) pattern: {} paths",
+            "[42, 100, 200] with 100 pattern: {} paths",
             paths.len()
         );
         assert!(!paths.is_empty(), "Should match array containing 100");
 
-        // Test array with 42 in middle - should NOT match NUMBER(100)
+        // Test array with 42 in middle - should NOT match 100
         let (paths, _) = pattern_100.paths_with_captures(&array_with_42);
         println!(
-            "[100, 42, 200] with NUMBER(100) pattern: {} paths",
+            "[100, 42, 200] with 100 pattern: {} paths",
             paths.len()
         );
         assert!(!paths.is_empty(), "Should match because 100 is at start"); // 100 is at start, so should match
@@ -377,14 +377,14 @@ mod test_capture_behavior {
         println!("\n=== Testing specific middle position ===");
 
         let (paths, _) = pattern_42.paths_with_captures(&array_42_only_middle);
-        println!("[1, 42, 3] with NUMBER(42) pattern: {} paths", paths.len());
-        assert!(!paths.is_empty(), "Should match [1, 42, 3] with NUMBER(42)");
+        println!("[1, 42, 3] with 42 pattern: {} paths", paths.len());
+        assert!(!paths.is_empty(), "Should match [1, 42, 3] with 42");
 
         let (paths, _) = pattern_42.paths_with_captures(&array_100_only_middle);
-        println!("[1, 100, 3] with NUMBER(42) pattern: {} paths", paths.len());
+        println!("[1, 100, 3] with 42 pattern: {} paths", paths.len());
         assert!(
             paths.is_empty(),
-            "Should NOT match [1, 100, 3] with NUMBER(42)"
+            "Should NOT match [1, 100, 3] with 42"
         );
     }
 
@@ -395,7 +395,7 @@ mod test_capture_behavior {
 
         let cbor_data = parse_dcbor_item("[1, 42, 3]").unwrap();
         let pattern =
-            Pattern::parse("[(ANY)*, @item(NUMBER(42)), (ANY)*]").unwrap();
+            Pattern::parse("[(ANY)*, @item(42), (ANY)*]").unwrap();
 
         let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
@@ -445,7 +445,7 @@ mod test_capture_behavior {
 
         let cbor_data = parse_dcbor_item("[42, 100, 42]").unwrap();
         let pattern =
-            Pattern::parse("[(ANY)*, @item(NUMBER(42)), (ANY)*]").unwrap();
+            Pattern::parse("[(ANY)*, @item(42), (ANY)*]").unwrap();
 
         let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
@@ -474,14 +474,14 @@ mod test_capture_behavior {
 
         let cbor_data = parse_dcbor_item("[42, 100, 200]").unwrap();
         let pattern =
-            Pattern::parse("[(ANY)*, @item(NUMBER(42)), (ANY)*]").unwrap();
+            Pattern::parse("[(ANY)*, @item(42), (ANY)*]").unwrap();
 
         let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
         // This SHOULD work and now does work
         assert!(
             !paths.is_empty(),
-            "Pattern [(ANY)*, @item(NUMBER(42)), (ANY)*] should match [42, 100, 200]"
+            "Pattern [(ANY)*, @item(42), (ANY)*] should match [42, 100, 200]"
         );
 
         assert!(
@@ -524,7 +524,7 @@ mod test_capture_behavior {
         for (cbor_str, description) in test_cases {
             let cbor_data = parse_dcbor_item(cbor_str).unwrap();
             let pattern =
-                Pattern::parse("[(ANY)*, @item(NUMBER(42)), (ANY)*]").unwrap();
+                Pattern::parse("[(ANY)*, @item(42), (ANY)*]").unwrap();
 
             let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 

@@ -14,7 +14,7 @@ fn test_deeply_nested_performance() {
     // Create a deeply nested pattern: 5 levels deep
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        TAG(100, {"a": {"b": {"c": {"d": [NUMBER(42)]}}}})
+        TAG(100, {"a": {"b": {"c": {"d": [42]}}}})
     "#).unwrap();
     let pattern_creation_time = start.elapsed();
 
@@ -67,7 +67,7 @@ fn test_complex_repeat_pattern_performance() {
     // Complex pattern with multiple repeat patterns
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        [({"id": NUMBER})*, (ANY)*, ({"name": text})*]
+        [({"id": number})*, (ANY)*, ({"name": text})*]
     "#).unwrap();
     let pattern_creation_time = start.elapsed();
 
@@ -179,15 +179,15 @@ fn test_complex_or_pattern_performance() {
     // Complex OR pattern with many alternatives
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        TAG(1, NUMBER) |
+        TAG(1, number) |
         TAG(2, text) |
-        TAG(3, [NUMBER]) |
+        TAG(3, [number]) |
         TAG(4, {text: ANY}) |
         TAG(5, bool) |
         {"type": "user"} |
         {"type": "admin"} |
         ["start"] |
-        [NUMBER, text, bool]
+        [number, text, bool]
     "#).unwrap();
     let pattern_creation_time = start.elapsed();
 
@@ -237,7 +237,7 @@ fn test_vm_instruction_optimization() {
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
         TAG(100, [
-            ({"key": NUMBER})*, "separator", ({"value": text})*
+            ({"key": number})*, "separator", ({"value": text})*
         ])
     "#).unwrap();
 

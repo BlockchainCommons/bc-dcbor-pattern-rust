@@ -11,8 +11,8 @@ mod test_array_comma_display {
 
     #[test]
     fn test_complex_array_sequence_display() {
-        let pattern = Pattern::parse(r#"[(ANY)*, NUMBER(42), (ANY)*]"#).unwrap();
+        let pattern = Pattern::parse(r#"[(ANY)*, 42, (ANY)*]"#).unwrap();
         let display = pattern.to_string();
-        assert_eq!(display, "[(ANY)*, NUMBER(42), (ANY)*]");
+        assert_eq!(display, "[(ANY)*, 42, (ANY)*]");
     }
 }

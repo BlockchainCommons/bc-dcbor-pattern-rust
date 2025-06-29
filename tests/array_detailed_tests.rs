@@ -13,7 +13,7 @@ fn cbor(s: &str) -> dcbor::CBOR { parse_dcbor_item(s).unwrap() }
 #[test]
 fn test_array_pattern_paths_with_captures() {
     // Parse the inner capture pattern directly
-    let inner_pattern = Pattern::parse("[@item(NUMBER(42))]").unwrap();
+    let inner_pattern = Pattern::parse("[@item(42)]").unwrap();
     let cbor_data = cbor("[42]");
 
     // Test the inner pattern directly on the array
@@ -38,7 +38,7 @@ fn test_array_pattern_paths_with_captures() {
 
     // Test the inner pattern on the array element directly
     let element = cbor("42");
-    let element_pattern = Pattern::parse("@item(NUMBER(42))").unwrap();
+    let element_pattern = Pattern::parse("@item(42)").unwrap();
     let (element_paths, element_captures) =
         element_pattern.paths_with_captures(&element);
 
@@ -75,7 +75,7 @@ fn test_array_element_traversal() {
         assert_eq!(arr.len(), 1, "Array should have one element");
 
         for element in arr.iter() {
-            let pattern = Pattern::parse("@item(NUMBER(42))").unwrap();
+            let pattern = Pattern::parse("@item(42)").unwrap();
             let (paths, captures) = pattern.paths_with_captures(element);
 
             #[rustfmt::skip]
@@ -101,7 +101,7 @@ fn test_array_element_traversal() {
 #[test]
 fn test_array_pattern_with_multiple_elements() {
     let cbor_data = cbor("[42, 100, 200]");
-    let pattern = Pattern::parse("[@item(NUMBER)]").unwrap();
+    let pattern = Pattern::parse("[@item(number)]").unwrap();
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
@@ -129,7 +129,7 @@ fn test_array_pattern_with_multiple_elements() {
 #[test]
 fn test_array_pattern_nested_structure() {
     let cbor_data = cbor(r#"[[42], [100]]"#);
-    let pattern = Pattern::parse("[@outer_item([@inner_item(NUMBER)])]").unwrap();
+    let pattern = Pattern::parse("[@outer_item([@inner_item(number)])]").unwrap();
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
@@ -162,7 +162,7 @@ fn test_array_pattern_nested_structure() {
 #[test]
 fn test_array_pattern_specific_value_matching() {
     let cbor_data = cbor("[42, 100, 42]");
-    let pattern = Pattern::parse("[@specific(NUMBER(42))]").unwrap();
+    let pattern = Pattern::parse("[@specific(42)]").unwrap();
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
@@ -186,7 +186,7 @@ fn test_array_pattern_specific_value_matching() {
 #[test]
 fn test_array_pattern_no_match() {
     let cbor_data = cbor("[100, 200]");
-    let pattern = Pattern::parse("[@item(NUMBER(42))]").unwrap();
+    let pattern = Pattern::parse("[@item(42)]").unwrap();
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 

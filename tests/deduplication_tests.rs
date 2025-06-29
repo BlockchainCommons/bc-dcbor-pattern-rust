@@ -14,7 +14,7 @@ mod deduplication_tests {
     fn test_no_duplicate_paths_simple_array() {
         // Test case that previously showed duplicate paths
         let cbor_data = parse_dcbor_item("[42, 100, 200]").unwrap();
-        let pattern = Pattern::parse("[@item(NUMBER)]").unwrap();
+        let pattern = Pattern::parse("[@item(number)]").unwrap();
 
         let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
@@ -41,7 +41,7 @@ mod deduplication_tests {
     fn test_no_duplicate_paths_nested_array() {
         let nested_cbor = parse_dcbor_item(r#"[[42], [100]]"#).unwrap();
         let nested_pattern =
-            Pattern::parse("[@outer_item([@inner_item(NUMBER)])]")
+            Pattern::parse("[@outer_item([@inner_item(number)])]")
                 .unwrap();
 
         let (nested_paths, nested_captures) =
@@ -75,7 +75,7 @@ mod deduplication_tests {
     fn test_no_duplicate_paths_with_repeated_values() {
         // Test with actual duplicate values that should create identical paths
         let cbor_data = parse_dcbor_item("[42, 100, 42]").unwrap();
-        let pattern = Pattern::parse("[@specific(NUMBER(42))]").unwrap();
+        let pattern = Pattern::parse("[@specific(42)]").unwrap();
 
         let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 

@@ -172,7 +172,7 @@ fn test_map_with_array_constraints() {
 fn test_array_starting_with_maps() {
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        [{"id": NUMBER}, (ANY)*]
+        [{"id": number}, (ANY)*]
     "#).unwrap();
 
     // Should match: [{"id": 42}]
@@ -236,7 +236,7 @@ fn test_deeply_nested_structures() {
         TAG(200,
             {
                 "data":
-                [{"value": NUMBER}]
+                [{"value": number}]
             }
         )
     "#).unwrap();
@@ -270,7 +270,7 @@ fn test_deeply_nested_structures_with_multiple_maps() {
     let pattern = Pattern::parse(r#"
         TAG(200,
             {
-                "data": [({"value": NUMBER})*]
+                "data": [({"value": number})*]
             }
         )
     "#).unwrap();
@@ -365,7 +365,7 @@ fn test_multiple_levels_of_nesting_with_any() {
 #[test]
 fn test_extreme_nesting_depth() {
     // Test deeply nested structures for performance
-    let pattern = Pattern::parse(r#"TAG(400, {"level1": {"level2": {"level3": [NUMBER(42)]}}})"#).unwrap();
+    let pattern = Pattern::parse(r#"TAG(400, {"level1": {"level2": {"level3": [42]}}})"#).unwrap();
 
     let deep_structure =
         parse_dcbor_item(r#"400({"level1": {"level2": {"level3": [42]}}})"#)
@@ -398,7 +398,7 @@ fn test_complex_combined_patterns() {
         TAG(500,
             [
                 {"type": "user"},
-                {"id": NUMBER},
+                {"id": number},
                 ( {"name": text} | {"email": text} )*
             ]
         )
