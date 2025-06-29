@@ -90,201 +90,111 @@ Tests now use `assert_actual_expected!` with `format_paths_with_captures()` for 
 - To run an individual test: `cargo test --test <module> <test_name>`
 - To run all tests: `cargo test`
 
-## Development Plan: Comprehensive Variadic Sequence Testing
+### Current Task: Syntax Simplification
 
-### Objective
-Create comprehensive test coverage for all variadic sequence quantifiers in arrays to ensure robust pattern matching behavior.
+- These are updates to `docs/PatternSyntax.md` to reflect the new simplified syntax.
 
-### Current Gap Analysis
-- Limited testing of basic quantifiers (`*`, `+`, `?`)
-- No testing of lazy quantifiers (`*?`, `+?`, `??`)
-- No testing of possessive quantifiers (`*+`, `++`, `?+`)
-- No testing of interval quantifiers (`{n,m}`, `{n,}`, `{,m}`)
-- No comprehensive edge case testing
-- No testing of complex combinations with captures
+- The new syntax generalizes the use of "prefixed single-quoted" patterns, e.g., `prefix'content'`. With no prefix, single-quoted patterns are understood as "known values" as defined below.
 
-### Implementation Strategy
+- Remember, all tests that expect multi-line output should use the rubric as shown in `tests/common/mod.rs` to ensure consistent formatting.
 
-#### Phase 1: Test File Creation
-- Create `test_comprehensive_variadic_sequences.rs`
-- Structure tests by quantifier type and behavior
-- Use `assert_actual_expected!` macro following project rubric
-- Include both positive and negative test cases
+- As we complete each section, mark it as complete in this document, and update `docs/PatternSyntax.md` to reflect the new syntax.
 
-#### Phase 2: Test Categories
+#### Value Patterns
 
-**2.1 Basic Quantifiers (Greedy)**
-- `(ANY)*` - zero or more (greedy)
-- `(ANY)+` - one or more (greedy)
-- `(ANY)?` - zero or one (greedy)
-- `(pattern)` - exactly once (default)
+- Boolean:
+    - `bool`
+        - Matches any boolean value.
+    - `true`
+        - Matches the boolean value `true`.
+    - `false`
+        - Matches the boolean value `false`.
+- Text:
+    - `text`
+        - Matches any text value.
+    - `"string"`
+        - Matches a text value with the specified string. dCBOR diagnostic notation uses double quotes for text strings, so we use that syntax here for familiarity.
+    - `/text-regex/`
+        - Matches a text value that matches the specified regex. No double quotes are used here, as the regex is not a string but a pattern to match against the text value.
+- Null:
+    - `null`
+        - Matches the null value.
+- ByteString
+    - `bstr`
+        - Matches any byte string.
+    - `h'hex'`
+        - Matches a byte string with the specified hex value. Note that the `h'...'` syntax is used to denote hex strings in CBOR diagnostic notation, so we use it here for familiarity.
+    - `h'/regex/'`
+        - Matches a byte string that matches the specified binary regex.
+- Digest:
+    - `digest`
+        - Matches any digest value.
+    - `digest'hex'`
+        - Matches a digest whose value starts with the specified hex prefix. Up to 32 bytes can be specified, which is the length of the full SHA-256 digest.
+    - `digest'ur:digest/value'`
+        - Matches the specified `ur:digest` value, parsed using `Digest::from_ur_string()`.
+- Date
+    - `date`
+        - Matches any date value.
+    - `date'iso-8601'`
+        - Matches a date value with the specified ISO 8601 format. This is a bare string with no delimiters apart from the enclosing parentheses.
+    - `date'iso-8601...iso-8601'`
+        - Matches a date value within the specified range.
+    - `date'iso-8601...'`
+        - Matches a date value greater than or equal to the specified ISO 8601 date.
+    - `date'...iso-8601'`
+        - Matches a date value less than or equal to the specified ISO 8601 date.
+    - `date'/regex/'`
+        - Matches a date value that matches the specified regex.
+- Number:
+    - `number`
+        - keyword `number` matches any number.
+    - `value`
+        - Bare numeric value matches the specified number.
+    - `value...value`
+        - Matches a number within the specified range.
+    - `>=value`
+        - Matches a number greater than or equal to the specified value.
+    - `<=value`
+        - Matches a number less than or equal to the specified value.
+    - `>value`
+        - Matches a number greater than the specified value.
+    - `<value`
+        - Matches a number less than the specified value.
+    - `NaN`
+        - Matches the NaN (Not a Number) value.
+    - `Infinity`
+        - Matches the Infinity value.
+    - `-Infinity`
+        - Matches the negative Infinity value.
+- Known Value
+    - `known`
+        - Matches any known value. (See the `known-values` crate for more information.)
+    - `known'value'`
+        - Matches the specified known value, which is a u64 value. dCBOR prints known values enclosed in single quotes, so we use that syntax here for familiarity.
+    - `known'name'`
+        - Matches the known value with the specified name. Again we use single quotes here for familiarity.
+    - `known'/regex/'`
+        - Matches a known value with a name that matches the specified regex. We do not use the single quotes here.
 
-**2.2 Lazy Quantifiers**
-- `(ANY)*?` - zero or more (lazy)
-- `(ANY)+?` - one or more (lazy)
-- `(ANY)??` - zero or one (lazy)
 
-**2.3 Possessive Quantifiers**
-- `(ANY)*+` - zero or more (possessive)
-- `(ANY)++` - one or more (possessive)
-- `(ANY)?+` - zero or one (possessive)
+- Tagged
+    - `tagged`
+        - Matches any CBOR tagged value.
+    - `tagged ( value, pattern )`
+        - Matches the specified CBOR tagged value with content that matches the given pattern. The tag value is a u64 value, formatted as a bare integer with no delimiters apart from the enclosing parentheses.
+    - `tagged ( name, pattern )`
+        - Matches the CBOR tagged value with the specified name and content that matches the given pattern. The tag name is formatted as a bare alphanumeric string (including hyphens and underscores) with no delimiters apart from the enclosing parentheses.
+    - `tagged ( /regex/, pattern )`
+        - Matches a CBOR tagged value with a name that matches the specified regex and content that matches the given pattern.
 
-**2.4 Interval Quantifiers**
-- `(ANY){n}` - exactly n times
-- `(ANY){n,m}` - between n and m times
-- `(ANY){n,}` - at least n times
-- `(ANY){,m}` - at most m times
-- With lazy and possessive variants
+#### Meta Patterns
 
-**2.5 Complex Scenarios**
-- Multiple quantifiers in same pattern
-- Quantifiers with captures
-- Nested quantifiers
-- Mixed quantifier types
-- Edge cases (empty arrays, single elements, large arrays)
-
-#### Phase 3: Iterative Development Process
-1. Write tests expecting them to pass based on specification
-2. Run tests to identify failures
-3. For each failure, analyze whether it's:
-   - Incorrect expectation (fix test)
-   - Implementation bug (fix code)
-   - Missing feature (implement or document limitation)
-4. Fix one issue at a time
-5. Verify fix doesn't break existing tests
-6. Repeat until all tests pass
-
-#### Phase 4: Documentation and Integration
-- Update this document with findings
-- Document any limitations discovered
-- Ensure integration with existing test suite
-
-### Implementation Results
-
-#### ✅ Phase 1: Test File Creation - COMPLETED
-- Created `test_comprehensive_variadic_sequences.rs`
-- 16 comprehensive tests covering all quantifier types
-- Used `assert_actual_expected!` macro following project rubric
-
-#### ✅ Phase 2: Test Categories - COMPLETED
-
-**2.1 Basic Quantifiers (Greedy)** ✅
-- `(ANY)*` - zero or more (greedy) - **PASS**
-- `(ANY)+` - one or more (greedy) - **PASS**
-- `(ANY)?` - zero or one (greedy) - **PASS**
-- `(ANY){1}` - exactly once - **PASS**
-
-**2.2 Lazy Quantifiers** ✅
-- `(ANY)*?` - zero or more (lazy) - **PASS**
-- `(ANY)+?` - one or more (lazy) - **PASS**
-- `(ANY)??` - zero or one (lazy) - **PASS**
-
-**2.3 Possessive Quantifiers** ✅
-- `(ANY)*+` - zero or more (possessive) - **PASS**
-- `(ANY)++` - one or more (possessive) - **PASS**
-- `(ANY)?+` - zero or one (possessive) - **PASS**
-
-**2.4 Interval Quantifiers** ✅
-- `(ANY){3}` - exactly n times - **PASS**
-- `(ANY){2,4}` - between n and m times - **PASS**
-- `(ANY){2,}` - at least n times - **PASS**
-- `(ANY){0,3}` - at most m times - **PASS**
-
-**2.5 Complex Scenarios** ✅
-- Multiple quantifiers in same pattern - **PASS**
-- Quantifiers with captures (adapted syntax) - **PASS**
-
-#### ✅ Phase 3: Iterative Development Process - COMPLETED
-
-**Issues Found and Resolved:**
-
-1. **Syntax Limitation**: `{,3}` syntax not supported
-   - **Fix**: Use `{0,3}` instead
-   - **Root Cause**: Parser expects explicit minimum value
-
-2. **Pattern Interpretation**: `[(ANY)]` vs `[(ANY){1}]`
-   - **Fix**: Use explicit quantifier `{1}` for exactly-once semantics
-   - **Root Cause**: Parentheses in arrays may have different interpretation
-
-3. **Capture Syntax**: `[@items(NUMBER)*]` not supported
-   - **Fix**: Use separate patterns like `[(NUMBER)*, @item(TEXT)]`
-   - **Root Cause**: Quantifiers cannot be directly applied to captures
-
-#### Key Findings
-
-**Supported Syntax:**
-- All basic quantifiers: `*`, `+`, `?`
-- All reluctance modifiers: lazy (`?`), possessive (`+`)
-- Interval patterns: `{n}`, `{n,m}`, `{n,}`, `{0,m}`
-- Complex combinations with multiple quantifiers
-- Captures work with individual elements, not quantified groups
-
-**Limitations Discovered:**
-- `{,m}` syntax not supported (use `{0,m}`)
-- Direct quantification of captures not supported
-- Parentheses interpretation in arrays may differ from expectations
-
-#### Test Coverage Achievement
-- **16 comprehensive tests** covering all quantifier types
-- **100% pass rate** after syntax corrections
-- **No regression** in existing test suite
-- **Robust edge case testing** for boundary conditions
-
-## Task Completion Status: COMPLETED ✅
-
-### Summary
-Successfully created comprehensive tests for all variadic sequence quantifiers in arrays and identified + fixed a critical parser bug. All 16 new tests pass, and the full test suite (398 tests) passes without any regressions.
-
-### Major Accomplishments
-
-1. **Created comprehensive test suite** (`tests/test_comprehensive_variadic_sequences.rs`):
-   - 16 tests covering all quantifier types (greedy, lazy, possessive, intervals)
-   - Edge cases and complex scenarios
-   - Proper test structure following the rubric in `tests/common/mod.rs`
-   - All tests pass successfully
-
-2. **Identified and fixed critical parser bug**:
-   - **Issue**: Undecorated parentheses like `(ANY)` were not creating `RepeatPattern` with "exactly one" quantifier
-   - **Root cause**: Parser was returning inner pattern directly instead of wrapping in `RepeatPattern`
-   - **Fix**: Modified `parse_quantifier` function to accept `force_repeat` parameter and updated `primary_parser.rs` to always force `RepeatPattern` creation for parentheses
-   - **Impact**: Fixed semantic behavior where `[(ANY)]` now correctly matches exactly one element instead of matching multiple elements
-
-3. **Verified comprehensive coverage**:
-   - All quantifier types: `*`, `+`, `?`, `{n}`, `{n,m}`, `{n,}`, `{0,m}`
-   - All reluctance types: greedy (default), lazy (`?`), possessive (`+`)
-   - Edge cases: empty arrays, single elements, multiple elements
-   - Complex scenarios: multiple quantifiers, captures, nested patterns
-
-### Test Results
-- **Comprehensive variadic tests**: 16/16 passing ✅
-- **Full test suite**: 398/398 passing ✅
-- **No regressions**: All existing functionality preserved ✅
-
-### Key Findings and Limitations
-
-1. **Syntax Limitations**:
-   - `{,m}` syntax not supported (use `{0,m}` instead)
-   - Quantifier-capture syntax like `[@items(NUMBER)*]` not supported
-   - These are design limitations, not bugs
-
-2. **Parser Semantics**:
-   - Undecorated parentheses now correctly create `RepeatPattern` with "exactly one" quantifier
-   - Nested parentheses like `((BOOL))` create nested `RepeatPattern` structures: `((BOOL){1}){1}`
-   - This is correct semantic behavior, not a bug
-
-3. **Variadic Quantifier Behavior**:
-   - All quantifier types work correctly in array contexts
-   - Greedy, lazy, and possessive variants all function as expected
-   - Interval quantifiers handle edge cases correctly
-
-### Files Modified
-- `tests/test_comprehensive_variadic_sequences.rs` - New comprehensive test suite
-- `src/parse/meta/repeat_parser.rs` - Fixed parser logic for parentheses
-- `src/parse/meta/primary_parser.rs` - Updated to force RepeatPattern creation
-- `tests/parse_tests_meta.rs` - Updated test expectations for nested parentheses
-- `AGENTS.md` - This documentation
-
-### Conclusion
-The dcbor-pattern crate now has robust, comprehensive test coverage for all variadic sequence quantifiers. The discovered parser bug has been fixed, ensuring correct semantic behavior for undecorated parentheses in array patterns. All functionality works as expected with no regressions.
-
-**Status: TASK COMPLETE** ✅
+- Any
+    - `*`
+        - A bare asterisk matches any value.
+- None
+    - Remove, as `!*` is a pattern that matches no values.
+- Search
+    - `search ( pattern )`
+        - Visits every node in the CBOR tree, matching the specified pattern against each node.

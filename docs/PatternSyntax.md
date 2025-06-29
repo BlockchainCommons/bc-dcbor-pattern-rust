@@ -76,6 +76,10 @@ All value patterns match atomic CBOR values.
         - Matches a number less than the specified value.
     - `NUMBER ( NaN )`
         - Matches the NaN (Not a Number) value.
+    - `NUMBER ( Infinity )`
+        - Matches the Infinity value.
+    - `NUMBER ( -Infinity )`
+        - Matches the negative Infinity value.
 - Text
     - `TEXT`
         - Matches any text value.
