@@ -60,25 +60,25 @@ All value patterns match atomic CBOR values.
     - `null`
         - Matches the null value.
 - Number
-    - `NUMBER`
-        - Matches any number.
-    - `NUMBER ( value )`
-        - Matches the specified number.
-    - `NUMBER ( value ... value )`
+    - `number`
+        - keyword `number` matches any number.
+    - `value`
+        - Bare numeric value matches the specified number.
+    - `value...value`
         - Matches a number within the specified range.
-    - `NUMBER ( >= value )`
+    - `>=value`
         - Matches a number greater than or equal to the specified value.
-    - `NUMBER ( <= value )`
+    - `<=value`
         - Matches a number less than or equal to the specified value.
-    - `NUMBER ( > value )`
+    - `>value`
         - Matches a number greater than the specified value.
-    - `NUMBER ( < value )`
+    - `<value`
         - Matches a number less than the specified value.
-    - `NUMBER ( NaN )`
+    - `NaN`
         - Matches the NaN (Not a Number) value.
-    - `NUMBER ( Infinity )`
+    - `Infinity`
         - Matches the Infinity value.
-    - `NUMBER ( -Infinity )`
+    - `-Infinity`
         - Matches the negative Infinity value.
 - Text
     - `text`
