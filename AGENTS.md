@@ -102,7 +102,7 @@ Tests now use `assert_actual_expected!` with `format_paths_with_captures()` for 
 
 #### Value Patterns
 
-- Boolean:
+- ✅ Boolean **COMPLETE**:
     - `bool`
         - Matches any boolean value.
     - `true`
