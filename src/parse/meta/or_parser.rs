@@ -11,9 +11,9 @@ use crate::{Pattern, Result};
 /// OR -> AND -> NOT -> PRIMARY (atomic patterns)
 ///
 /// Examples:
-/// - `BOOL | TEXT` - matches values that are either boolean OR text
-/// - `NUMBER | NULL` - matches values that are either numbers OR null
-/// - `[*] | MAP` - matches values that are either arrays OR maps
+/// - `bool | text` - matches values that are either boolean OR text
+/// - `number | null` - matches values that are either numbers OR null
+/// - `[*] | map` - matches values that are either arrays OR maps
 pub(crate) fn parse_or(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
     let mut patterns = vec![parse_and(lexer)?];
 

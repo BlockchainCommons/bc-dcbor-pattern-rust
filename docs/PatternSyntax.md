@@ -4,7 +4,7 @@ This syntax is inspired by regular expressions but is specifically designed for 
 
 The pattern syntax is designed to be flexible and expressive. Patterns can be composed of *value patterns*, *structure patterns*, and combinators known as *meta-patterns*.
 
-Keywords like `TAG`, `NUMBER`, etc., are case-sensitive. Most pattern keywords use uppercase, with some exceptions like boolean patterns (`bool`, `true`, `false`). Patterns can include specific values, ranges, or regexes to match against the corresponding parts of the dCBOR item.
+Keywords like `tagged`, `number`, etc., are case-sensitive. Most pattern keywords use uppercase, with some exceptions like boolean patterns (`bool`, `true`, `false`). Patterns can include specific values, ranges, or regexes to match against the corresponding parts of the dCBOR item.
 
 Arrays use bracket syntax `[...]`.
 
@@ -112,11 +112,11 @@ Structure patterns match parts of dCBOR items.
     - `[pattern]`
         - Matches an array where the elements match the specified pattern. The pattern can be a simple pattern, a sequence of patterns, or patterns with repeat quantifiers.
         - Examples:
-            - `[NUMBER(42)]` - Array containing exactly one element: the number 42
-            - `[TEXT("a"), TEXT("b"), TEXT("c")]` - Array containing exactly ["a", "b", "c"] in sequence
-            - `[(ANY)*, NUMBER(42), (ANY)*]` - Array containing 42 anywhere within it
-            - `[NUMBER(42), (ANY)*]` - Array starting with 42, followed by any elements
-            - `[(ANY)*, NUMBER(42)]` - Array ending with 42, preceded by any elements
+            - `[42]` - Array containing exactly one element: the number 42
+            - `["a", "b", "c"]` - Array containing exactly ["a", "b", "c"] in sequence
+            - `[(ANY)*, 42, (ANY)*]` - Array containing 42 anywhere within it
+            - `[42, (ANY)*]` - Array starting with 42, followed by any elements
+            - `[(ANY)*, 42]` - Array ending with 42, preceded by any elements
 - Map
     - `{*}`
         - Matches any map.

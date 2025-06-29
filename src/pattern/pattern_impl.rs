@@ -385,10 +385,10 @@ impl Pattern {
     /// - `bool` - matches any boolean value
     /// - `true` - matches the boolean value true
     /// - `false` - matches the boolean value false
-    /// - `TEXT("hello")` - matches the text "hello"
-    /// - `NUMBER(1..10)` - matches numbers from 1 to 10
-    /// - `bool | TEXT` - matches boolean or text values
-    /// - `@name(TEXT)` - captures text with name "name"
+    /// - `"hello"` - matches the text "hello"
+    /// - `1..10` - matches numbers from 1 to 10
+    /// - `bool | text` - matches boolean or text values
+    /// - `@name(text)` - captures text with name "name"
     pub fn parse(input: &str) -> Result<Self> {
         use logos::Logos;
 

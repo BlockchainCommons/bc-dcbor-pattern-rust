@@ -55,7 +55,7 @@ fn test_vm_map_navigation() {
     let code = vec![
         Instr::PushAxis(Axis::MapValue), // Navigate to map values
         Instr::CaptureStart(0),          // Start capture
-        Instr::MatchPredicate(0),        // Match TEXT("value")
+        Instr::MatchPredicate(0),        // Match "value"
         Instr::CaptureEnd(0),            // End capture
         Instr::Accept,                   // Accept the match
     ];

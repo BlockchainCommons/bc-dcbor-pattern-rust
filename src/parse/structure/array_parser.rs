@@ -104,10 +104,10 @@ pub(crate) fn parse_bracket_array(
 /// OR -> AND -> NOT -> ARRAY_SEQUENCE -> PRIMARY
 ///
 /// Examples:
-/// - `TEXT("a"), TEXT("b")` - matches "a" followed by "b" in sequence
-/// - `NUMBER(1), NUMBER(2), NUMBER(3)` - matches 1, 2, 3 in exact sequence
-/// - `ANY, NUMBER(42)` - matches any value followed by the number 42
-/// - `(ANY)*, NUMBER(42), (ANY)*` - matches 42 anywhere within the array
+/// - `"a", "b"` - matches "a" followed by "b" in sequence
+/// - `1, 2, 3` - matches 1, 2, 3 in exact sequence
+/// - `ANY, 42` - matches any value followed by the number 42
+/// - `(ANY)*, 42, (ANY)*` - matches 42 anywhere within the array
 pub(crate) fn parse_array_or(
     lexer: &mut logos::Lexer<Token>,
 ) -> Result<Pattern> {

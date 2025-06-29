@@ -15,7 +15,7 @@ use crate::{Error, MapPattern, Pattern, Result};
 /// - ANY, NONE, and SEARCH meta patterns
 /// - Parenthesized group patterns
 /// - Capture patterns (@name(...))
-/// - All atomic value patterns (bool, TEXT, NUMBER, etc.)
+/// - All atomic value patterns (bool, text, number, etc.)
 /// - All structure patterns (Array, Map, Tagged)
 pub(crate) fn parse_primary(
     lexer: &mut logos::Lexer<Token>,

@@ -461,8 +461,8 @@ impl Matcher for ArrayPattern {
                         // as a sequence, not against any individual element.
                         //
                         // Examples:
-                        // - [NUMBER(42)] should match [42] but not [1, 42, 3]
-                        // - [TEXT("a") , TEXT("b")] should match ["a", "b"] but
+                        // - [42] should match [42] but not [1, 42, 3]
+                        // - ["a" , "b"] should match ["a", "b"] but
                         //   not ["a", "x", "b"]
 
                         // Check if this is a simple single-element case
@@ -556,7 +556,7 @@ impl Matcher for ArrayPattern {
 
                             // For other meta patterns (or, and, etc.), use the
                             // old heuristic
-                            // This handles cases like `[(NUMBER | TEXT)]`
+                            // This handles cases like `[(number | text)]`
                             _ => {
                                 // Check if the pattern matches the array as a
                                 // whole sequence

@@ -8,10 +8,10 @@ use crate::{Pattern, Result};
 /// pattern. If only one pattern is found, it returns that pattern directly.
 ///
 /// Examples:
-/// - `BOOL & TEXT` - matches values that are both boolean AND text (impossible,
+/// - `bool & text` - matches values that are both boolean AND text (impossible,
 ///   always fails)
-/// - `NUMBER & (>= 0)` - matches numbers that are also >= 0
-/// - `[*] & MAP` - matches values that are both arrays AND maps (impossible,
+/// - `number & (>= 0)` - matches numbers that are also >= 0
+/// - `[*] & map` - matches values that are both arrays AND maps (impossible,
 ///   always fails)
 pub(crate) fn parse_and(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
     let mut patterns = vec![parse_not(lexer)?];

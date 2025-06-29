@@ -8,9 +8,9 @@ use crate::{Error, Pattern, Result};
 /// pattern, followed by a closing parenthesis.
 ///
 /// Examples:
-/// - `@count(NUMBER)` - captures any number with the name "count"
-/// - `@name(TEXT)` - captures any text with the name "name"
-/// - `@item([*] | MAP)` - captures any array or map with the name "item"
+/// - `@count(number)` - captures any number with the name "count"
+/// - `@name(text)` - captures any text with the name "name"
+/// - `@item([*] | map)` - captures any array or map with the name "item"
 pub(crate) fn parse_capture(
     lexer: &mut logos::Lexer<Token>,
     name: String,
