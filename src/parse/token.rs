@@ -55,7 +55,7 @@ pub enum Token {
     #[token("bool")]
     Bool,
 
-    #[token("BSTR")]
+    #[token("bstr")]
     ByteString,
 
     #[token("DATE")]
@@ -157,6 +157,12 @@ pub enum Token {
     #[token("/", parse_regex)]
     Regex(Result<String>),
 
+    #[token("h'", parse_hex_string)]
+    HexString(Result<Vec<u8>>),
+
+    #[token("h'/", parse_hex_regex)]
+    HexRegex(Result<String>),
+
     Range(Result<Quantifier>),
 }
 
@@ -235,6 +241,69 @@ fn parse_string(lex: &mut Lexer<Token>) -> Result<String> {
 
     // Unterminated literal – treat as lexing error
     Err(Error::UnterminatedString(lex.span()))
+}
+
+/// Callback used by the `HexString` variant above.
+fn parse_hex_string(lex: &mut Lexer<Token>) -> Result<Vec<u8>> {
+    let src = lex.remainder(); // everything after the first h'
+    
+    // Parse as hex string h'...'
+    for (i, ch) in src.char_indices() {
+        match ch {
+            '\'' => {
+                // Found the closing delimiter
+                let hex_content = &src[..i];
+                match hex::decode(hex_content) {
+                    Ok(bytes) => {
+                        lex.bump(i + 1); // +1 to also eat the '\''
+                        return Ok(bytes);
+                    }
+                    Err(_) => return Err(Error::InvalidHexString(lex.span())),
+                }
+            }
+            c if c.is_ascii_hexdigit() => {
+                // Valid hex character, continue
+            }
+            _ => {
+                // Invalid character in hex string
+                return Err(Error::InvalidHexString(lex.span()));
+            }
+        }
+    }
+
+    // Unterminated literal – treat as lexing error
+    Err(Error::UnterminatedHexString(lex.span()))
+}
+
+/// Callback used by the `HexRegex` variant above.
+fn parse_hex_regex(lex: &mut Lexer<Token>) -> Result<String> {
+    let src = lex.remainder(); // everything after the first h'/
+    let mut escape = false;
+
+    for (i, ch) in src.char_indices() {
+        match (ch, escape) {
+            ('\\', false) => escape = true, // start of an escape
+            ('/', false) => {
+                // Look for the closing '
+                let remainder = &src[i + 1..];
+                if remainder.starts_with('\'') {
+                    // Found the closing h'/.../'
+                    lex.bump(i + 2); // +2 to eat both '/' and '\''
+                    let content = src[..i].to_owned();
+                    match regex::bytes::Regex::new(&content) {
+                        Ok(_) => return Ok(content),
+                        Err(_) => return Err(Error::InvalidRegex(lex.span())),
+                    }
+                }
+                // Not the end, continue
+                escape = false;
+            }
+            _ => escape = false, // any other char ends an escape
+        }
+    }
+
+    // Unterminated literal – treat as lexing error
+    Err(Error::UnterminatedRegex(lex.span()))
 }
 
 /// Callback to handle `{` token - determines if it's a Range or BraceOpen
@@ -395,6 +464,7 @@ mod tests {
 
         // Test leaf pattern keywords
         assert_eq!(Token::lexer("bool").next(), Some(Ok(Token::Bool)));
+        assert_eq!(Token::lexer("bstr").next(), Some(Ok(Token::ByteString)));
         assert_eq!(Token::lexer("text").next(), Some(Ok(Token::Text)));
         assert_eq!(Token::lexer("NUMBER").next(), Some(Ok(Token::Number)));
 
@@ -431,6 +501,41 @@ mod tests {
         assert_eq!(lx.next(), Some(Ok(Token::Regex(Ok("".to_string())))));
         assert_eq!(lx.next(), Some(Ok(Token::Regex(Ok("a\\/".to_string())))));
         assert_eq!(lx.next(), None);
+    }
+
+    #[test]
+    fn test_hex_tokens() {
+        // Test hex string
+        let mut lexer = Token::lexer("h'deadbeef'");
+        if let Some(Ok(Token::HexString(Ok(bytes)))) = lexer.next() {
+            assert_eq!(bytes, vec![0xde, 0xad, 0xbe, 0xef]);
+        } else {
+            panic!("Failed to parse hex string");
+        }
+
+        // Test empty hex string
+        let mut lexer = Token::lexer("h''");
+        if let Some(Ok(Token::HexString(Ok(bytes)))) = lexer.next() {
+            assert_eq!(bytes, vec![]);
+        } else {
+            panic!("Failed to parse empty hex string");
+        }
+
+        // Test hex regex
+        let mut lexer = Token::lexer("h'/^[0-9]+$/'");
+        if let Some(Ok(Token::HexRegex(Ok(regex)))) = lexer.next() {
+            assert_eq!(regex, "^[0-9]+$");
+        } else {
+            panic!("Failed to parse hex regex");
+        }
+
+        // Test hex regex with escaped slash
+        let mut lexer = Token::lexer(r"h'/a\/b/'");
+        if let Some(Ok(Token::HexRegex(Ok(regex)))) = lexer.next() {
+            assert_eq!(regex, r"a\/b");
+        } else {
+            panic!("Failed to parse hex regex with escaped slash");
+        }
     }
 
     #[test]

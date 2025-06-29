@@ -361,7 +361,7 @@ fn test_number_pattern_display() {
 
 #[test]
 fn test_byte_string_pattern_any() {
-    let pattern = parse("BSTR");
+    let pattern = parse("bstr");
 
     // Should match any byte string
     let cbor_bytes = cbor("h'01020304'");
@@ -387,8 +387,8 @@ fn test_byte_string_pattern_any() {
 
 #[test]
 fn test_byte_string_pattern_specific() {
-    let exact_pattern = parse("BSTR(h'01020304')");
-    let different_pattern = parse("BSTR(h'0506')");
+    let exact_pattern = parse("h'01020304'");
+    let different_pattern = parse("h'0506'");
 
     let cbor_bytes = cbor("h'01020304'");
     let different_cbor = cbor("h'0506'");
@@ -444,7 +444,7 @@ fn test_byte_string_pattern_regex() {
 
 #[test]
 fn test_byte_string_pattern_binary_data() {
-    let pattern = parse("BSTR");
+    let pattern = parse("bstr");
 
     // Test with actual binary data (not text)
     let binary_cbor = cbor("h'00010203fffefd'");
@@ -456,7 +456,7 @@ fn test_byte_string_pattern_binary_data() {
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
-    let exact_pattern = parse("BSTR(h'00010203fffefd')");
+    let exact_pattern = parse("h'00010203fffefd'");
     let paths = exact_pattern.paths(&binary_cbor);
     #[rustfmt::skip]
     let expected = indoc! {r#"
@@ -464,7 +464,7 @@ fn test_byte_string_pattern_binary_data() {
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
-    let different_pattern = parse("BSTR(h'000102')");
+    let different_pattern = parse("h'000102'");
     assert!(!different_pattern.matches(&binary_cbor));
 
     // Test regex that matches any bytes starting with 0x00
@@ -487,12 +487,12 @@ fn test_byte_string_pattern_binary_data() {
 
 #[test]
 fn test_byte_string_pattern_display() {
-    assert_eq!(parse("BSTR").to_string(), "BSTR");
-    assert_eq!(parse("BSTR(h'deadbeef')").to_string(), "BSTR(h'deadbeef')");
+    assert_eq!(parse("bstr").to_string(), "bstr");
+    assert_eq!(parse("h'deadbeef'").to_string(), "h'deadbeef'");
 
     let regex = regex::bytes::Regex::new(r"^test.*").unwrap();
     let regex_pattern = Pattern::byte_string_regex(regex);
-    assert_eq!(regex_pattern.to_string(), "BSTR(/^test.*/)");
+    assert_eq!(regex_pattern.to_string(), "h'/^test.*/'");
 }
 
 #[test]

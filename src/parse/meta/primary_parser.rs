@@ -86,6 +86,18 @@ pub(crate) fn parse_primary(
             Ok(Pattern::text_regex(regex))
         }
 
+        // Direct hex string literal
+        Token::HexString(res) => {
+            use crate::parse::value::parse_hex_string_token;
+            parse_hex_string_token(res)
+        }
+
+        // Direct hex regex literal
+        Token::HexRegex(res) => {
+            use crate::parse::value::parse_hex_regex_token;
+            parse_hex_regex_token(res)
+        }
+
         // Structure patterns
         Token::Tagged => parse_tagged(lexer),
 

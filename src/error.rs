@@ -36,6 +36,9 @@ pub enum Error {
     #[error("Invalid hex string at {0:?}")]
     InvalidHexString(Span),
 
+    #[error("Unterminated hex string at {0:?}")]
+    UnterminatedHexString(Span),
+
     #[error("Invalid date format at {0:?}")]
     InvalidDateFormat(Span),
 

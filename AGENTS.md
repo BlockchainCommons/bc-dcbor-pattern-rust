@@ -119,7 +119,7 @@ Tests now use `assert_actual_expected!` with `format_paths_with_captures()` for 
 - ✅ Null **COMPLETE**:
     - `null`
         - Matches the null value.
-- ByteString
+- ✅ ByteString **COMPLETE**:
     - `bstr`
         - Matches any byte string.
     - `h'hex'`
