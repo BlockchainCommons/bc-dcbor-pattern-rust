@@ -126,13 +126,15 @@ Tests now use `assert_actual_expected!` with `format_paths_with_captures()` for 
         - Matches a byte string with the specified hex value. Note that the `h'...'` syntax is used to denote hex strings in CBOR diagnostic notation, so we use it here for familiarity.
     - `h'/regex/'`
         - Matches a byte string that matches the specified binary regex.
-- Digest:
+- ✅ Digest **COMPLETE**:
     - `digest`
         - Matches any digest value.
     - `digest'hex'`
         - Matches a digest whose value starts with the specified hex prefix. Up to 32 bytes can be specified, which is the length of the full SHA-256 digest.
     - `digest'ur:digest/value'`
         - Matches the specified `ur:digest` value, parsed using `Digest::from_ur_string()`.
+    - `digest'/regex/'`
+        - Matches a digest value that matches the specified binary regex.
 - Date
     - `date`
         - Matches any date value.

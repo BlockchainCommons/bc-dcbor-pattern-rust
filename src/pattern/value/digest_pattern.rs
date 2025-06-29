@@ -1,4 +1,5 @@
 use bc_components::{Digest, tags};
+use bc_ur::UREncodable;
 use dcbor::prelude::*;
 
 use crate::pattern::{Matcher, Path, Pattern, vm::Instr};
@@ -130,13 +131,15 @@ impl Matcher for DigestPattern {
 impl std::fmt::Display for DigestPattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            DigestPattern::Any => write!(f, "DIGEST"),
-            DigestPattern::Digest(digest) => write!(f, "DIGEST({})", digest),
+            DigestPattern::Any => write!(f, "digest"),
+            DigestPattern::Digest(digest) => {
+                write!(f, "digest'{}'", digest.ur_string())
+            }
             DigestPattern::Prefix(prefix) => {
-                write!(f, "DIGEST({})", hex::encode(prefix))
+                write!(f, "digest'{}'", hex::encode(prefix))
             }
             DigestPattern::BinaryRegex(regex) => {
-                write!(f, "DIGEST(/{}/)", regex)
+                write!(f, "digest'/{}/'", regex.as_str())
             }
         }
     }
@@ -145,6 +148,7 @@ impl std::fmt::Display for DigestPattern {
 #[cfg(test)]
 mod tests {
     use bc_components::{Digest, DigestProvider};
+    use bc_ur::UREncodable;
 
     use super::*;
 
@@ -157,20 +161,25 @@ mod tests {
 
     #[test]
     fn test_digest_pattern_display() {
+        bc_components::register_tags();
+
         let digest = test_digest();
         let pattern = DigestPattern::digest(digest.clone());
-        assert_eq!(format!("{}", pattern), format!("DIGEST({})", digest));
+        assert_eq!(
+            format!("{}", pattern),
+            format!("digest'{}'", digest.ur_string())
+        );
 
         let prefix = vec![0x74, 0x65, 0x73]; // "tes"
         let pattern = DigestPattern::prefix(prefix.clone());
         assert_eq!(
             format!("{}", pattern),
-            format!("DIGEST({})", hex::encode(&prefix))
+            format!("digest'{}'", hex::encode(&prefix))
         );
 
         let regex = regex::bytes::Regex::new(r"^te.*").unwrap();
         let pattern = DigestPattern::binary_regex(regex.clone());
-        assert_eq!(format!("{}", pattern), format!("DIGEST(/{}/)", regex));
+        assert_eq!(format!("{}", pattern), format!("digest'/{}/'", regex));
     }
 
     #[test]

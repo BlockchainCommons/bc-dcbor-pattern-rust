@@ -2,7 +2,7 @@ use dcbor::prelude::*;
 use dcbor_parse::parse_dcbor_item_partial;
 use logos::{Lexer, Logos};
 
-use crate::{Error, Quantifier, Reluctance, Result};
+use crate::{Error, Quantifier, Reluctance, Result, DigestPattern};
 
 /// Tokens for the Gordian Envelope pattern syntax.
 #[derive(Debug, Clone, Logos, PartialEq)]
@@ -73,8 +73,11 @@ pub enum Token {
     #[token("text")]
     Text,
 
-    #[token("DIGEST")]
+    #[token("digest")]
     Digest,
+
+    #[token("digest'", parse_digest_quoted)]
+    DigestQuoted(Result<DigestPattern>),
 
     // Meta Pattern Keywords
     #[token("ANY")]
@@ -304,6 +307,68 @@ fn parse_hex_regex(lex: &mut Lexer<Token>) -> Result<String> {
 
     // Unterminated literal – treat as lexing error
     Err(Error::UnterminatedRegex(lex.span()))
+}
+
+/// Callback used by the `DigestQuoted` variant above.
+fn parse_digest_quoted(lex: &mut Lexer<Token>) -> Result<DigestPattern> {
+    use bc_components::Digest;
+    use bc_ur::{URDecodable, UREncodable};
+    
+    let src = lex.remainder(); // everything after "digest'"
+    
+    // Find the closing quote
+    for (i, ch) in src.char_indices() {
+        if ch == '\'' {
+            let content = &src[..i];
+            lex.bump(i + 1); // +1 to eat the closing quote
+            
+            // Check for empty content
+            if content.is_empty() {
+                return Err(Error::InvalidDigestPattern("empty content".to_string(), lex.span()));
+            }
+            
+            // Check if it's a UR string
+            if content.starts_with("ur:") {
+                match Digest::from_ur_string(content) {
+                    Ok(digest) => return Ok(DigestPattern::digest(digest)),
+                    Err(_) => return Err(Error::InvalidUr(content.to_string(), lex.span())),
+                }
+            }
+            
+            // Check if it's a regex pattern /.../
+            if content.starts_with('/') && content.ends_with('/') && content.len() > 2 {
+                let regex_content = &content[1..content.len()-1];
+                match regex::bytes::Regex::new(regex_content) {
+                    Ok(regex) => return Ok(DigestPattern::binary_regex(regex)),
+                    Err(_) => return Err(Error::InvalidRegex(lex.span())),
+                }
+            }
+            
+            // Try to parse as hex
+            if content.chars().all(|c| c.is_ascii_hexdigit()) {
+                if content.len() % 2 == 0 {
+                    match hex::decode(content) {
+                        Ok(bytes) => {
+                            if bytes.len() <= Digest::DIGEST_SIZE {
+                                return Ok(DigestPattern::prefix(bytes));
+                            } else {
+                                return Err(Error::InvalidHexString(lex.span()));
+                            }
+                        }
+                        Err(_) => return Err(Error::InvalidHexString(lex.span())),
+                    }
+                } else {
+                    return Err(Error::InvalidHexString(lex.span()));
+                }
+            }
+            
+            // If it's not UR, regex, or hex, it's an error
+            return Err(Error::InvalidDigestPattern(content.to_string(), lex.span()));
+        }
+    }
+    
+    // Unterminated literal
+    Err(Error::UnterminatedDigestQuoted(lex.span()))
 }
 
 /// Callback to handle `{` token - determines if it's a Range or BraceOpen

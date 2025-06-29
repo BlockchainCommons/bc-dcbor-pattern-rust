@@ -75,6 +75,12 @@ pub enum Error {
     #[error("Invalid capture group name")]
     InvalidCaptureGroupName(String, Span),
 
+    #[error("Invalid digest pattern: {0} at {1:?}")]
+    InvalidDigestPattern(String, Span),
+
+    #[error("Unterminated digest quoted pattern at {0:?}")]
+    UnterminatedDigestQuoted(Span),
+
     #[error("Unknown error")]
     #[default]
     Unknown,
