@@ -14,7 +14,7 @@ fn test_deeply_nested_performance() {
     // Create a deeply nested pattern: 5 levels deep
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        TAG(100, MAP(TEXT("a"):MAP(TEXT("b"):MAP(TEXT("c"):MAP(TEXT("d"):[NUMBER(42)])))))
+        TAG(100, {TEXT("a"): {TEXT("b"): {TEXT("c"): {TEXT("d"): [NUMBER(42)]}}}})
     "#).unwrap();
     let pattern_creation_time = start.elapsed();
 
@@ -67,7 +67,7 @@ fn test_complex_repeat_pattern_performance() {
     // Complex pattern with multiple repeat patterns
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        [(MAP(TEXT("id"):NUMBER))*, (ANY)*, (MAP(TEXT("name"):TEXT))*]
+        [({TEXT("id"): NUMBER})*, (ANY)*, ({TEXT("name"): TEXT})*]
     "#).unwrap();
     let pattern_creation_time = start.elapsed();
 
@@ -182,10 +182,10 @@ fn test_complex_or_pattern_performance() {
         TAG(1, NUMBER) |
         TAG(2, TEXT) |
         TAG(3, [NUMBER]) |
-        TAG(4, MAP(TEXT:ANY)) |
+        TAG(4, {TEXT: ANY}) |
         TAG(5, BOOL) |
-        MAP(TEXT("type"):TEXT("user")) |
-        MAP(TEXT("type"):TEXT("admin")) |
+        {TEXT("type"): TEXT("user")} |
+        {TEXT("type"): TEXT("admin")} |
         [TEXT("start")] |
         [NUMBER, TEXT, BOOL]
     "#).unwrap();
@@ -238,7 +238,7 @@ fn test_vm_instruction_optimization() {
     let pattern = Pattern::parse(r#"
         TAG(100, [
             (
-                MAP(TEXT("key"):NUMBER))*, TEXT("separator"), (MAP(TEXT("value"):TEXT)
+                {TEXT("key"): NUMBER})*, TEXT("separator"), ({TEXT("value"): TEXT}
             )*
         ])
     "#).unwrap();

@@ -51,6 +51,12 @@ pub enum Error {
     #[error("Expected closing bracket")]
     ExpectedCloseBracket(Span),
 
+    #[error("Expected closing brace")]
+    ExpectedCloseBrace(Span),
+
+    #[error("Expected colon")]
+    ExpectedColon(Span),
+
     #[error("Expected pattern after operator")]
     ExpectedPattern(Span),
 

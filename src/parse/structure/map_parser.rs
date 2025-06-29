@@ -138,7 +138,7 @@ mod tests {
                 MapPattern::any()
             ))
         );
-        assert_eq!(pattern.to_string(), "MAP");
+        assert_eq!(pattern.to_string(), "{*}");
     }
 
     #[test]
@@ -150,7 +150,7 @@ mod tests {
                 MapPattern::with_length(3)
             ))
         );
-        assert_eq!(pattern.to_string(), "MAP({3})");
+        assert_eq!(pattern.to_string(), "{{3}}");
     }
 
     #[test]
@@ -162,7 +162,7 @@ mod tests {
                 MapPattern::with_length_range(2..=5)
             ))
         );
-        assert_eq!(pattern.to_string(), "MAP({2,5})");
+        assert_eq!(pattern.to_string(), "{{2,5}}");
     }
 
     #[test]
@@ -174,7 +174,7 @@ mod tests {
                 MapPattern::with_length_range(3..=usize::MAX)
             ))
         );
-        assert_eq!(pattern.to_string(), "MAP({3,})");
+        assert_eq!(pattern.to_string(), "{{3,}}");
     }
 
     #[test]
@@ -186,7 +186,7 @@ mod tests {
                 MapPattern::with_length(0)
             ))
         );
-        assert_eq!(pattern.to_string(), "MAP({0})");
+        assert_eq!(pattern.to_string(), "{{0}}");
     }
 
     #[test]
@@ -198,30 +198,30 @@ mod tests {
                 MapPattern::with_length_range(0..=3)
             ))
         );
-        assert_eq!(pattern.to_string(), "MAP({0,3})");
+        assert_eq!(pattern.to_string(), "{{0,3}}");
     }
 
     #[test]
     fn test_parse_map_invalid_token() {
-        let result = Pattern::parse("MAP(invalid)");
+        let result = Pattern::parse("{invalid}");
         assert!(result.is_err());
     }
 
     #[test]
-    fn test_parse_map_missing_close_paren() {
-        let result = Pattern::parse("MAP({3}");
+    fn test_parse_map_missing_close_brace() {
+        let result = Pattern::parse("{3");
         assert!(result.is_err());
     }
 
     #[test]
-    fn test_parse_map_empty_parens() {
-        let result = Pattern::parse("MAP()");
+    fn test_parse_map_empty_braces() {
+        let result = Pattern::parse("{}");
         assert!(result.is_err());
     }
 
     #[test]
     fn test_parse_map_single_key_value_constraint() {
-        let pattern = Pattern::parse(r#"MAP(TEXT("key"):NUMBER)"#).unwrap();
+        let pattern = Pattern::parse(r#"{TEXT("key"):NUMBER}"#).unwrap();
         assert_eq!(
             pattern,
             Pattern::Structure(crate::pattern::StructurePattern::Map(
@@ -230,12 +230,12 @@ mod tests {
                 ])
             ))
         );
-        assert_eq!(pattern.to_string(), r#"MAP(TEXT("key"):NUMBER)"#);
+        assert_eq!(pattern.to_string(), r#"{TEXT("key"):NUMBER}"#);
     }
 
     #[test]
     fn test_parse_map_multiple_key_value_constraints() {
-        let pattern = Pattern::parse(r#"MAP(TEXT("name"):TEXT, TEXT("age"):NUMBER)"#).unwrap();
+        let pattern = Pattern::parse(r#"{TEXT("name"):TEXT, TEXT("age"):NUMBER}"#).unwrap();
         assert_eq!(
             pattern,
             Pattern::Structure(crate::pattern::StructurePattern::Map(
@@ -245,12 +245,12 @@ mod tests {
                 ])
             ))
         );
-        assert_eq!(pattern.to_string(), r#"MAP(TEXT("name"):TEXT, TEXT("age"):NUMBER)"#);
+        assert_eq!(pattern.to_string(), r#"{TEXT("name"):TEXT, TEXT("age"):NUMBER}"#);
     }
 
     #[test]
     fn test_parse_map_any_key_specific_value() {
-        let pattern = Pattern::parse(r#"MAP(ANY:TEXT("value"))"#).unwrap();
+        let pattern = Pattern::parse(r#"{ANY:TEXT("value")}"#).unwrap();
         assert_eq!(
             pattern,
             Pattern::Structure(crate::pattern::StructurePattern::Map(
@@ -259,12 +259,12 @@ mod tests {
                 ])
             ))
         );
-        assert_eq!(pattern.to_string(), r#"MAP(ANY:TEXT("value"))"#);
+        assert_eq!(pattern.to_string(), r#"{ANY:TEXT("value")}"#);
     }
 
     #[test]
     fn test_parse_map_specific_key_any_value() {
-        let pattern = Pattern::parse(r#"MAP(TEXT("key"):ANY)"#).unwrap();
+        let pattern = Pattern::parse(r#"{TEXT("key"):ANY}"#).unwrap();
         assert_eq!(
             pattern,
             Pattern::Structure(crate::pattern::StructurePattern::Map(
@@ -273,12 +273,12 @@ mod tests {
                 ])
             ))
         );
-        assert_eq!(pattern.to_string(), r#"MAP(TEXT("key"):ANY)"#);
+        assert_eq!(pattern.to_string(), r#"{TEXT("key"):ANY}"#);
     }
 
     #[test]
     fn test_parse_map_complex_patterns() {
-        let pattern = Pattern::parse(r#"MAP(NUMBER(42):BOOL(true), TEXT("test"):NULL)"#).unwrap();
+        let pattern = Pattern::parse(r#"{NUMBER(42):BOOL(true), TEXT("test"):NULL}"#).unwrap();
         assert_eq!(
             pattern,
             Pattern::Structure(crate::pattern::StructurePattern::Map(
@@ -288,24 +288,24 @@ mod tests {
                 ])
             ))
         );
-        assert_eq!(pattern.to_string(), r#"MAP(NUMBER(42):BOOL(true), TEXT("test"):NULL)"#);
+        assert_eq!(pattern.to_string(), r#"{NUMBER(42):BOOL(true), TEXT("test"):NULL}"#);
     }
 
     #[test]
     fn test_parse_map_missing_colon() {
-        let result = Pattern::parse(r#"MAP(TEXT("key") NUMBER)"#);
+        let result = Pattern::parse(r#"{TEXT("key") NUMBER}"#);
         assert!(result.is_err());
     }
 
     #[test]
     fn test_parse_map_missing_value_pattern() {
-        let result = Pattern::parse(r#"MAP(TEXT("key"):)"#);
+        let result = Pattern::parse(r#"{TEXT("key"):}"#);
         assert!(result.is_err());
     }
 
     #[test]
     fn test_parse_map_trailing_comma() {
-        let result = Pattern::parse(r#"MAP(TEXT("key"):NUMBER,)"#);
+        let result = Pattern::parse(r#"{TEXT("key"):NUMBER,}"#);
         assert!(result.is_err());
     }
 }

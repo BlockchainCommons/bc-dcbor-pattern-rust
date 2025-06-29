@@ -14,7 +14,7 @@ fn parse(s: &str) -> Pattern { Pattern::parse(s).unwrap() }
 
 #[test]
 fn test_map_capture_key_value() {
-    let pattern = parse(r#"MAP(@key(TEXT("name")): @value(TEXT("Alice")))"#);
+    let pattern = parse(r#"{@key(TEXT("name")): @value(TEXT("Alice"))}"#);
     let cbor_data = cbor(r#"{"name": "Alice"}"#);
 
     // Test regular paths first
@@ -50,7 +50,7 @@ fn test_map_capture_key_value() {
 #[test]
 fn test_map_capture_multiple_entries() {
     let pattern = parse(
-        r#"MAP(@name_key(TEXT("name")): @name_val(TEXT), @age_key(TEXT("age")): @age_val(NUMBER))"#,
+        r#"{@name_key(TEXT("name")): @name_val(TEXT), @age_key(TEXT("age")): @age_val(NUMBER)}"#,
     );
     let cbor_data = cbor(r#"{"name": "Bob", "age": 30}"#);
 
@@ -84,7 +84,7 @@ fn test_map_capture_multiple_entries() {
 
 #[test]
 fn test_map_capture_value_only() {
-    let pattern = parse(r#"MAP(TEXT("status"): @status(TEXT))"#);
+    let pattern = parse(r#"{TEXT("status"): @status(TEXT)}"#);
     let cbor_data = cbor(r#"{"status": "active"}"#);
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
@@ -108,7 +108,7 @@ fn test_map_capture_value_only() {
 
 #[test]
 fn test_map_capture_with_any_pattern() {
-    let pattern = parse(r#"MAP(@any_key(TEXT): @any_value(ANY))"#);
+    let pattern = parse(r#"{@any_key(TEXT): @any_value(ANY)}"#);
     let cbor_data = cbor(r#"{"hello": [1, 2, 3]}"#);
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
@@ -135,7 +135,7 @@ fn test_map_capture_with_any_pattern() {
 
 #[test]
 fn test_map_capture_nested() {
-    let pattern = parse(r#"MAP(TEXT("data"): @inner([*]))"#);
+    let pattern = parse(r#"{TEXT("data"): @inner([*])}"#);
     let cbor_data = cbor(r#"{"data": [42, 100]}"#);
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
@@ -160,7 +160,7 @@ fn test_map_capture_nested() {
 #[test]
 fn test_map_capture_collect_names() {
     let pattern =
-        parse(r#"MAP(@key1(TEXT): @val1(NUMBER), @key2(TEXT): @val2(TEXT))"#);
+        parse(r#"{@key1(TEXT): @val1(NUMBER), @key2(TEXT): @val2(TEXT)}"#);
 
     let mut capture_names = Vec::new();
     pattern.collect_capture_names(&mut capture_names);
@@ -175,7 +175,7 @@ fn test_map_capture_collect_names() {
 
 #[test]
 fn test_map_capture_non_matching() {
-    let pattern = parse(r#"MAP(@key(TEXT("name")): @value(TEXT("Alice")))"#);
+    let pattern = parse(r#"{@key(TEXT("name")): @value(TEXT("Alice"))}"#);
     let cbor_data = cbor(r#"{"name": "Bob"}"#); // Different value
 
     // Should not match

@@ -101,7 +101,7 @@ fn test_array_pattern_with_elements() {
 /// Test MapPattern::Any matches any map
 #[test]
 fn test_map_pattern_any() {
-    let pattern = parse("MAP");
+    let pattern = parse("{*}");
 
     // Should match empty map
     let empty_map = cbor("{}");
@@ -124,44 +124,6 @@ fn test_map_pattern_any() {
     // Should not match non-map
     let not_map = cbor(r#""not a map""#);
     assert!(!pattern.matches(&not_map));
-}
-
-/// Test MapPattern::WithKey matches maps containing specific keys
-#[test]
-fn test_map_pattern_with_key() {
-    let text_pattern = parse(r#"TEXT("target_key")"#);
-    let pattern = MapPattern::with_key(text_pattern);
-
-    // Should match map with target key
-    let cbor_map =
-        cbor(r#"{"target_key": "value", "other_key": "other_value"}"#);
-    let paths = pattern.paths(&cbor_map);
-    #[rustfmt::skip]
-    let expected = r#"{"other_key": "other_value", "target_key": "value"}"#;
-    assert_actual_expected!(format_paths(&paths), expected);
-
-    // Should not match map without target key
-    let no_match = cbor(r#"{"wrong_key": "value"}"#);
-    assert!(!pattern.matches(&no_match));
-}
-
-/// Test MapPattern::WithValue matches maps containing specific values
-#[test]
-fn test_map_pattern_with_value() {
-    let text_pattern = parse(r#"TEXT("target_value")"#);
-    let pattern = MapPattern::with_value(text_pattern);
-
-    // Should match map with target value
-    let cbor_map =
-        cbor(r#"{"key": "target_value", "other_key": "other_value"}"#);
-    let paths = pattern.paths(&cbor_map);
-    #[rustfmt::skip]
-    let expected = r#"{"key": "target_value", "other_key": "other_value"}"#;
-    assert_actual_expected!(format_paths(&paths), expected);
-
-    // Should not match map without target value
-    let no_match = cbor(r#"{"key": "wrong_value"}"#);
-    assert!(!pattern.matches(&no_match));
 }
 
 /// Test TaggedPattern::Any matches any tagged value
@@ -239,11 +201,11 @@ fn test_structure_pattern_display() {
     );
 
     // Map patterns
-    assert_eq!(parse("MAP").to_string(), "MAP");
-    assert_eq!(parse("MAP({3})").to_string(), "MAP({3})");
+    assert_eq!(parse("{*}").to_string(), "{*}");
+    assert_eq!(parse("{{3}}").to_string(), "{{3}}");
     assert_eq!(
         format!("{}", MapPattern::with_length_range(2..=8)),
-        "MAP({2,8})"
+        "{{2,8}}"
     );
 
     // Tagged patterns

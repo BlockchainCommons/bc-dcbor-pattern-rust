@@ -223,7 +223,7 @@ fn test_capture_in_array_sequence() -> Result<()> {
 #[test]
 fn test_capture_in_map() -> Result<()> {
     let pattern =
-        Pattern::parse(r#"MAP(@key(TEXT("name")): @value(TEXT("Alice")))"#)?;
+        Pattern::parse(r#"{@key(TEXT("name")): @value(TEXT("Alice"))}"#)?;
     let cbor = parse_dcbor_item(r#"{"name": "Alice"}"#).unwrap();
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
@@ -467,12 +467,12 @@ fn test_complex_nested_captures() -> Result<()> {
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
         [
-            @first_map(MAP(
+            @first_map({
                 @key1(TEXT("type")): @val1(TEXT("person"))
-            )),
-            @second_map(MAP(
+            }),
+            @second_map({
                 @key2(TEXT("name")): @val2(TEXT)
-            ))
+            })
         ]
     "#)?;
 

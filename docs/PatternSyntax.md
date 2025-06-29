@@ -4,7 +4,7 @@ This syntax is inspired by regular expressions but is specifically designed for 
 
 The pattern syntax is designed to be flexible and expressive. Patterns can be composed of *value patterns*, *structure patterns*, and combinators known as *meta-patterns*.
 
-Keywords like `BOOL`, `MAP`, `TAG`, etc., are case-sensitive and must be written in uppercase. Patterns can include specific values, ranges, or regexes to match against the corresponding parts of the dCBOR item.
+Keywords like `BOOL`, `TAG`, etc., are case-sensitive and must be written in uppercase. Patterns can include specific values, ranges, or regexes to match against the corresponding parts of the dCBOR item.
 
 Arrays use bracket syntax `[...]`.
 
@@ -109,23 +109,16 @@ Structure patterns match parts of dCBOR items.
             - `[(ANY)*, NUMBER(42), (ANY)*]` - Array containing 42 anywhere within it
             - `[NUMBER(42), (ANY)*]` - Array starting with 42, followed by any elements
             - `[(ANY)*, NUMBER(42)]` - Array ending with 42, preceded by any elements
-- Map (old)
-    - `MAP`
+- Map
+    - `{*}`
         - Matches any map.
-    - `MAP ( n )`
+    - `{{n}}`
         - Matches a map with exactly `n` entries.
-    - `MAP ( { n , m } )`
+    - `{{n,m}}`
         - Matches a map with between `n` and `m` entries, inclusive.
-    - `MAP ( pattern: pattern, pattern: pattern, ... )`
-        - Matches if the specified patterns match the map's keys and values (order isn't important).
-- Map (new)
-    - `{ * }`
-        - Matches any map.
-    - `{ { n } }`
-        - Matches a map with exactly `n` entries.
-    - `{ { n , m } }`
-        - Matches a map with between `n` and `m` entries, inclusive.
-    - `{ pattern: pattern, pattern: pattern, ... }`
+    - `{{n,}}`
+        - Matches a map with at least `n` entries.
+    - `{pattern: pattern, pattern: pattern, ...}`
         - Matches if the specified patterns match the map's keys and values (order isn't important).
 - Tagged
     - `TAG`
@@ -182,7 +175,7 @@ Precedence: Repeat has the highest precedence, followed by And, Not, Sequence, a
     - `SEARCH ( pattern )`
       - Visits every node in the CBOR tree, matching the specified pattern against each node.
 - Sequence
-    - `pattern > pattern > pattern`
+    - `pattern, pattern, pattern`
         - Matches if the specified patterns match in sequence, with no other nodes in between.
 
 ## Advanced Composite Patterns
@@ -192,7 +185,7 @@ The following patterns show examples of combining structure patterns with meta p
 - Nested Structure Patterns
     - `TAG ( value , [ pattern ] )`
         - Matches a tagged value containing an array with the specified pattern. The pattern can be simple patterns, sequences, or patterns with repeat quantifiers.
-    - `MAP ( pattern : [ { n , } ] )`
+    - `{pattern: [{{n,}}]}`
         - Matches a map where the specified key pattern maps to an array with at least `n` elements.
-    - `[ MAP ( pattern : pattern ) > ( pattern )* ]`
+    - `[{pattern: pattern}, (pattern)*]`
         - Matches an array starting with a map that contains the specified key-value pattern, followed by any other elements.

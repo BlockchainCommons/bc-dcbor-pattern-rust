@@ -10,7 +10,7 @@ use crate::{Error, Quantifier, Reluctance, Result};
 #[logos(error = Error)]
 #[logos(skip r"[ \t\r\n\f]+")]
 pub enum Token {
-    // Meta Pattern Operators
+    // Meta Pattern O        assert_eq!(Token::lexer("TAGGED").next(), Some(Ok(Token::Tagged)));rators
     #[token("&")]
     And,
 
@@ -53,9 +53,6 @@ pub enum Token {
     // Structure Pattern Keywords
     #[token("TAG")]
     Tagged,
-
-    #[token("MAP")]
-    Map,
 
     // Value Pattern Keywords
     #[token("BOOL")]
@@ -121,6 +118,12 @@ pub enum Token {
     #[token("]")]
     BracketClose,
 
+    #[token("{", parse_brace_open)]
+    BraceOpen,
+
+    #[token("}")]
+    BraceClose,
+
     #[token(",")]
     Comma,
 
@@ -154,7 +157,6 @@ pub enum Token {
     #[token("/", parse_regex)]
     Regex(Result<String>),
 
-    #[token("{", parse_range)]
     Range(Result<Quantifier>),
 }
 
@@ -194,8 +196,34 @@ fn parse_regex(lex: &mut Lexer<Token>) -> Result<String> {
     // Unterminated literal – treat as lexing error
     Err(Error::UnterminatedRegex(lex.span()))
 }
-fn parse_range(lex: &mut Lexer<Token>) -> Result<Quantifier> {
-    let src = lex.remainder(); // everything after the first '{'
+
+/// Callback to handle `{` token - determines if it's a Range or BraceOpen
+fn parse_brace_open(lex: &mut Lexer<Token>) -> Token {
+    let remainder = lex.remainder();
+
+    // Skip whitespace and see if we have a digit pattern
+    let chars = remainder.chars();
+
+    // Skip whitespace
+    for ch in chars {
+        if !matches!(ch, ' ' | '\t' | '\n' | '\r' | '\u{0c}') {
+            // If the first non-whitespace character is a digit, try to parse as
+            // Range
+            if ch.is_ascii_digit() {
+                let quantifier_result = parse_range_from_remainder(lex);
+                return Token::Range(quantifier_result);
+            }
+            // Otherwise, it's just a regular BraceOpen
+            break;
+        }
+    }
+
+    Token::BraceOpen
+}
+
+/// Helper function to parse a range pattern from the current position
+fn parse_range_from_remainder(lex: &mut Lexer<Token>) -> Result<Quantifier> {
+    let remainder = lex.remainder(); // everything after the '{'
 
     // Helper to skip whitespace inside the range specification
     fn skip_ws(s: &str, pos: &mut usize) {
@@ -210,42 +238,50 @@ fn parse_range(lex: &mut Lexer<Token>) -> Result<Quantifier> {
 
     let mut pos = 0;
 
-    // parse minimum value --------------------------------------------------
-    skip_ws(src, &mut pos);
+    // Skip initial whitespace
+    skip_ws(remainder, &mut pos);
+
+    // Parse the first number
+    if !remainder[pos..]
+        .chars()
+        .next()
+        .is_some_and(|c| c.is_ascii_digit())
+    {
+        return Err(Error::InvalidRange(lex.span()));
+    }
+
     let start = pos;
-    while let Some(ch) = src[pos..].chars().next() {
+    while let Some(ch) = remainder[pos..].chars().next() {
         if ch.is_ascii_digit() {
             pos += ch.len_utf8();
         } else {
             break;
         }
     }
-    if start == pos {
-        return Err(Error::InvalidRange(lex.span()));
-    }
-    let min: usize = src[start..pos]
+
+    let min: usize = remainder[start..pos]
         .parse()
         .map_err(|_| Error::InvalidRange(lex.span()))?;
 
-    skip_ws(src, &mut pos);
+    skip_ws(remainder, &mut pos);
 
-    // parse optional comma and maximum value -------------------------------
+    // Parse optional comma and maximum value
     let max: Option<usize>;
 
-    match src[pos..].chars().next() {
+    match remainder[pos..].chars().next() {
         Some(',') => {
             pos += 1;
-            skip_ws(src, &mut pos);
+            skip_ws(remainder, &mut pos);
 
             // If the next non-space char is '}', the range is open ended
-            match src[pos..].chars().next() {
+            match remainder[pos..].chars().next() {
                 Some('}') => {
                     pos += 1;
                     max = None;
                 }
                 Some(ch) if ch.is_ascii_digit() => {
                     let start = pos;
-                    while let Some(ch) = src[pos..].chars().next() {
+                    while let Some(ch) = remainder[pos..].chars().next() {
                         if ch.is_ascii_digit() {
                             pos += ch.len_utf8();
                         } else {
@@ -255,11 +291,11 @@ fn parse_range(lex: &mut Lexer<Token>) -> Result<Quantifier> {
                     if start == pos {
                         return Err(Error::InvalidRange(lex.span()));
                     }
-                    let m: usize = src[start..pos]
+                    let m: usize = remainder[start..pos]
                         .parse()
                         .map_err(|_| Error::InvalidRange(lex.span()))?;
-                    skip_ws(src, &mut pos);
-                    if !matches!(src[pos..].chars().next(), Some('}')) {
+                    skip_ws(remainder, &mut pos);
+                    if !matches!(remainder[pos..].chars().next(), Some('}')) {
                         return Err(Error::InvalidRange(lex.span()));
                     }
                     pos += 1;
@@ -275,8 +311,8 @@ fn parse_range(lex: &mut Lexer<Token>) -> Result<Quantifier> {
         _ => return Err(Error::InvalidRange(lex.span())),
     }
 
-    // determine greediness -------------------------------------------------
-    let mode = match src[pos..].chars().next() {
+    // Determine greediness
+    let mode = match remainder[pos..].chars().next() {
         Some('?') => {
             pos += 1;
             Reluctance::Lazy
@@ -288,7 +324,7 @@ fn parse_range(lex: &mut Lexer<Token>) -> Result<Quantifier> {
         _ => Reluctance::Greedy,
     };
 
-    // consume parsed characters (everything after '{')
+    // Consume parsed characters
     lex.bump(pos);
 
     if let Some(max) = max {
@@ -316,7 +352,6 @@ mod tests {
         assert_eq!(Token::lexer("?").next(), Some(Ok(Token::RepeatZeroOrOne)));
 
         // Test structure pattern keywords
-        assert_eq!(Token::lexer("MAP").next(), Some(Ok(Token::Map)));
         assert_eq!(Token::lexer("TAG").next(), Some(Ok(Token::Tagged)));
 
         // Test leaf pattern keywords

@@ -192,9 +192,9 @@ fn test_parse_empty_input() {
 /// Test integration with other pattern types
 #[test]
 fn test_integration_with_structure_patterns() -> Result<()> {
-    let pattern = Pattern::parse("[*] | MAP")?;
+    let pattern = Pattern::parse("[*] | {*}")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
-    assert_eq!(pattern.to_string(), "[*]|MAP");
+    assert_eq!(pattern.to_string(), "[*]|{*}");
     Ok(())
 }
 
@@ -426,11 +426,11 @@ fn test_parse_sequence_precedence_with_and() -> Result<()> {
 
 #[test]
 fn test_parse_sequence_with_complex_patterns() -> Result<()> {
-    let pattern = Pattern::parse(r#"[*] > MAP > TAG(100, TEXT("content"))"#)?;
+    let pattern = Pattern::parse(r#"[*] > {*} > TAG(100, TEXT("content"))"#)?;
     assert!(matches!(pattern, Pattern::Meta(_)));
 
     let display = pattern.to_string();
-    assert!(display.contains("[*]>MAP>TAG"));
+    assert!(display.contains("[*]>{*}>TAG"));
     Ok(())
 }
 

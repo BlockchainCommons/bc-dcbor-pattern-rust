@@ -1,12 +1,12 @@
 use super::super::{
     Token,
-    structure::{parse_map, parse_tagged},
+    structure::parse_tagged,
     value::{
         parse_bool, parse_bytestring, parse_date, parse_digest,
         parse_known_value, parse_null, parse_number, parse_text,
     },
 };
-use crate::{Error, Pattern, Result};
+use crate::{Error, MapPattern, Pattern, Result};
 
 /// Parse a primary pattern - the most basic unit of pattern matching.
 ///
@@ -70,11 +70,39 @@ pub(crate) fn parse_primary(
         Token::Text => parse_text(lexer),
 
         // Structure patterns
-        Token::Map => parse_map(lexer),
         Token::Tagged => parse_tagged(lexer),
 
         // Bracket syntax for arrays
-        Token::BracketOpen => super::super::structure::parse_bracket_array(lexer),
+        Token::BracketOpen => {
+            super::super::structure::parse_bracket_array(lexer)
+        }
+
+        // Brace syntax for maps
+        Token::BraceOpen => super::super::structure::parse_bracket_map(lexer),
+
+        // Range tokens that represent map length constraints (e.g., {3}, {2,5})
+        Token::Range(res) => {
+            // Range tokens at the top level represent map length constraints
+            let quantifier = res?;
+
+            // Convert quantifier to appropriate MapPattern
+            let pattern = if let Some(max) = quantifier.max() {
+                if quantifier.min() == max {
+                    // Exact count: {n}
+                    MapPattern::with_length(quantifier.min())
+                } else {
+                    // Range: {n,m}
+                    MapPattern::with_length_range(quantifier.min()..=max)
+                }
+            } else {
+                // Open-ended range: {n,}
+                MapPattern::with_length_range(quantifier.min()..=usize::MAX)
+            };
+
+            Ok(Pattern::Structure(crate::pattern::StructurePattern::Map(
+                pattern,
+            )))
+        }
 
         // Unexpected tokens
         _ => Err(Error::UnexpectedToken(Box::new(token), lexer.span())),

@@ -192,7 +192,7 @@ fn test_search_capture_no_match() {
 
 #[test]
 fn test_search_capture_complex_pattern() {
-    let pattern = parse("SEARCH(@found(MAP(TEXT(\"id\"): @id_value(NUMBER))))");
+    let pattern = parse("SEARCH(@found({TEXT(\"id\"): @id_value(NUMBER)}))");
     let cbor_data = cbor(
         r#"{"users": [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]}"#,
     );

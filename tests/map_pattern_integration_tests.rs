@@ -17,8 +17,8 @@ fn test_map_patterns_with_real_cbor() {
         r#"{0: "item0", 1: "item1", 2: "item2", 3: "item3", 4: "item4", 5: "item5", 6: "item6", 7: "item7", 8: "item8", 9: "item9"}"#,
     );
 
-    // Test MAP (any map)
-    let any_map = Pattern::parse("MAP").unwrap();
+    // Test {*} (any map)
+    let any_map = Pattern::parse("{*}").unwrap();
 
     // Should match empty map
     let paths = any_map.paths(&empty_map);
@@ -43,8 +43,8 @@ fn test_map_patterns_with_real_cbor() {
     // Should not match non-map
     assert!(!any_map.matches(&1.to_cbor()));
 
-    // Test MAP({0}) - empty map
-    let empty_pattern = Pattern::parse("MAP({0})").unwrap();
+    // Test {{0}} - empty map
+    let empty_pattern = Pattern::parse("{{0}}").unwrap();
     let paths = empty_pattern.paths(&empty_map);
     let expected = "{}";
     assert_actual_expected!(format_paths(&paths), expected);
@@ -53,8 +53,8 @@ fn test_map_patterns_with_real_cbor() {
     assert!(!empty_pattern.matches(&single_item));
     assert!(!empty_pattern.matches(&three_items));
 
-    // Test MAP({1}) - single item map
-    let single_pattern = Pattern::parse("MAP({1})").unwrap();
+    // Test {{1}} - single item map
+    let single_pattern = Pattern::parse("{{1}}").unwrap();
     let paths = single_pattern.paths(&single_item);
     let expected = r#"{"key": "hello"}"#;
     assert_actual_expected!(format_paths(&paths), expected);
@@ -63,8 +63,8 @@ fn test_map_patterns_with_real_cbor() {
     assert!(!single_pattern.matches(&empty_map));
     assert!(!single_pattern.matches(&three_items));
 
-    // Test MAP({3}) - three item map
-    let three_pattern = Pattern::parse("MAP({3})").unwrap();
+    // Test {{3}} - three item map
+    let three_pattern = Pattern::parse("{{3}}").unwrap();
     let paths = three_pattern.paths(&three_items);
     let expected = r#"{"a": 1, "b": 2, "c": 3}"#;
     assert_actual_expected!(format_paths(&paths), expected);
@@ -74,8 +74,8 @@ fn test_map_patterns_with_real_cbor() {
     assert!(!three_pattern.matches(&single_item));
     assert!(!three_pattern.matches(&large_map));
 
-    // Test MAP({5,15}) - range pattern
-    let range_pattern = Pattern::parse("MAP({5,15})").unwrap();
+    // Test {{5,15}} - range pattern
+    let range_pattern = Pattern::parse("{{5,15}}").unwrap();
     let paths = range_pattern.paths(&large_map);
     let expected = r#"{0: "item0", 1: "item1", 2: "item2", 3: "item3", 4: "item4", 5: "item5", 6: "item6", 7: "item7", 8: "item8", 9: "item9"}"#;
     assert_actual_expected!(format_paths(&paths), expected);
@@ -85,8 +85,8 @@ fn test_map_patterns_with_real_cbor() {
     assert!(!range_pattern.matches(&single_item));
     assert!(!range_pattern.matches(&three_items));
 
-    // Test MAP({5,}) - at least 5 items
-    let min_pattern = Pattern::parse("MAP({5,})").unwrap();
+    // Test {{5,}} - at least 5 items
+    let min_pattern = Pattern::parse("{{5,}}").unwrap();
     let paths = min_pattern.paths(&large_map);
     let expected = r#"{0: "item0", 1: "item1", 2: "item2", 3: "item3", 4: "item4", 5: "item5", 6: "item6", 7: "item7", 8: "item8", 9: "item9"}"#;
     assert_actual_expected!(format_paths(&paths), expected);
@@ -99,33 +99,42 @@ fn test_map_patterns_with_real_cbor() {
 
 #[test]
 fn test_map_pattern_display() {
-    assert_eq!(MapPattern::any().to_string(), "MAP");
-    assert_eq!(MapPattern::with_length(0).to_string(), "MAP({0})");
-    assert_eq!(MapPattern::with_length(5).to_string(), "MAP({5})");
+    assert_eq!(MapPattern::any().to_string(), "{*}");
+    assert_eq!(MapPattern::with_length(0).to_string(), "{{0}}");
+    assert_eq!(MapPattern::with_length(5).to_string(), "{{5}}");
     assert_eq!(
         MapPattern::with_length_range(2..=8).to_string(),
-        "MAP({2,8})"
+        "{{2,8}}"
     );
     assert_eq!(
         MapPattern::with_length_range(3..=usize::MAX).to_string(),
-        "MAP({3,})"
+        "{{3,}}"
     );
 }
 
 #[test]
 fn test_map_pattern_round_trip() {
-    let patterns = vec![
-        "MAP",
-        "MAP({0})",
-        "MAP({1})",
-        "MAP({5})",
-        "MAP({2,8})",
-        "MAP({3,})",
+    let patterns = [
+        "{*}",
+        "{{0}}",
+        "{{1}}",
+        "{{5}}",
+        "{{2,8}}",
+        "{{3,}}",
     ];
 
-    for pattern_str in patterns {
+    let expected_displays = [
+        "{*}",
+        "{{0}}",
+        "{{1}}",
+        "{{5}}",
+        "{{2,8}}",
+        "{{3,}}",
+    ];
+
+    for (i, pattern_str) in patterns.iter().enumerate() {
         let pattern = Pattern::parse(pattern_str).unwrap();
-        assert_eq!(pattern.to_string(), pattern_str);
+        assert_eq!(pattern.to_string(), expected_displays[i]);
     }
 }
 
@@ -286,9 +295,9 @@ fn test_map_key_value_constraints_empty_map() {
 
 #[test]
 fn test_map_key_value_constraints_pattern_text_parsing() {
-    // Test the unified MAP(pattern:pattern, ...) syntax from text
+    // Test the unified {pattern:pattern, ...} syntax from text
     let pattern =
-        Pattern::parse(r#"MAP(TEXT("name"):TEXT, TEXT("age"):NUMBER)"#)
+        Pattern::parse(r#"{TEXT("name"):TEXT, TEXT("age"):NUMBER}"#)
             .unwrap();
 
     let matching_map =
@@ -304,7 +313,7 @@ fn test_map_key_value_constraints_pattern_text_parsing() {
     // Test display format
     assert_eq!(
         pattern.to_string(),
-        r#"MAP(TEXT("name"):TEXT, TEXT("age"):NUMBER)"#
+        r#"{TEXT("name"): TEXT, TEXT("age"): NUMBER}"#
     );
 }
 
@@ -312,7 +321,7 @@ fn test_map_key_value_constraints_pattern_text_parsing() {
 fn test_map_key_value_constraints_complex_patterns() {
     // Test with complex nested patterns
     let pattern =
-        Pattern::parse(r#"MAP(ANY:TEXT("target"), NUMBER(42):BOOL(true))"#)
+        Pattern::parse(r#"{ANY:TEXT("target"), NUMBER(42):BOOL(true)}"#)
             .unwrap();
 
     let matching_map =
