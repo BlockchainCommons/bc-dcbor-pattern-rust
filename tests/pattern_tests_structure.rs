@@ -149,7 +149,7 @@ fn test_tagged_pattern_any() {
 #[test]
 fn test_tagged_pattern_with_tag_and_any() {
     let target_tag = Tag::new(1234, "test_tag");
-    let pattern = TaggedPattern::with_tag_and_content(target_tag.clone(), Pattern::any());
+    let pattern = TaggedPattern::with_tag(target_tag.clone(), Pattern::any());
 
     // Should match tagged value with correct tag
     let tagged = cbor(r#"1234("content")"#);
@@ -192,7 +192,7 @@ fn test_structure_pattern_display() {
     assert_eq!(format!("{}", TaggedPattern::any()), "tagged");
     let tag = Tag::new(1234, "test");
     assert_eq!(
-        format!("{}", TaggedPattern::with_tag_and_content(tag, Pattern::any())),
+        format!("{}", TaggedPattern::with_tag(tag, Pattern::any())),
         "tagged(1234, *)"
     );
 }

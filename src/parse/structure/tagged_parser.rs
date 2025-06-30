@@ -28,25 +28,20 @@ pub(crate) fn parse_tagged(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
             match lexer.next() {
                 Some(Ok(Token::ParenClose)) => {
                     let pattern = match tag_pattern {
-                        TagSelector::Any => {
-                            TaggedPattern::Any
-                        }
+                        TagSelector::Any => TaggedPattern::Any,
                         TagSelector::Value(tag_val) => {
                             let tag = Tag::new(tag_val, "");
-                            TaggedPattern::with_tag_and_content(
-                                tag,
-                                content_pattern,
-                            )
+                            TaggedPattern::with_tag(tag, content_pattern)
                         }
                         TagSelector::Name(tag_name) => {
                             // For named tags, treat it as a named tag match
-                            TaggedPattern::with_tag_name_and_content(
+                            TaggedPattern::with_tag_name(
                                 tag_name,
                                 content_pattern,
                             )
                         }
                         TagSelector::Regex(regex) => {
-                            TaggedPattern::with_tag_name_regex_and_content(
+                            TaggedPattern::with_tag_name_regex(
                                 regex,
                                 content_pattern,
                             )
@@ -223,7 +218,7 @@ mod tests {
         assert_eq!(
             pattern,
             Pattern::Structure(crate::pattern::StructurePattern::Tagged(
-                TaggedPattern::with_tag_and_content(tag, Pattern::any_text())
+                TaggedPattern::with_tag(tag, Pattern::any_text())
             ))
         );
     }
@@ -233,7 +228,7 @@ mod tests {
         let pattern = Pattern::parse("tagged(/test.*/, text)").unwrap();
         match pattern {
             Pattern::Structure(crate::pattern::StructurePattern::Tagged(
-                TaggedPattern::WithTagNameRegexAndContent { .. },
+                TaggedPattern::WithTagNameRegex { .. },
             )) => {} // This is expected
             _ => panic!("Expected TaggedPattern with regex"),
         }
@@ -244,7 +239,7 @@ mod tests {
         let pattern = Pattern::parse("tagged(myTag, number)").unwrap();
         match pattern {
             Pattern::Structure(crate::pattern::StructurePattern::Tagged(
-                TaggedPattern::WithTagNameAndContent { tag_name, .. },
+                TaggedPattern::WithTagName { tag_name, .. },
             )) => {
                 assert_eq!(tag_name, "myTag");
             }
@@ -257,7 +252,7 @@ mod tests {
         let pattern = Pattern::parse("tagged(/^test[0-9]+$/, text)").unwrap();
         match pattern {
             Pattern::Structure(crate::pattern::StructurePattern::Tagged(
-                TaggedPattern::WithTagNameRegexAndContent { tag_regex, .. },
+                TaggedPattern::WithTagNameRegex { tag_regex, .. },
             )) => {
                 assert_eq!(tag_regex.as_str(), "^test[0-9]+$");
             }
@@ -270,7 +265,7 @@ mod tests {
         let pattern = Pattern::parse("tagged(0, null)").unwrap();
         match pattern {
             Pattern::Structure(crate::pattern::StructurePattern::Tagged(
-                TaggedPattern::WithTagAndContent { tag, .. },
+                TaggedPattern::WithTag { tag, .. },
             )) => {
                 assert_eq!(tag.value(), 0);
             }
