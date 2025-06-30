@@ -14,7 +14,7 @@ fn test_deeply_nested_performance() {
     // Create a deeply nested pattern: 5 levels deep
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        TAG(100, {"a": {"b": {"c": {"d": [42]}}}})
+        tagged(100, {"a": {"b": {"c": {"d": [42]}}}})
     "#).unwrap();
     let pattern_creation_time = start.elapsed();
 
@@ -179,11 +179,11 @@ fn test_complex_or_pattern_performance() {
     // Complex OR pattern with many alternatives
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        TAG(1, number) |
-        TAG(2, text) |
-        TAG(3, [number]) |
-        TAG(4, {text: *}) |
-        TAG(5, bool) |
+        tagged(1, number) |
+        tagged(2, text) |
+        tagged(3, [number]) |
+        tagged(4, {text: *}) |
+        tagged(5, bool) |
         {"type": "user"} |
         {"type": "admin"} |
         ["start"] |
@@ -236,7 +236,7 @@ fn test_vm_instruction_optimization() {
     // Test that complex patterns compile to efficient VM instructions
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        TAG(100, [
+        tagged(100, [
             ({"key": number})*, "separator", ({"value": text})*
         ])
     "#).unwrap();

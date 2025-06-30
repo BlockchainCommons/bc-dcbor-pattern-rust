@@ -209,10 +209,10 @@ fn test_structure_pattern_display() {
     );
 
     // Tagged patterns
-    assert_eq!(format!("{}", TaggedPattern::any()), "TAGGED");
+    assert_eq!(format!("{}", TaggedPattern::any()), "tagged");
     let tag = Tag::new(1234, "test");
     assert_eq!(
         format!("{}", TaggedPattern::with_tag(tag)),
-        "TAGGED_TAG(1234)"
+        "tagged(1234, *)"
     );
 }

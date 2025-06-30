@@ -282,7 +282,7 @@ fn test_capture_with_search() -> Result<()> {
 /// Test captures with tagged patterns
 #[test]
 fn test_capture_with_tagged() -> Result<()> {
-    let pattern = Pattern::parse("TAG(1, @content(42))")?;
+    let pattern = Pattern::parse("tagged(1, @content(42))")?;
     let cbor = parse_dcbor_item("1(42)").unwrap();
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);

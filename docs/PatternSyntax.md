@@ -4,7 +4,7 @@ This syntax is inspired by regular expressions but is specifically designed for 
 
 The pattern syntax is designed to be flexible and expressive. Patterns can be composed of *value patterns*, *structure patterns*, and combinators known as *meta-patterns*.
 
-Keywords like `tagged`, `number`, etc., are case-sensitive. Most pattern keywords use uppercase, with some exceptions like boolean patterns (`bool`, `true`, `false`). Patterns can include specific values, ranges, or regexes to match against the corresponding parts of the dCBOR item.
+Keywords like `tagged`, `number`, etc., are case-sensitive and use lowercase. Patterns can include specific values, ranges, or regexes to match against the corresponding parts of the dCBOR item.
 
 Arrays use bracket syntax `[...]`.
 
@@ -129,13 +129,13 @@ Structure patterns match parts of dCBOR items.
     - `{pattern: pattern, pattern: pattern, ...}`
         - Matches if the specified patterns match the map's keys and values (order isn't important).
 - Tagged
-    - `TAG`
+    - `tagged`
         - Matches any CBOR tagged value.
-    - `TAG ( value, pattern )`
+    - `tagged ( value, pattern )`
         - Matches the specified CBOR tagged value with content that matches the given pattern. The tag value is a u64 value, formatted as a bare integer with no delimiters apart from the enclosing parentheses.
-    - `TAG ( name, pattern )`
+    - `tagged ( name, pattern )`
         - Matches the CBOR tagged value with the specified name and content that matches the given pattern. The tag name is formatted as a bare alphanumeric string (including hyphens and underscores) with no delimiters apart from the enclosing parentheses.
-    - `TAG ( /regex/, pattern )`
+    - `tagged ( /regex/, pattern )`
         - Matches a CBOR tagged value with a name that matches the specified regex and content that matches the given pattern.
 
 ## Meta Patterns
@@ -191,7 +191,7 @@ Precedence: Repeat has the highest precedence, followed by And, Not, Sequence, a
 The following patterns show examples of combining structure patterns with meta patterns to create complex matching expressions:
 
 - Nested Structure Patterns
-    - `TAG ( value , [ pattern ] )`
+    - `tagged ( value , [ pattern ] )`
         - Matches a tagged value containing an array with the specified pattern. The pattern can be simple patterns, sequences, or patterns with repeat quantifiers.
     - `{pattern: [{{n,}}]}`
         - Matches a map where the specified key pattern maps to an array with at least `n` elements.

@@ -8,7 +8,7 @@ use indoc::indoc;
 fn test_simple_nested_tagged_array() {
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        TAG(100, ["target"])
+        tagged(100, ["target"])
     "#).unwrap();
 
     // Should match: 100(["target"])
@@ -48,7 +48,7 @@ fn test_simple_nested_tagged_array() {
 fn test_complex_nested_tagged_array_with_repeat() {
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        TAG( 100, [(*)*, "target", (*)*] )
+        tagged( 100, [(*)*, "target", (*)*] )
     "#).unwrap();
 
     // Should match: 100(["target"])
@@ -233,7 +233,7 @@ fn test_array_starting_with_maps() {
 fn test_deeply_nested_structures() {
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        TAG(200,
+        tagged(200,
             {
                 "data":
                 [{"value": number}]
@@ -268,7 +268,7 @@ fn test_deeply_nested_structures_with_multiple_maps() {
     // For multiple maps, we need a repeat pattern
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        TAG(200,
+        tagged(200,
             {
                 "data": [({"value": number})*]
             }
@@ -325,7 +325,7 @@ fn test_deeply_nested_structures_with_multiple_maps() {
 fn test_multiple_levels_of_nesting_with_any() {
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        TAG(300, [{*: *}, (*)*])
+        tagged(300, [{*: *}, (*)*])
     "#).unwrap();
 
     // Should match: 300([{"key": "value"}])
@@ -365,7 +365,7 @@ fn test_multiple_levels_of_nesting_with_any() {
 #[test]
 fn test_extreme_nesting_depth() {
     // Test deeply nested structures for performance
-    let pattern = Pattern::parse(r#"TAG(400, {"level1": {"level2": {"level3": [42]}}})"#).unwrap();
+    let pattern = Pattern::parse(r#"tagged(400, {"level1": {"level2": {"level3": [42]}}})"#).unwrap();
 
     let deep_structure =
         parse_dcbor_item(r#"400({"level1": {"level2": {"level3": [42]}}})"#)
@@ -395,7 +395,7 @@ fn test_complex_combined_patterns() {
     // Combining multiple advanced patterns
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        TAG(500,
+        tagged(500,
             [
                 {"type": "user"},
                 {"id": number},

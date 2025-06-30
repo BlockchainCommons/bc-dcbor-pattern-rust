@@ -370,32 +370,32 @@ impl Matcher for TaggedPattern {
 impl std::fmt::Display for TaggedPattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            TaggedPattern::Any => write!(f, "TAGGED"),
+            TaggedPattern::Any => write!(f, "tagged"),
             TaggedPattern::WithTag(tag) => {
-                write!(f, "TAGGED_TAG({})", tag.value())
+                write!(f, "tagged({}, *)", tag.value())
             }
             TaggedPattern::WithTagSet(tags) => {
                 let tag_values: Vec<String> =
                     tags.iter().map(|t| t.value().to_string()).collect();
-                write!(f, "TAGGED_TAGS([{}])", tag_values.join(", "))
+                write!(f, "tagged([{}], *)", tag_values.join(", "))
             }
             TaggedPattern::WithContent(pattern) => {
-                write!(f, "TAGGED_CONTENT({})", pattern)
+                write!(f, "tagged(*, {})", pattern)
             }
             TaggedPattern::WithTagAndContent { tag, content_pattern } => {
-                write!(f, "TAGGED_TC({}, {})", tag.value(), content_pattern)
+                write!(f, "tagged({}, {})", tag.value(), content_pattern)
             }
             TaggedPattern::WithTagName(name) => {
-                write!(f, "TAGGED_NAME({})", name)
+                write!(f, "tagged({}, *)", name)
             }
             TaggedPattern::WithTagNameRegex(regex) => {
-                write!(f, "TAGGED_REGEX({})", regex.as_str())
+                write!(f, "tagged(/{}/,  *)", regex.as_str())
             }
             TaggedPattern::WithTagNameAndContent {
                 tag_name,
                 content_pattern,
             } => {
-                write!(f, "TAGGED_NC({}, {})", tag_name, content_pattern)
+                write!(f, "tagged({}, {})", tag_name, content_pattern)
             }
             TaggedPattern::WithTagNameRegexAndContent {
                 tag_regex,
@@ -403,7 +403,7 @@ impl std::fmt::Display for TaggedPattern {
             } => {
                 write!(
                     f,
-                    "TAGGED_RC({}, {})",
+                    "tagged(/{}/,  {})",
                     tag_regex.as_str(),
                     content_pattern
                 )

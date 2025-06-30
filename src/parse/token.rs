@@ -10,7 +10,6 @@ use crate::{DigestPattern, Error, Quantifier, Reluctance, Result};
 #[logos(error = Error)]
 #[logos(skip r"[ \t\r\n\f]+")]
 pub enum Token {
-    // Meta Pattern O        assert_eq!(Token::lexer("TAGGED").next(), Some(Ok(Token::Tagged)));rators
     #[token("&")]
     And,
 
@@ -48,7 +47,7 @@ pub enum Token {
     RepeatZeroOrOnePossessive,
 
     // Structure Pattern Keywords
-    #[token("TAG")]
+    #[token("tagged")]
     Tagged,
 
     // Value Pattern Keywords
@@ -720,7 +719,7 @@ mod tests {
         assert_eq!(Token::lexer("?").next(), Some(Ok(Token::RepeatZeroOrOne)));
 
         // Test structure pattern keywords
-        assert_eq!(Token::lexer("TAG").next(), Some(Ok(Token::Tagged)));
+        assert_eq!(Token::lexer("tagged").next(), Some(Ok(Token::Tagged)));
 
         // Test leaf pattern keywords
         assert_eq!(Token::lexer("bool").next(), Some(Ok(Token::Bool)));

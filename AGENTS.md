@@ -180,7 +180,7 @@ Tests now use `assert_actual_expected!` with `format_paths_with_captures()` for 
         - Matches a known value with a name that matches the specified regex. We do not use the single quotes here. Note: This is a non-prefixed single-quoted pattern.
 
 
-- Tagged
+- ✅ Tagged **COMPLETE**:
     - `tagged`
         - Matches any CBOR tagged value.
     - `tagged ( value, pattern )`

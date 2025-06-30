@@ -31,7 +31,7 @@ fn test_structure_convenience_methods() {
 
     assert_eq!(array_pattern.to_string(), "[*]");
     assert_eq!(map_pattern.to_string(), "{*}");
-    assert_eq!(tagged_pattern.to_string(), "TAGGED");
+    assert_eq!(tagged_pattern.to_string(), "tagged");
 
     // Test that they work with real CBOR data
     let array_cbor = vec![1, 2, 3].to_cbor();

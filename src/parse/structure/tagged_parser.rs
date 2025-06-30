@@ -2,15 +2,15 @@ use dcbor::prelude::*;
 
 use crate::{Error, Pattern, Result, TaggedPattern, parse::Token};
 
-/// Parse a TAG pattern.
+/// Parse a tagged pattern.
 ///
 /// Supports the following syntax:
-/// - `TAG` - matches any tagged value
-/// - `TAG(value, pattern)` - matches tagged value with specific u64 tag and
+/// - `tagged` - matches any tagged value
+/// - `tagged(value, pattern)` - matches tagged value with specific u64 tag and
 ///   content pattern
-/// - `TAG(name, pattern)` - matches tagged value with named tag and content
+/// - `tagged(name, pattern)` - matches tagged value with named tag and content
 ///   pattern
-/// - `TAG(/regex/, pattern)` - matches tagged value with tag name matching
+/// - `tagged(/regex/, pattern)` - matches tagged value with tag name matching
 ///   regex and content pattern
 pub(crate) fn parse_tagged(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
     let mut lookahead = lexer.clone();
@@ -65,7 +65,7 @@ pub(crate) fn parse_tagged(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
             }
         }
         _ => {
-            // No parentheses, just "TAG" - matches any tagged value
+            // No parentheses, just "tagged" - matches any tagged value
             Ok(Pattern::Structure(
                 crate::pattern::StructurePattern::Tagged(TaggedPattern::any()),
             ))
@@ -122,7 +122,7 @@ fn parse_tagged_inner(src: &str) -> Result<(TagSelector, Pattern, usize)> {
             paren_depth += 1;
         } else if ch == b')' {
             if paren_depth == 0 {
-                break; // This is the closing paren for our TAG()
+                break; // This is the closing paren for our tagged()
             }
             paren_depth -= 1;
         }
@@ -206,19 +206,19 @@ mod tests {
 
     #[test]
     fn test_parse_tagged_any() {
-        let pattern = Pattern::parse("TAG").unwrap();
+        let pattern = Pattern::parse("tagged").unwrap();
         assert_eq!(
             pattern,
             Pattern::Structure(crate::pattern::StructurePattern::Tagged(
                 TaggedPattern::any()
             ))
         );
-        assert_eq!(pattern.to_string(), "TAGGED");
+        assert_eq!(pattern.to_string(), "tagged");
     }
 
     #[test]
     fn test_parse_tagged_with_value() {
-        let pattern = Pattern::parse("TAG(1234, text)").unwrap();
+        let pattern = Pattern::parse("tagged(1234, text)").unwrap();
         let tag = Tag::new(1234, "");
         assert_eq!(
             pattern,
@@ -230,7 +230,7 @@ mod tests {
 
     #[test]
     fn test_parse_tagged_with_regex() {
-        let pattern = Pattern::parse("TAG(/test.*/, text)").unwrap();
+        let pattern = Pattern::parse("tagged(/test.*/, text)").unwrap();
         match pattern {
             Pattern::Structure(crate::pattern::StructurePattern::Tagged(
                 TaggedPattern::WithTagNameRegexAndContent { .. },
@@ -241,7 +241,7 @@ mod tests {
 
     #[test]
     fn test_parse_tagged_with_name() {
-        let pattern = Pattern::parse("TAG(myTag, number)").unwrap();
+        let pattern = Pattern::parse("tagged(myTag, number)").unwrap();
         match pattern {
             Pattern::Structure(crate::pattern::StructurePattern::Tagged(
                 TaggedPattern::WithTagNameAndContent { tag_name, .. },
@@ -254,7 +254,7 @@ mod tests {
 
     #[test]
     fn test_parse_complex_regex() {
-        let pattern = Pattern::parse("TAG(/^test[0-9]+$/, text)").unwrap();
+        let pattern = Pattern::parse("tagged(/^test[0-9]+$/, text)").unwrap();
         match pattern {
             Pattern::Structure(crate::pattern::StructurePattern::Tagged(
                 TaggedPattern::WithTagNameRegexAndContent { tag_regex, .. },
@@ -267,7 +267,7 @@ mod tests {
 
     #[test]
     fn test_parse_tagged_value_zero() {
-        let pattern = Pattern::parse("TAG(0, null)").unwrap();
+        let pattern = Pattern::parse("tagged(0, null)").unwrap();
         match pattern {
             Pattern::Structure(crate::pattern::StructurePattern::Tagged(
                 TaggedPattern::WithTagAndContent { tag, .. },
