@@ -1,5 +1,5 @@
-use dcbor_pattern::{Pattern, Matcher};
 use dcbor::prelude::*;
+use dcbor_pattern::{Matcher, Pattern};
 
 #[test]
 fn test_infinity_pattern_integration() {

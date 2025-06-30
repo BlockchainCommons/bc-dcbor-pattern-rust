@@ -374,9 +374,9 @@ impl Pattern {
     /// Parse a pattern expression from a string.
     ///
     /// This method supports the full dCBOR pattern syntax including:
-    /// - Value patterns: bool, text, NUMBER, null, bstr, DATE, DIGEST, KNOWN
+    /// - Value patterns: bool, text, number, null, bstr, DATE, DIGEST, KNOWN
     /// - Structure patterns: Array, Map, Tagged
-    /// - Meta patterns: ANY, NONE, AND (&), OR (|), NOT (!)
+    /// - Meta patterns: *, NONE, AND (&), OR (|), NOT (!)
     /// - Capture patterns: @name(pattern)
     /// - Grouping with parentheses
     /// - Quantifiers: *, +, ?, {n,m}

@@ -85,8 +85,7 @@ fn test_capture_no_match() -> Result<()> {
 /// Test multiple captures in OR pattern
 #[test]
 fn test_multiple_captures_or() -> Result<()> {
-    let pattern =
-        Pattern::parse("@first(42) | @second(\"hello\")")?;
+    let pattern = Pattern::parse("@first(42) | @second(\"hello\")")?;
 
     // Test matching the first alternative
     let cbor1 = parse_dcbor_item("42").unwrap();
@@ -190,8 +189,7 @@ fn test_capture_in_array() -> Result<()> {
 /// Test captures in array sequence patterns
 #[test]
 fn test_capture_in_array_sequence() -> Result<()> {
-    let pattern =
-        Pattern::parse(r#"[@first("a"), @second(42)]"#)?;
+    let pattern = Pattern::parse(r#"[@first("a"), @second(42)]"#)?;
     let cbor = parse_dcbor_item(r#"["a", 42]"#).unwrap();
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
@@ -222,8 +220,7 @@ fn test_capture_in_array_sequence() -> Result<()> {
 /// Test captures in map patterns
 #[test]
 fn test_capture_in_map() -> Result<()> {
-    let pattern =
-        Pattern::parse(r#"{@key("name"): @value("Alice")}"#)?;
+    let pattern = Pattern::parse(r#"{@key("name"): @value("Alice")}"#)?;
     let cbor = parse_dcbor_item(r#"{"name": "Alice"}"#).unwrap();
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);

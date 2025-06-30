@@ -102,10 +102,7 @@ fn test_map_pattern_display() {
     assert_eq!(MapPattern::any().to_string(), "{*}");
     assert_eq!(MapPattern::with_length(0).to_string(), "{{0}}");
     assert_eq!(MapPattern::with_length(5).to_string(), "{{5}}");
-    assert_eq!(
-        MapPattern::with_length_range(2..=8).to_string(),
-        "{{2,8}}"
-    );
+    assert_eq!(MapPattern::with_length_range(2..=8).to_string(), "{{2,8}}");
     assert_eq!(
         MapPattern::with_length_range(3..=usize::MAX).to_string(),
         "{{3,}}"
@@ -114,23 +111,10 @@ fn test_map_pattern_display() {
 
 #[test]
 fn test_map_pattern_round_trip() {
-    let patterns = [
-        "{*}",
-        "{{0}}",
-        "{{1}}",
-        "{{5}}",
-        "{{2,8}}",
-        "{{3,}}",
-    ];
+    let patterns = ["{*}", "{{0}}", "{{1}}", "{{5}}", "{{2,8}}", "{{3,}}"];
 
-    let expected_displays = [
-        "{*}",
-        "{{0}}",
-        "{{1}}",
-        "{{5}}",
-        "{{2,8}}",
-        "{{3,}}",
-    ];
+    let expected_displays =
+        ["{*}", "{{0}}", "{{1}}", "{{5}}", "{{2,8}}", "{{3,}}"];
 
     for (i, pattern_str) in patterns.iter().enumerate() {
         let pattern = Pattern::parse(pattern_str).unwrap();
@@ -221,7 +205,7 @@ fn test_map_key_value_constraints_multiple() {
 
 #[test]
 fn test_map_key_value_constraints_any_key() {
-    // Test constraints with ANY key pattern
+    // Test constraints with * key pattern
     let test_map = cbor(r#"{"key1": "hello", "key2": "world", "key3": 42}"#);
 
     // Match any key with text value
@@ -296,9 +280,7 @@ fn test_map_key_value_constraints_empty_map() {
 #[test]
 fn test_map_key_value_constraints_pattern_text_parsing() {
     // Test the unified {pattern:pattern, ...} syntax from text
-    let pattern =
-        Pattern::parse(r#"{"name":text, "age":number}"#)
-            .unwrap();
+    let pattern = Pattern::parse(r#"{"name":text, "age":number}"#).unwrap();
 
     let matching_map =
         cbor(r#"{"name": "Charlie", "age": 28, "extra": "data"}"#);
@@ -311,18 +293,13 @@ fn test_map_key_value_constraints_pattern_text_parsing() {
     assert!(!pattern.matches(&missing_key_map));
 
     // Test display format
-    assert_eq!(
-        pattern.to_string(),
-        r#"{"name": text, "age": number}"#
-    );
+    assert_eq!(pattern.to_string(), r#"{"name": text, "age": number}"#);
 }
 
 #[test]
 fn test_map_key_value_constraints_complex_patterns() {
     // Test with complex nested patterns
-    let pattern =
-        Pattern::parse(r#"{ANY:"target", 42:true}"#)
-            .unwrap();
+    let pattern = Pattern::parse(r#"{*:"target", 42:true}"#).unwrap();
 
     let matching_map =
         cbor(r#"{"somekey": "target", 42: true, "other": "data"}"#);

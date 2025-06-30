@@ -51,7 +51,7 @@ impl ArrayPattern {
         // For complex sequences containing repeats, we need to check if the
         // pattern can match the array elements in sequence.
         // The key insight is that a sequence pattern like
-        // (ANY)*>NUMBER(42)>(ANY)* should match if there's any way to
+        // `(*)*, 42, (*)*`  should match if there's any way to
         // arrange the array elements to satisfy the sequence
         // requirements.
 
@@ -75,7 +75,7 @@ impl ArrayPattern {
 
     /// Check if a sequence pattern can match against array elements.
     /// This implements the core logic for matching patterns like
-    /// (ANY)*>NUMBER(42)>(ANY)* against array elements.
+    /// `(*)*, 42, (*)*` against array elements.
     fn can_match_sequence_against_array(
         &self,
         pattern: &Pattern,
@@ -117,10 +117,10 @@ impl ArrayPattern {
     ) -> bool {
         let patterns = seq_pattern.patterns();
 
-        // For patterns like (ANY)*>NUMBER(42)>(ANY)*:
-        // - First (ANY)* can consume 0 or more elements from the start
-        // - NUMBER(42) must match exactly one element (which must be 42)
-        // - Last (ANY)* can consume 0 or more elements from the end
+        // For patterns like `(*)*, 42, (*)*`:
+        // - First `(*)*` can consume 0 or more elements from the start
+        // - `42` must match exactly one element (which must be 42)
+        // - Last `(*)*` can consume 0 or more elements from the end
 
         // Simple case: if no patterns, then empty array should match
         if patterns.is_empty() {
@@ -323,7 +323,7 @@ impl ArrayPattern {
     }
 
     /// Use backtracking to find sequence pattern assignments.
-    /// This handles cases like [(ANY)*, @item(NUMBER(42)), (ANY)*] properly.
+    /// This handles cases like `(*)*, @item(42), (*)*` properly.
     fn find_sequence_assignments_with_backtracking(
         &self,
         patterns: &[Pattern],
@@ -733,8 +733,8 @@ impl Matcher for ArrayPattern {
                                 _capture_pattern,
                             ),
                         ) => {
-                            // For capture patterns like [@item(NUMBER)] or
-                            // [@item(NUMBER(42))],
+                            // For capture patterns like [@item(number)] or
+                            // [@item(42)],
                             // use the VM approach for consistency with existing
                             // behavior
 

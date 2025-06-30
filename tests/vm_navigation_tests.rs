@@ -17,7 +17,7 @@ fn test_vm_array_navigation() {
     let code = vec![
         Instr::PushAxis(Axis::ArrayElement), // Navigate to array elements
         Instr::CaptureStart(0),              // Start capture
-        Instr::MatchPredicate(0),            // Match NUMBER(42)
+        Instr::MatchPredicate(0),            // Match `42`
         Instr::CaptureEnd(0),                // End capture
         Instr::Accept,                       // Accept the match
     ];
@@ -97,7 +97,7 @@ fn test_vm_nested_navigation() {
         Instr::PushAxis(Axis::ArrayElement), // Navigate to array elements
         Instr::PushAxis(Axis::MapValue),     // Navigate to map values
         Instr::CaptureStart(0),              // Start capture
-        Instr::MatchPredicate(0),            // Match NUMBER(42)
+        Instr::MatchPredicate(0),            // Match `42`
         Instr::CaptureEnd(0),                // End capture
         Instr::Accept,                       // Accept the match
     ];
@@ -143,7 +143,7 @@ fn test_vm_multiple_captures() {
     let code = vec![
         Instr::PushAxis(Axis::ArrayElement), // Navigate to array elements
         Instr::CaptureStart(0),              // Start first capture
-        Instr::MatchPredicate(0),            // Match ANY
+        Instr::MatchPredicate(0),            // Match *
         Instr::CaptureEnd(0),                // End first capture
         Instr::Accept,                       // Accept the match
     ];
@@ -181,7 +181,7 @@ fn test_vm_no_match_navigation() {
     let code = vec![
         Instr::PushAxis(Axis::ArrayElement), // Navigate to array elements
         Instr::CaptureStart(0),              // Start capture
-        Instr::MatchPredicate(0),            // Match NUMBER(42) - won't match
+        Instr::MatchPredicate(0),            // Match `42` - won't match
         Instr::CaptureEnd(0),                // End capture
         Instr::Accept,                       // Accept the match
     ];

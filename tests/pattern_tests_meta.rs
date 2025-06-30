@@ -38,8 +38,8 @@ fn test_any_pattern() {
     let expected = "null";
     assert_actual_expected!(format_paths(&paths), expected);
 
-    // Display should show ANY
-    assert_eq!(pattern.to_string(), "ANY");
+    // Display should show *
+    assert_eq!(pattern.to_string(), "*");
 }
 
 #[test]
@@ -279,7 +279,7 @@ fn test_capture_pattern_text() {
 fn test_capture_pattern_any() {
     let pattern = Pattern::capture("anything", Pattern::any());
 
-    // Should match anything since inner pattern is ANY
+    // Should match anything since inner pattern is *
     let forty_two_cbor = cbor("42");
     let paths = pattern.paths(&forty_two_cbor);
     let expected = "42";
@@ -301,7 +301,7 @@ fn test_capture_pattern_any() {
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Display should show capture syntax
-    assert_eq!(pattern.to_string(), "@anything(ANY)");
+    assert_eq!(pattern.to_string(), "@anything(*)");
 }
 
 #[test]
@@ -634,7 +634,7 @@ fn test_search_pattern_text() {
 fn test_search_pattern_any() {
     let pattern = Pattern::search(Pattern::any());
 
-    // Should match any CBOR value because ANY matches everything
+    // Should match any CBOR value because * matches everything
     let forty_two_cbor = cbor("42");
     let paths = pattern.paths(&forty_two_cbor);
     let expected = "42";
@@ -647,7 +647,7 @@ fn test_search_pattern_any() {
 
     let array_cbor = cbor("[1, 2, 3]");
     let paths = pattern.paths(&array_cbor);
-    // ANY matches everything, so this should match all nodes in the tree
+    // * matches everything, so this should match all nodes in the tree
     #[rustfmt::skip]
     let expected = indoc! {r#"
         [1, 2, 3]
@@ -665,8 +665,8 @@ fn test_search_pattern_any() {
     let expected = "{}";
     assert_actual_expected!(format_paths(&paths), expected);
 
-    // Display should show SEARCH(ANY)
-    assert_eq!(pattern.to_string(), "SEARCH(ANY)");
+    // Display should show SEARCH(*)
+    assert_eq!(pattern.to_string(), "SEARCH(*)");
 }
 
 #[test]

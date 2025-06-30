@@ -121,12 +121,12 @@ fn test_nested_parentheses() -> Result<()> {
     Ok(())
 }
 
-/// Test ANY and NONE patterns
+/// Test * and NONE patterns
 #[test]
 fn test_parse_any() -> Result<()> {
-    let pattern = Pattern::parse("ANY")?;
+    let pattern = Pattern::parse("*")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
-    assert_eq!(pattern.to_string(), "ANY");
+    assert_eq!(pattern.to_string(), "*");
     Ok(())
 }
 
@@ -290,11 +290,11 @@ fn test_parse_search_with_text() -> Result<()> {
 
 #[test]
 fn test_parse_search_with_any() -> Result<()> {
-    let pattern = Pattern::parse("SEARCH(ANY)")?;
+    let pattern = Pattern::parse("SEARCH(*)")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
 
     // Test display formatting
-    assert_eq!(pattern.to_string(), "SEARCH(ANY)");
+    assert_eq!(pattern.to_string(), "SEARCH(*)");
     Ok(())
 }
 

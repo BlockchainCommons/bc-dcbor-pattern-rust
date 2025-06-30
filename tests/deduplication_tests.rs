@@ -41,8 +41,7 @@ mod deduplication_tests {
     fn test_no_duplicate_paths_nested_array() {
         let nested_cbor = parse_dcbor_item(r#"[[42], [100]]"#).unwrap();
         let nested_pattern =
-            Pattern::parse("[@outer_item([@inner_item(number)])]")
-                .unwrap();
+            Pattern::parse("[@outer_item([@inner_item(number)])]").unwrap();
 
         let (nested_paths, nested_captures) =
             nested_pattern.paths_with_captures(&nested_cbor);

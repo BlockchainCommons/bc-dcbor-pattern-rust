@@ -129,7 +129,8 @@ fn test_array_pattern_with_multiple_elements() {
 #[test]
 fn test_array_pattern_nested_structure() {
     let cbor_data = cbor(r#"[[42], [100]]"#);
-    let pattern = Pattern::parse("[@outer_item([@inner_item(number)])]").unwrap();
+    let pattern =
+        Pattern::parse("[@outer_item([@inner_item(number)])]").unwrap();
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
@@ -207,7 +208,7 @@ fn test_array_pattern_no_match() {
 #[test]
 fn test_array_pattern_mixed_types() {
     let cbor_data = cbor(r#"[42, "hello", true, [1, 2]]"#);
-    let pattern = Pattern::parse("[@any_item(ANY)]").unwrap();
+    let pattern = Pattern::parse("[@any_item(*)]").unwrap();
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 

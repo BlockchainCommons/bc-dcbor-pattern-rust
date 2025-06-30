@@ -114,9 +114,9 @@ Structure patterns match parts of dCBOR items.
         - Examples:
             - `[42]` - Array containing exactly one element: the number 42
             - `["a", "b", "c"]` - Array containing exactly ["a", "b", "c"] in sequence
-            - `[(ANY)*, 42, (ANY)*]` - Array containing 42 anywhere within it
-            - `[42, (ANY)*]` - Array starting with 42, followed by any elements
-            - `[(ANY)*, 42]` - Array ending with 42, preceded by any elements
+            - `[(*)*, 42, (*)*]` - Array containing 42 anywhere within it
+            - `[42, (*)*]` - Array starting with 42, followed by any elements
+            - `[(*)*, 42]` - Array ending with 42, preceded by any elements
 - Map
     - `{*}`
         - Matches any map.
@@ -148,7 +148,7 @@ Precedence: Repeat has the highest precedence, followed by And, Not, Sequence, a
     - `pattern & pattern & pattern`…
         - Matches if all specified patterns match.
 - Any
-    - `ANY`
+    - `*`
         - Always matches.
 - Capture
     - `@name ( pattern )`

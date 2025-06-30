@@ -6,7 +6,7 @@ mod tests {
     #[test]
     fn test_complex_array_pattern_text_parsing() {
         // Test if complex array pattern parsing works from text
-        let pattern_text = r#"[(ANY)*, 42, (ANY)*]"#;
+        let pattern_text = r#"[(*)*, 42, (*)*]"#;
 
         let pattern =
             Pattern::parse(pattern_text).expect("Should parse complex pattern");
@@ -44,11 +44,11 @@ mod tests {
     #[test]
     fn test_various_repeat_quantifiers_in_arrays() {
         let test_patterns = [
-            ("[(ANY)+]", "One or more ANY", "[1]", true),
-            ("[(ANY)+]", "One or more ANY empty", "[]", false),
-            ("[(ANY)?]", "Zero or one ANY", "[]", true),
-            ("[(ANY)?]", "Zero or one ANY single", "[1]", true),
-            ("[(ANY)?]", "Zero or one ANY multiple", "[1,2]", false),
+            ("[(*)+]", "One or more *", "[1]", true),
+            ("[(*)+]", "One or more * empty", "[]", false),
+            ("[(*)?]", "Zero or one *", "[]", true),
+            ("[(*)?]", "Zero or one * single", "[1]", true),
+            ("[(*)?]", "Zero or one * multiple", "[1,2]", false),
             ("[(number)*]", "Zero or more numbers", "[]", true),
             (
                 "[(number)*]",
@@ -84,7 +84,7 @@ mod tests {
     #[test]
     fn test_nested_array_patterns_with_repeats() {
         // Test nested patterns with complex repeats
-        let pattern_text = r#"[[(number)*], (ANY)*]"#;
+        let pattern_text = r#"[[(number)*], (*)*]"#;
         let pattern =
             Pattern::parse(pattern_text).expect("Should parse nested pattern");
 

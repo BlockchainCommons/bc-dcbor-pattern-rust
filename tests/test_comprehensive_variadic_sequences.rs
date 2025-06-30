@@ -18,8 +18,8 @@ mod test_comprehensive_variadic_sequences {
 
     #[test]
     fn test_zero_or_more_greedy() {
-        // Pattern: [(ANY)*] should match arrays of any length
-        let pattern = Pattern::parse("[(ANY)*]").unwrap();
+        // Pattern: [(*)*] should match arrays of any length
+        let pattern = Pattern::parse("[(*)*]").unwrap();
 
         // Test cases that should match
         let empty_array = parse_dcbor_item("[]").unwrap();
@@ -28,7 +28,7 @@ mod test_comprehensive_variadic_sequences {
 
         // Empty array should match (zero repetitions)
         let (paths, captures) = pattern.paths_with_captures(&empty_array);
-        assert!(!paths.is_empty(), "[(ANY)*] should match empty array");
+        assert!(!paths.is_empty(), "[(*)*] should match empty array");
         assert!(
             captures.is_empty(),
             "No captures expected for basic quantifier"
@@ -52,7 +52,7 @@ mod test_comprehensive_variadic_sequences {
         let (paths, captures) = pattern.paths_with_captures(&single_element);
         assert!(
             !paths.is_empty(),
-            "[(ANY)*] should match single element array"
+            "[(*)*] should match single element array"
         );
 
         #[rustfmt::skip]
@@ -74,7 +74,7 @@ mod test_comprehensive_variadic_sequences {
             pattern.paths_with_captures(&multiple_elements);
         assert!(
             !paths.is_empty(),
-            "[(ANY)*] should match multiple element array"
+            "[(*)*] should match multiple element array"
         );
 
         #[rustfmt::skip]
@@ -94,8 +94,8 @@ mod test_comprehensive_variadic_sequences {
 
     #[test]
     fn test_one_or_more_greedy() {
-        // Pattern: [(ANY)+] should match arrays with at least one element
-        let pattern = Pattern::parse("[(ANY)+]").unwrap();
+        // Pattern: [(*)+] should match arrays with at least one element
+        let pattern = Pattern::parse("[(*)+]").unwrap();
 
         // Test cases
         let empty_array = parse_dcbor_item("[]").unwrap();
@@ -104,14 +104,14 @@ mod test_comprehensive_variadic_sequences {
 
         // Empty array should NOT match (requires at least one)
         let (paths, captures) = pattern.paths_with_captures(&empty_array);
-        assert!(paths.is_empty(), "[(ANY)+] should NOT match empty array");
+        assert!(paths.is_empty(), "[(*)+] should NOT match empty array");
         assert!(captures.is_empty(), "No captures expected when no match");
 
         // Single element should match (one repetition)
         let (paths, captures) = pattern.paths_with_captures(&single_element);
         assert!(
             !paths.is_empty(),
-            "[(ANY)+] should match single element array"
+            "[(*)+] should match single element array"
         );
 
         #[rustfmt::skip]
@@ -132,7 +132,7 @@ mod test_comprehensive_variadic_sequences {
         let (paths, captures) = pattern.paths_with_captures(&multiple_elements);
         assert!(
             !paths.is_empty(),
-            "[(ANY)+] should match multiple element array"
+            "[(*)+] should match multiple element array"
         );
 
         #[rustfmt::skip]
@@ -152,8 +152,8 @@ mod test_comprehensive_variadic_sequences {
 
     #[test]
     fn test_zero_or_one_greedy() {
-        // Pattern: [(ANY)?] should match arrays with zero or one element
-        let pattern = Pattern::parse("[(ANY)?]").unwrap();
+        // Pattern: [(*)?] should match arrays with zero or one element
+        let pattern = Pattern::parse("[(*)?]").unwrap();
 
         // Test cases
         let empty_array = parse_dcbor_item("[]").unwrap();
@@ -162,7 +162,7 @@ mod test_comprehensive_variadic_sequences {
 
         // Empty array should match (zero repetitions)
         let (paths, captures) = pattern.paths_with_captures(&empty_array);
-        assert!(!paths.is_empty(), "[(ANY)?] should match empty array");
+        assert!(!paths.is_empty(), "[(*)?] should match empty array");
 
         #[rustfmt::skip]
         let expected_empty = indoc! {r#"
@@ -182,7 +182,7 @@ mod test_comprehensive_variadic_sequences {
         let (paths, captures) = pattern.paths_with_captures(&single_element);
         assert!(
             !paths.is_empty(),
-            "[(ANY)?] should match single element array"
+            "[(*)?] should match single element array"
         );
 
         #[rustfmt::skip]
@@ -203,17 +203,17 @@ mod test_comprehensive_variadic_sequences {
         let (paths, captures) = pattern.paths_with_captures(&multiple_elements);
         assert!(
             paths.is_empty(),
-            "[(ANY)?] should NOT match multiple element array"
+            "[(*)?] should NOT match multiple element array"
         );
         assert!(captures.is_empty(), "No captures expected when no match");
     }
 
     #[test]
     fn test_exactly_once_default() {
-        // Pattern: [(ANY)] should match arrays with exactly one element
+        // Pattern: [(*)] should match arrays with exactly one element
         // This tests that undecorated parentheses are interpreted as
         // RepeatPattern with "exactly one" quantifier
-        let pattern = Pattern::parse("[(ANY)]").unwrap();
+        let pattern = Pattern::parse("[(*)]").unwrap();
 
         // Test cases
         let empty_array = parse_dcbor_item("[]").unwrap();
@@ -222,13 +222,13 @@ mod test_comprehensive_variadic_sequences {
 
         // Empty array should NOT match (requires exactly one)
         let (paths, _captures) = pattern.paths_with_captures(&empty_array);
-        assert!(paths.is_empty(), "[(ANY)] should NOT match empty array");
+        assert!(paths.is_empty(), "[(*)] should NOT match empty array");
 
         // Single element should match (exactly one repetition)
         let (paths, captures) = pattern.paths_with_captures(&single_element);
         assert!(
             !paths.is_empty(),
-            "[(ANY)] should match single element array"
+            "[(*)] should match single element array"
         );
 
         #[rustfmt::skip]
@@ -250,7 +250,7 @@ mod test_comprehensive_variadic_sequences {
             pattern.paths_with_captures(&multiple_elements);
         assert!(
             paths.is_empty(),
-            "[(ANY)] should NOT match multiple element array"
+            "[(*)] should NOT match multiple element array"
         );
     }
 
@@ -260,8 +260,8 @@ mod test_comprehensive_variadic_sequences {
 
     #[test]
     fn test_zero_or_more_lazy() {
-        // Pattern: [(ANY)*?] should match arrays but prefer fewer repetitions
-        let pattern = Pattern::parse("[(ANY)*?]").unwrap();
+        // Pattern: [(*)*?] should match arrays but prefer fewer repetitions
+        let pattern = Pattern::parse("[(*)*?]").unwrap();
 
         // Test cases that should match (same as greedy for basic matching)
         let empty_array = parse_dcbor_item("[]").unwrap();
@@ -271,26 +271,26 @@ mod test_comprehensive_variadic_sequences {
         // All arrays should match, but lazy behavior is more relevant in
         // complex patterns
         let (paths, _) = pattern.paths_with_captures(&empty_array);
-        assert!(!paths.is_empty(), "[(ANY)*?] should match empty array");
+        assert!(!paths.is_empty(), "[(*)*?] should match empty array");
 
         let (paths, _) = pattern.paths_with_captures(&single_element);
         assert!(
             !paths.is_empty(),
-            "[(ANY)*?] should match single element array"
+            "[(*)*?] should match single element array"
         );
 
         let (paths, _) = pattern.paths_with_captures(&multiple_elements);
         assert!(
             !paths.is_empty(),
-            "[(ANY)*?] should match multiple element array"
+            "[(*)*?] should match multiple element array"
         );
     }
 
     #[test]
     fn test_one_or_more_lazy() {
-        // Pattern: [(ANY)+?] should match arrays with at least one element,
+        // Pattern: [(*)+?] should match arrays with at least one element,
         // preferring fewer
-        let pattern = Pattern::parse("[(ANY)+?]").unwrap();
+        let pattern = Pattern::parse("[(*)+?]").unwrap();
 
         let empty_array = parse_dcbor_item("[]").unwrap();
         let single_element = parse_dcbor_item("[42]").unwrap();
@@ -298,26 +298,26 @@ mod test_comprehensive_variadic_sequences {
 
         // Empty array should NOT match (requires at least one)
         let (paths, _) = pattern.paths_with_captures(&empty_array);
-        assert!(paths.is_empty(), "[(ANY)+?] should NOT match empty array");
+        assert!(paths.is_empty(), "[(*)+?] should NOT match empty array");
 
         // Non-empty arrays should match
         let (paths, _) = pattern.paths_with_captures(&single_element);
         assert!(
             !paths.is_empty(),
-            "[(ANY)+?] should match single element array"
+            "[(*)+?] should match single element array"
         );
 
         let (paths, _) = pattern.paths_with_captures(&multiple_elements);
         assert!(
             !paths.is_empty(),
-            "[(ANY)+?] should match multiple element array"
+            "[(*)+?] should match multiple element array"
         );
     }
 
     #[test]
     fn test_zero_or_one_lazy() {
-        // Pattern: [(ANY)??] should match zero or one element, preferring zero
-        let pattern = Pattern::parse("[(ANY)??]").unwrap();
+        // Pattern: [(*)??] should match zero or one element, preferring zero
+        let pattern = Pattern::parse("[(*)??]").unwrap();
 
         let empty_array = parse_dcbor_item("[]").unwrap();
         let single_element = parse_dcbor_item("[42]").unwrap();
@@ -325,18 +325,18 @@ mod test_comprehensive_variadic_sequences {
 
         // Should match empty and single, not multiple
         let (paths, _) = pattern.paths_with_captures(&empty_array);
-        assert!(!paths.is_empty(), "[(ANY)??] should match empty array");
+        assert!(!paths.is_empty(), "[(*)??] should match empty array");
 
         let (paths, _) = pattern.paths_with_captures(&single_element);
         assert!(
             !paths.is_empty(),
-            "[(ANY)??] should match single element array"
+            "[(*)??] should match single element array"
         );
 
         let (paths, _) = pattern.paths_with_captures(&multiple_elements);
         assert!(
             paths.is_empty(),
-            "[(ANY)??] should NOT match multiple element array"
+            "[(*)??] should NOT match multiple element array"
         );
     }
 
@@ -346,8 +346,8 @@ mod test_comprehensive_variadic_sequences {
 
     #[test]
     fn test_zero_or_more_possessive() {
-        // Pattern: [(ANY)*+] should match arrays, no backtracking allowed
-        let pattern = Pattern::parse("[(ANY)*+]").unwrap();
+        // Pattern: [(*)*+] should match arrays, no backtracking allowed
+        let pattern = Pattern::parse("[(*)*+]").unwrap();
 
         let empty_array = parse_dcbor_item("[]").unwrap();
         let single_element = parse_dcbor_item("[42]").unwrap();
@@ -355,25 +355,25 @@ mod test_comprehensive_variadic_sequences {
 
         // Should match all arrays (same as greedy for simple cases)
         let (paths, _) = pattern.paths_with_captures(&empty_array);
-        assert!(!paths.is_empty(), "[(ANY)*+] should match empty array");
+        assert!(!paths.is_empty(), "[(*)*+] should match empty array");
 
         let (paths, _) = pattern.paths_with_captures(&single_element);
         assert!(
             !paths.is_empty(),
-            "[(ANY)*+] should match single element array"
+            "[(*)*+] should match single element array"
         );
 
         let (paths, _) = pattern.paths_with_captures(&multiple_elements);
         assert!(
             !paths.is_empty(),
-            "[(ANY)*+] should match multiple element array"
+            "[(*)*+] should match multiple element array"
         );
     }
 
     #[test]
     fn test_one_or_more_possessive() {
-        // Pattern: [(ANY)++] should match non-empty arrays, no backtracking
-        let pattern = Pattern::parse("[(ANY)++]").unwrap();
+        // Pattern: [(*)++] should match non-empty arrays, no backtracking
+        let pattern = Pattern::parse("[(*)++]").unwrap();
 
         let empty_array = parse_dcbor_item("[]").unwrap();
         let single_element = parse_dcbor_item("[42]").unwrap();
@@ -381,25 +381,25 @@ mod test_comprehensive_variadic_sequences {
 
         // Empty should not match, others should
         let (paths, _) = pattern.paths_with_captures(&empty_array);
-        assert!(paths.is_empty(), "[(ANY)++] should NOT match empty array");
+        assert!(paths.is_empty(), "[(*)++] should NOT match empty array");
 
         let (paths, _) = pattern.paths_with_captures(&single_element);
         assert!(
             !paths.is_empty(),
-            "[(ANY)++] should match single element array"
+            "[(*)++] should match single element array"
         );
 
         let (paths, _) = pattern.paths_with_captures(&multiple_elements);
         assert!(
             !paths.is_empty(),
-            "[(ANY)++] should match multiple element array"
+            "[(*)++] should match multiple element array"
         );
     }
 
     #[test]
     fn test_zero_or_one_possessive() {
-        // Pattern: [(ANY)?+] should match zero or one element, no backtracking
-        let pattern = Pattern::parse("[(ANY)?+]").unwrap();
+        // Pattern: [(*)?+] should match zero or one element, no backtracking
+        let pattern = Pattern::parse("[(*)?+]").unwrap();
 
         let empty_array = parse_dcbor_item("[]").unwrap();
         let single_element = parse_dcbor_item("[42]").unwrap();
@@ -407,18 +407,18 @@ mod test_comprehensive_variadic_sequences {
 
         // Should match zero or one, not multiple
         let (paths, _) = pattern.paths_with_captures(&empty_array);
-        assert!(!paths.is_empty(), "[(ANY)?+] should match empty array");
+        assert!(!paths.is_empty(), "[(*)?+] should match empty array");
 
         let (paths, _) = pattern.paths_with_captures(&single_element);
         assert!(
             !paths.is_empty(),
-            "[(ANY)?+] should match single element array"
+            "[(*)?+] should match single element array"
         );
 
         let (paths, _) = pattern.paths_with_captures(&multiple_elements);
         assert!(
             paths.is_empty(),
-            "[(ANY)?+] should NOT match multiple element array"
+            "[(*)?+] should NOT match multiple element array"
         );
     }
 
@@ -428,8 +428,8 @@ mod test_comprehensive_variadic_sequences {
 
     #[test]
     fn test_exact_count_interval() {
-        // Pattern: [(ANY){3}] should match arrays with exactly 3 elements
-        let pattern = Pattern::parse("[(ANY){3}]").unwrap();
+        // Pattern: [(*){3}] should match arrays with exactly 3 elements
+        let pattern = Pattern::parse("[(*){3}]").unwrap();
 
         let empty_array = parse_dcbor_item("[]").unwrap();
         let two_elements = parse_dcbor_item("[1, 2]").unwrap();
@@ -440,19 +440,19 @@ mod test_comprehensive_variadic_sequences {
         let (paths, _) = pattern.paths_with_captures(&empty_array);
         assert!(
             paths.is_empty(),
-            "[(ANY){{3}}] should NOT match empty array"
+            "[(*){{3}}] should NOT match empty array"
         );
 
         let (paths, _) = pattern.paths_with_captures(&two_elements);
         assert!(
             paths.is_empty(),
-            "[(ANY){{3}}] should NOT match 2-element array"
+            "[(*){{3}}] should NOT match 2-element array"
         );
 
         let (paths, _) = pattern.paths_with_captures(&three_elements);
         assert!(
             !paths.is_empty(),
-            "[(ANY){{3}}] should match 3-element array"
+            "[(*){{3}}] should match 3-element array"
         );
 
         #[rustfmt::skip]
@@ -472,14 +472,14 @@ mod test_comprehensive_variadic_sequences {
         let (paths, _) = pattern.paths_with_captures(&four_elements);
         assert!(
             paths.is_empty(),
-            "[(ANY){{3}}] should NOT match 4-element array"
+            "[(*){{3}}] should NOT match 4-element array"
         );
     }
 
     #[test]
     fn test_range_interval() {
-        // Pattern: [(ANY){2,4}] should match arrays with 2-4 elements
-        let pattern = Pattern::parse("[(ANY){2,4}]").unwrap();
+        // Pattern: [(*){2,4}] should match arrays with 2-4 elements
+        let pattern = Pattern::parse("[(*){2,4}]").unwrap();
 
         let one_element = parse_dcbor_item("[1]").unwrap();
         let two_elements = parse_dcbor_item("[1, 2]").unwrap();
@@ -491,38 +491,38 @@ mod test_comprehensive_variadic_sequences {
         let (paths, _) = pattern.paths_with_captures(&one_element);
         assert!(
             paths.is_empty(),
-            "[(ANY){{2,4}}] should NOT match 1-element array"
+            "[(*){{2,4}}] should NOT match 1-element array"
         );
 
         let (paths, _) = pattern.paths_with_captures(&two_elements);
         assert!(
             !paths.is_empty(),
-            "[(ANY){{2,4}}] should match 2-element array"
+            "[(*){{2,4}}] should match 2-element array"
         );
 
         let (paths, _) = pattern.paths_with_captures(&three_elements);
         assert!(
             !paths.is_empty(),
-            "[(ANY){{2,4}}] should match 3-element array"
+            "[(*){{2,4}}] should match 3-element array"
         );
 
         let (paths, _) = pattern.paths_with_captures(&four_elements);
         assert!(
             !paths.is_empty(),
-            "[(ANY){{2,4}}] should match 4-element array"
+            "[(*){{2,4}}] should match 4-element array"
         );
 
         let (paths, _) = pattern.paths_with_captures(&five_elements);
         assert!(
             paths.is_empty(),
-            "[(ANY){{2,4}}] should NOT match 5-element array"
+            "[(*){{2,4}}] should NOT match 5-element array"
         );
     }
 
     #[test]
     fn test_minimum_interval() {
-        // Pattern: [(ANY){2,}] should match arrays with at least 2 elements
-        let pattern = Pattern::parse("[(ANY){2,}]").unwrap();
+        // Pattern: [(*){2,}] should match arrays with at least 2 elements
+        let pattern = Pattern::parse("[(*){2,}]").unwrap();
 
         let one_element = parse_dcbor_item("[1]").unwrap();
         let two_elements = parse_dcbor_item("[1, 2]").unwrap();
@@ -532,26 +532,26 @@ mod test_comprehensive_variadic_sequences {
         let (paths, _) = pattern.paths_with_captures(&one_element);
         assert!(
             paths.is_empty(),
-            "[(ANY){{2,}}] should NOT match 1-element array"
+            "[(*){{2,}}] should NOT match 1-element array"
         );
 
         let (paths, _) = pattern.paths_with_captures(&two_elements);
         assert!(
             !paths.is_empty(),
-            "[(ANY){{2,}}] should match 2-element array"
+            "[(*){{2,}}] should match 2-element array"
         );
 
         let (paths, _) = pattern.paths_with_captures(&five_elements);
         assert!(
             !paths.is_empty(),
-            "[(ANY){{2,}}] should match 5-element array"
+            "[(*){{2,}}] should match 5-element array"
         );
     }
 
     #[test]
     fn test_maximum_interval() {
-        // Pattern: [(ANY){0,3}] should match arrays with at most 3 elements
-        let pattern = Pattern::parse("[(ANY){0,3}]").unwrap();
+        // Pattern: [(*){0,3}] should match arrays with at most 3 elements
+        let pattern = Pattern::parse("[(*){0,3}]").unwrap();
 
         let empty_array = parse_dcbor_item("[]").unwrap();
         let two_elements = parse_dcbor_item("[1, 2]").unwrap();
@@ -560,24 +560,24 @@ mod test_comprehensive_variadic_sequences {
 
         // At most 3 elements should match
         let (paths, _) = pattern.paths_with_captures(&empty_array);
-        assert!(!paths.is_empty(), "[(ANY){{0,3}}] should match empty array");
+        assert!(!paths.is_empty(), "[(*){{0,3}}] should match empty array");
 
         let (paths, _) = pattern.paths_with_captures(&two_elements);
         assert!(
             !paths.is_empty(),
-            "[(ANY){{0,3}}] should match 2-element array"
+            "[(*){{0,3}}] should match 2-element array"
         );
 
         let (paths, _) = pattern.paths_with_captures(&three_elements);
         assert!(
             !paths.is_empty(),
-            "[(ANY){{0,3}}] should match 3-element array"
+            "[(*){{0,3}}] should match 3-element array"
         );
 
         let (paths, _) = pattern.paths_with_captures(&four_elements);
         assert!(
             paths.is_empty(),
-            "[(ANY){{0,3}}] should NOT match 4-element array"
+            "[(*){{0,3}}] should NOT match 4-element array"
         );
     }
 
@@ -629,10 +629,10 @@ mod test_comprehensive_variadic_sequences {
             "Should have no captures when no match"
         );
 
-        // Test another pattern: [@first(number), (ANY)*]
+        // Test another pattern: [@first(number), (*)*]
         // This captures the first number and allows any additional elements
         let first_capture_pattern =
-            Pattern::parse("[@first(number), (ANY)*]").unwrap();
+            Pattern::parse("[@first(number), (*)*]").unwrap();
 
         let multi_element = parse_dcbor_item(r#"[42, "text", true]"#).unwrap();
         let (paths, captures) =
@@ -640,7 +640,7 @@ mod test_comprehensive_variadic_sequences {
 
         assert!(
             !paths.is_empty(),
-            "[@first(number), (ANY)*] should match multi-element array"
+            "[@first(number), (*)*] should match multi-element array"
         );
         assert!(
             captures.contains_key("first"),

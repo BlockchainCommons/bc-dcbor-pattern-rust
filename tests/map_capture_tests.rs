@@ -108,7 +108,7 @@ fn test_map_capture_value_only() {
 
 #[test]
 fn test_map_capture_with_any_pattern() {
-    let pattern = parse(r#"{@any_key(text): @any_value(ANY)}"#);
+    let pattern = parse(r#"{@any_key(text): @any_value(*)}"#);
     let cbor_data = cbor(r#"{"hello": [1, 2, 3]}"#);
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);

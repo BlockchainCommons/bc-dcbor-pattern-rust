@@ -67,7 +67,7 @@ fn test_complex_repeat_pattern_performance() {
     // Complex pattern with multiple repeat patterns
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        [({"id": number})*, (ANY)*, ({"name": text})*]
+        [({"id": number})*, (*)*, ({"name": text})*]
     "#).unwrap();
     let pattern_creation_time = start.elapsed();
 
@@ -182,7 +182,7 @@ fn test_complex_or_pattern_performance() {
         TAG(1, number) |
         TAG(2, text) |
         TAG(3, [number]) |
-        TAG(4, {text: ANY}) |
+        TAG(4, {text: *}) |
         TAG(5, bool) |
         {"type": "user"} |
         {"type": "admin"} |
@@ -284,7 +284,7 @@ fn test_edge_case_performance() {
     // Simpler pattern with repeats that should match the test data
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        [(ANY)*]
+        [(*)*]
     "#).unwrap();
 
     // Large array that the pattern should definitely match
@@ -302,7 +302,7 @@ fn test_edge_case_performance() {
     let result = pattern.matches(&large_array);
     let elapsed = start.elapsed();
 
-    assert!(result, "Should match large array with ANY repeat pattern");
+    assert!(result, "Should match large array with * repeat pattern");
 
     // Test paths generation and validate result
     let paths_start = Instant::now();
@@ -318,7 +318,7 @@ fn test_edge_case_performance() {
     // Should not exhibit exponential behavior
     assert!(
         elapsed.as_millis() < 50,
-        "ANY repeat patterns should not cause exponential behavior"
+        "* repeat patterns should not cause exponential behavior"
     );
     assert!(
         paths_time.as_millis() < 50,
@@ -326,7 +326,7 @@ fn test_edge_case_performance() {
     );
 
     println!(
-        "Edge case performance - ANY repeats on large array: {:?}, Paths: {:?}",
+        "Edge case performance - * repeats on large array: {:?}, Paths: {:?}",
         elapsed, paths_time
     );
 }

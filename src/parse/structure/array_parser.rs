@@ -106,8 +106,8 @@ pub(crate) fn parse_bracket_array(
 /// Examples:
 /// - `"a", "b"` - matches "a" followed by "b" in sequence
 /// - `1, 2, 3` - matches 1, 2, 3 in exact sequence
-/// - `ANY, 42` - matches any value followed by the number 42
-/// - `(ANY)*, 42, (ANY)*` - matches 42 anywhere within the array
+/// - `*, 42` - matches any value followed by the number 42
+/// - `(*), 42, (*)` - matches 42 anywhere within the array
 pub(crate) fn parse_array_or(
     lexer: &mut logos::Lexer<Token>,
 ) -> Result<Pattern> {

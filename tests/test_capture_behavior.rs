@@ -97,7 +97,7 @@ mod test_capture_behavior {
         let cbor_data = parse_dcbor_item("[42, 100, 42]").unwrap();
 
         // Based on the user's explanation, this should be the correct syntax:
-        // [(ANY)*, 42, (ANY)*] - but this might not be implemented yet
+        // [(*)*, 42, (*)*] - but this might not be implemented yet
 
         // Let's test what syntax actually works for finding 42 within any array
 
@@ -143,7 +143,7 @@ mod test_capture_behavior {
 
     #[test]
     fn test_variadic_array_pattern_syntax() {
-        // Test if the proposed [(ANY)*, @item(42), (ANY)*] syntax works
+        // Test if the proposed [(*)*, @item(42), (*)*] syntax works
         // correctly
 
         // Test data: arrays that should match (contain 42)
@@ -157,11 +157,11 @@ mod test_capture_behavior {
 
         // Try to parse the proposed variadic pattern syntax WITH CAPTURE
         let pattern_with_capture_result =
-            Pattern::parse("[(ANY)*, @item(42), (ANY)*]");
+            Pattern::parse("[(*)*, @item(42), (*)*]");
 
         // Try to parse the variadic pattern syntax WITHOUT CAPTURE
         let pattern_without_capture_result =
-            Pattern::parse("[(ANY)*, 42, (ANY)*]");
+            Pattern::parse("[(*)*, 42, (*)*]");
 
         match pattern_with_capture_result {
             Ok(pattern) => {
@@ -238,7 +238,7 @@ mod test_capture_behavior {
                 }
 
                 println!(
-                    "SUCCESS: Variadic pattern [(ANY)*, 42, (ANY)*] works correctly!"
+                    "SUCCESS: Variadic pattern [(*)*, 42, (*)*] works correctly!"
                 );
             }
             Err(e) => {
@@ -257,12 +257,12 @@ mod test_capture_behavior {
 
         // Test different pattern variations
         let patterns_to_test = [
-            "[(ANY)*, @item(42), (ANY)*]",
-            "[(ANY)*, 42, (ANY)*]",
+            "[(*)*, @item(42), (*)*]",
+            "[(*)*, 42, (*)*]",
             "[*, @item(42), *]",
             "[*, 42, *]",
-            "[@item(42), (ANY)*]",
-            "[(ANY)*, @item(42)]",
+            "[@item(42), (*)*]",
+            "[(*)*, @item(42)]",
         ];
 
         for pattern_str in patterns_to_test {
@@ -310,7 +310,7 @@ mod test_capture_behavior {
 
     #[test]
     fn test_variadic_pattern_value_discrimination() {
-        // Test if [(ANY)*, 42, (ANY)*] properly discriminates between
+        // Test if [(*)*, 42, (*)*] properly discriminates between
         // values
 
         let array_with_42 = parse_dcbor_item("[100, 42, 200]").unwrap();
@@ -319,11 +319,11 @@ mod test_capture_behavior {
 
         // Pattern that should match arrays containing 42
         let pattern_42 =
-            Pattern::parse("[(ANY)*, 42, (ANY)*]").unwrap();
+            Pattern::parse("[(*)*, 42, (*)*]").unwrap();
 
         // Pattern that should match arrays containing 100
         let pattern_100 =
-            Pattern::parse("[(ANY)*, 100, (ANY)*]").unwrap();
+            Pattern::parse("[(*)*, 100, (*)*]").unwrap();
 
         println!("=== Testing 42 pattern ===");
 
@@ -395,7 +395,7 @@ mod test_capture_behavior {
 
         let cbor_data = parse_dcbor_item("[1, 42, 3]").unwrap();
         let pattern =
-            Pattern::parse("[(ANY)*, @item(42), (ANY)*]").unwrap();
+            Pattern::parse("[(*)*, @item(42), (*)*]").unwrap();
 
         let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
@@ -445,7 +445,7 @@ mod test_capture_behavior {
 
         let cbor_data = parse_dcbor_item("[42, 100, 42]").unwrap();
         let pattern =
-            Pattern::parse("[(ANY)*, @item(42), (ANY)*]").unwrap();
+            Pattern::parse("[(*)*, @item(42), (*)*]").unwrap();
 
         let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
@@ -474,14 +474,14 @@ mod test_capture_behavior {
 
         let cbor_data = parse_dcbor_item("[42, 100, 200]").unwrap();
         let pattern =
-            Pattern::parse("[(ANY)*, @item(42), (ANY)*]").unwrap();
+            Pattern::parse("[(*)*, @item(42), (*)*]").unwrap();
 
         let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
         // This SHOULD work and now does work
         assert!(
             !paths.is_empty(),
-            "Pattern [(ANY)*, @item(42), (ANY)*] should match [42, 100, 200]"
+            "Pattern [(*)*, @item(42), (*)*] should match [42, 100, 200]"
         );
 
         assert!(
@@ -524,7 +524,7 @@ mod test_capture_behavior {
         for (cbor_str, description) in test_cases {
             let cbor_data = parse_dcbor_item(cbor_str).unwrap();
             let pattern =
-                Pattern::parse("[(ANY)*, @item(42), (ANY)*]").unwrap();
+                Pattern::parse("[(*)*, @item(42), (*)*]").unwrap();
 
             let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 

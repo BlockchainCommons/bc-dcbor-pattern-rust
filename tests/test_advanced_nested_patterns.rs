@@ -48,7 +48,7 @@ fn test_simple_nested_tagged_array() {
 fn test_complex_nested_tagged_array_with_repeat() {
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        TAG( 100, [(ANY)*, "target", (ANY)*] )
+        TAG( 100, [(*)*, "target", (*)*] )
     "#).unwrap();
 
     // Should match: 100(["target"])
@@ -172,7 +172,7 @@ fn test_map_with_array_constraints() {
 fn test_array_starting_with_maps() {
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        [{"id": number}, (ANY)*]
+        [{"id": number}, (*)*]
     "#).unwrap();
 
     // Should match: [{"id": 42}]
@@ -325,7 +325,7 @@ fn test_deeply_nested_structures_with_multiple_maps() {
 fn test_multiple_levels_of_nesting_with_any() {
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        TAG(300, [{ANY: ANY}, (ANY)*])
+        TAG(300, [{*: *}, (*)*])
     "#).unwrap();
 
     // Should match: 300([{"key": "value"}])
