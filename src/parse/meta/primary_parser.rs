@@ -36,7 +36,6 @@ pub(crate) fn parse_primary(
 
     match token {
         // Meta patterns
-        Token::Any => Ok(Pattern::any()),
         Token::RepeatZeroOrMore => Ok(Pattern::any()), /* '*' as standalone
                                                          * pattern means
                                                          * "any" */

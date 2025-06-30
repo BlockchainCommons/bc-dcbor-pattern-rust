@@ -192,7 +192,7 @@ Tests now use `assert_actual_expected!` with `format_paths_with_captures()` for 
 
 #### Meta Patterns
 
-- Any
+- ✅ Any **COMPLETE**:
     - `*`
         - A bare asterisk matches any value.
 - None

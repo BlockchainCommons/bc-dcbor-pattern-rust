@@ -28,17 +28,27 @@ pub(crate) fn parse_bracket_map(
     let mut lookahead = lexer.clone();
     match lookahead.next() {
         Some(Ok(Token::RepeatZeroOrMore)) => {
-            // This is {*} - matches any map
-            lexer.next(); // consume *
-            match lexer.next() {
-                Some(Ok(Token::BraceClose)) => Ok(Pattern::Structure(
-                    crate::pattern::StructurePattern::Map(MapPattern::any()),
-                )),
-                Some(Ok(token)) => {
-                    Err(Error::UnexpectedToken(Box::new(token), lexer.span()))
+            // Check if this is {*} or {*:...}
+            let mut lookahead2 = lookahead.clone();
+            match lookahead2.next() {
+                Some(Ok(Token::BraceClose)) => {
+                    // This is {*} - matches any map
+                    lexer.next(); // consume *
+                    lexer.next(); // consume }
+                    Ok(Pattern::Structure(
+                        crate::pattern::StructurePattern::Map(MapPattern::any()),
+                    ))
                 }
+                Some(Ok(Token::Colon)) => {
+                    // This is {*:pattern} - key-value constraint with * as key
+                    parse_key_value_constraints(lexer)
+                }
+                Some(Ok(token)) => Err(Error::UnexpectedToken(
+                    Box::new(token),
+                    lookahead2.span(),
+                )),
                 Some(Err(e)) => Err(e),
-                None => Err(Error::ExpectedCloseBrace(lexer.span())),
+                None => Err(Error::ExpectedCloseBrace(lookahead2.span())),
             }
         }
         Some(Ok(Token::Range(quantifier_result))) => {

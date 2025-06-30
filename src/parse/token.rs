@@ -83,9 +83,6 @@ pub enum Token {
     DigestQuoted(Result<DigestPattern>),
 
     // Meta Pattern Keywords
-    #[token("ANY")]
-    Any,
-
     #[token("SEARCH")]
     Search,
 

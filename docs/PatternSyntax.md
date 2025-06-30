@@ -149,7 +149,7 @@ Precedence: Repeat has the highest precedence, followed by And, Not, Sequence, a
         - Matches if all specified patterns match.
 - Any
     - `*`
-        - Always matches.
+        - A bare asterisk matches any value.
 - Capture
     - `@name ( pattern )`
         - Matches the specified pattern and captures the match for later use with the given name.
