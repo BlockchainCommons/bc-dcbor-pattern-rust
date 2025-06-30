@@ -64,7 +64,7 @@ pub enum Token {
     #[token("date'", parse_date_quoted)]
     DateQuoted(Result<crate::pattern::DatePattern>),
 
-    #[token("KNOWN")]
+    #[token("known")]
     Known,
 
     #[token("null")]
@@ -156,6 +156,9 @@ pub enum Token {
 
     #[token("\"", parse_string)]
     StringLiteral(Result<String>),
+
+    #[token("'", parse_single_quoted)]
+    SingleQuoted(Result<String>),
 
     #[token("/", parse_regex)]
     Regex(Result<String>),
@@ -430,9 +433,9 @@ fn parse_date_quoted(
                     match parse_dcbor_item(iso_str) {
                         Ok(cbor) => match Date::try_from(cbor) {
                             Ok(date) => {
-                                return Ok(crate::pattern::DatePattern::latest(
-                                    date,
-                                ));
+                                return Ok(
+                                    crate::pattern::DatePattern::latest(date),
+                                );
                             }
                             Err(_) => {
                                 return Err(Error::InvalidDateFormat(
@@ -661,6 +664,46 @@ fn parse_range_from_remainder(lex: &mut Lexer<Token>) -> Result<Quantifier> {
     } else {
         Ok(Quantifier::new(min.., mode))
     }
+}
+
+/// Callback used by the `SingleQuoted` variant above.
+fn parse_single_quoted(lex: &mut Lexer<Token>) -> Result<String> {
+    let src = lex.remainder(); // everything after the first '\''
+    let mut escape = false;
+    let mut result = String::new();
+
+    for (i, ch) in src.char_indices() {
+        match (ch, escape) {
+            ('\\', false) => escape = true, // start of an escape
+            ('\'', false) => {
+                // Found the closing delimiter
+                lex.bump(i + 1); // +1 to also eat the '\''
+                return Ok(result);
+            }
+            (c, true) => {
+                // Handle escape sequences
+                match c {
+                    '\'' => result.push('\''),
+                    '\\' => result.push('\\'),
+                    'n' => result.push('\n'),
+                    'r' => result.push('\r'),
+                    't' => result.push('\t'),
+                    _ => {
+                        result.push('\\');
+                        result.push(c);
+                    }
+                }
+                escape = false;
+            }
+            (c, false) => {
+                result.push(c);
+                escape = false;
+            }
+        }
+    }
+
+    // Unterminated literal – treat as lexing error
+    Err(Error::UnterminatedString(lex.span()))
 }
 
 #[cfg(test)]

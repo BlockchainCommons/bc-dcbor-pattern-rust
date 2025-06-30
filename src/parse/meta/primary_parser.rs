@@ -36,9 +36,9 @@ pub(crate) fn parse_primary(
 
     match token {
         // Meta patterns
-        Token::RepeatZeroOrMore => Ok(Pattern::any()), /* '*' as standalone
-                                                         * pattern means
-                                                         * "any" */
+        Token::RepeatZeroOrMore => Ok(Pattern::any()), /* '*' as standalone */
+        // pattern means
+        // "any"
         Token::None => Ok(Pattern::none()),
         Token::Search => super::parse_search(lexer),
 
@@ -91,6 +91,12 @@ pub(crate) fn parse_primary(
         Token::StringLiteral(res) => {
             let value = res?;
             Ok(Pattern::text(value))
+        }
+
+        // Single-quoted pattern (non-prefixed known value)
+        Token::SingleQuoted(res) => {
+            let value = res?;
+            parse_single_quoted_as_known_value(value)
         }
 
         // Direct regex literal
@@ -228,4 +234,29 @@ pub(crate) fn parse_primary(
         // Unexpected tokens
         _ => Err(Error::UnexpectedToken(Box::new(token), lexer.span())),
     }
+}
+
+/// Parse a single-quoted pattern as a known value.
+/// This handles the non-prefixed single-quoted syntax:
+/// - 'value' -> known value by numeric ID
+/// - 'name' -> known value by name
+/// - '/regex/' -> known value by regex
+fn parse_single_quoted_as_known_value(value: String) -> Result<Pattern> {
+    // Check if it's a regex pattern (starts and ends with /)
+    if value.starts_with('/') && value.ends_with('/') && value.len() > 2 {
+        let regex_str = &value[1..value.len() - 1];
+        let regex = regex::Regex::new(regex_str)
+            .map_err(|_| Error::InvalidRegex(0..value.len()))?;
+        return Ok(Pattern::known_value_regex(regex));
+    }
+
+    // Try to parse as numeric ID
+    if let Ok(numeric_value) = value.parse::<u64>() {
+        return Ok(Pattern::known_value(known_values::KnownValue::new(
+            numeric_value,
+        )));
+    }
+
+    // Otherwise treat as name
+    Ok(Pattern::known_value_named(value))
 }

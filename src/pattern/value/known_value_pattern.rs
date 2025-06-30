@@ -169,13 +169,13 @@ impl Matcher for KnownValuePattern {
 impl std::fmt::Display for KnownValuePattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            KnownValuePattern::Any => write!(f, "KNOWN"),
+            KnownValuePattern::Any => write!(f, "known"),
             KnownValuePattern::Value(value) => {
-                write!(f, "KNOWN('{}')", value.name())
+                write!(f, "'{}'", value.name())
             }
-            KnownValuePattern::Named(name) => write!(f, "KNOWN('{}')", name),
+            KnownValuePattern::Named(name) => write!(f, "'{}'", name),
             KnownValuePattern::Regex(regex) => {
-                write!(f, "KNOWN(/{}/)", regex.as_str())
+                write!(f, "'/{}/'", regex.as_str())
             }
         }
     }

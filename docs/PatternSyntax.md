@@ -48,14 +48,14 @@ All value patterns match atomic CBOR values.
     - `date'/regex/'`
         - Matches a date value that matches the specified regex.
 - Known Value
-    - `KNOWN`
+    - `known`
         - Matches any known value. (See the `known-values` crate for more information.)
-    - `KNOWN ( 'value' )`
-        - Matches the specified known value, which is a u64 value. dCBOR prints known values enclosed in single quotes, so we use that syntax here for familiarity.
-    - `KNOWN ( 'name' )`
-        - Matches the known value with the specified name. Again we use single quotes here for familiarity.
-    - `KNOWN ( /regex/ )`
-        - Matches a known value with a name that matches the specified regex. We do not use the single quotes here.
+    - `'value'`
+        - Matches the specified known value, which is a u64 value. dCBOR prints known values enclosed in single quotes, so we use that syntax here for familiarity. Note: This is a non-prefixed single-quoted pattern.
+    - `'name'`
+        - Matches the known value with the specified name. Again we use single quotes here for familiarity. Note: This is a non-prefixed single-quoted pattern.
+    - `'/regex/'`
+        - Matches a known value with a name that matches the specified regex. We do not use the single quotes here. Note: This is a non-prefixed single-quoted pattern.
 - Null
     - `null`
         - Matches the null value.

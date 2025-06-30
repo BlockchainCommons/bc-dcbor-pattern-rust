@@ -497,6 +497,7 @@ fn test_byte_string_pattern_display() {
 
 #[test]
 fn test_date_pattern_any() {
+    bc_components::register_tags();
     let pattern = parse("date");
 
     // Should match any date
@@ -505,7 +506,7 @@ fn test_date_pattern_any() {
     let paths = pattern.paths(&date_cbor);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        1(1703462400)
+        2023-12-25
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
@@ -519,6 +520,8 @@ fn test_date_pattern_any() {
 
 #[test]
 fn test_date_pattern_specific() {
+    bc_components::register_tags();
+
     let date = Date::from_ymd(2023, 12, 25);
     let pattern = Pattern::date(date.clone());
 
@@ -527,7 +530,7 @@ fn test_date_pattern_specific() {
     let paths = pattern.paths(&date_cbor);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        1(1703462400)
+        2023-12-25
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
@@ -543,6 +546,8 @@ fn test_date_pattern_specific() {
 
 #[test]
 fn test_date_pattern_range() {
+    bc_components::register_tags();
+
     let start_date = Date::from_ymd(2023, 12, 20);
     let end_date = Date::from_ymd(2023, 12, 30);
     let pattern = Pattern::date_range(start_date.clone()..=end_date.clone());
@@ -553,7 +558,7 @@ fn test_date_pattern_range() {
     let paths = pattern.paths(&middle_date_cbor);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        1(1703462400)
+        2023-12-25
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
@@ -562,7 +567,7 @@ fn test_date_pattern_range() {
     let paths = pattern.paths(&start_date_cbor);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        1(1703030400)
+        2023-12-20
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
@@ -571,7 +576,7 @@ fn test_date_pattern_range() {
     let paths = pattern.paths(&end_date_cbor);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        1(1703894400)
+        2023-12-30
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
@@ -588,6 +593,8 @@ fn test_date_pattern_range() {
 
 #[test]
 fn test_date_pattern_earliest() {
+    bc_components::register_tags();
+
     let earliest_date = Date::from_ymd(2023, 12, 20);
     let pattern = Pattern::date_earliest(earliest_date.clone());
 
@@ -596,7 +603,7 @@ fn test_date_pattern_earliest() {
     let paths = pattern.paths(&earliest_date_cbor);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        1(1703030400)
+        2023-12-20
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
@@ -606,7 +613,7 @@ fn test_date_pattern_earliest() {
     let paths = pattern.paths(&later_date_cbor);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        1(1703462400)
+        2023-12-25
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
@@ -618,6 +625,8 @@ fn test_date_pattern_earliest() {
 
 #[test]
 fn test_date_pattern_latest() {
+    bc_components::register_tags();
+    
     let latest_date = Date::from_ymd(2023, 12, 30);
     let pattern = Pattern::date_latest(latest_date.clone());
 
@@ -626,7 +635,7 @@ fn test_date_pattern_latest() {
     let paths = pattern.paths(&latest_date_cbor);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        1(1703894400)
+        2023-12-30
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
@@ -636,7 +645,7 @@ fn test_date_pattern_latest() {
     let paths = pattern.paths(&earlier_date_cbor);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        1(1703462400)
+        2023-12-25
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
@@ -648,6 +657,7 @@ fn test_date_pattern_latest() {
 
 #[test]
 fn test_date_pattern_iso8601() {
+    bc_components::register_tags();
     let date = Date::from_ymd(2023, 12, 25);
     let iso_string = date.to_string();
     let pattern = Pattern::date_iso8601(iso_string.clone());
@@ -657,7 +667,7 @@ fn test_date_pattern_iso8601() {
     let paths = pattern.paths(&date_cbor);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        1(1703462400)
+        2023-12-25
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
@@ -669,6 +679,8 @@ fn test_date_pattern_iso8601() {
 
 #[test]
 fn test_date_pattern_regex() {
+    bc_components::register_tags();
+
     // Pattern to match any date in 2023
     let regex = regex::Regex::new(r"^2023-").unwrap();
     let pattern = Pattern::date_regex(regex);
@@ -679,7 +691,7 @@ fn test_date_pattern_regex() {
     let paths = pattern.paths(&date_2023_cbor);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        1(1703462400)
+        2023-12-25
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
@@ -696,7 +708,7 @@ fn test_date_pattern_regex() {
     let paths = december_pattern.paths(&date_2023_cbor);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        1(1703462400)
+        2023-12-25
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
@@ -708,6 +720,7 @@ fn test_date_pattern_regex() {
 
 #[test]
 fn test_date_pattern_with_time() {
+    bc_components::register_tags();
     // Test with dates that include time components
     let datetime = Date::from_timestamp(1703462400.0); // 2023-12-25 00:00:00 UTC
     let pattern = parse("date");
@@ -716,7 +729,7 @@ fn test_date_pattern_with_time() {
     let paths = pattern.paths(&datetime_cbor);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        1(1703462400)
+        2023-12-25
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
@@ -725,7 +738,7 @@ fn test_date_pattern_with_time() {
     let paths = specific_pattern.paths(&datetime_cbor);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        1(1703462400)
+        2023-12-25
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
@@ -735,7 +748,7 @@ fn test_date_pattern_with_time() {
     let paths = pattern.paths(&datetime_with_millis_cbor);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        1(1703462400.123)
+        2023-12-25
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 }
@@ -813,7 +826,7 @@ fn test_null_pattern_display() {
 
 #[test]
 fn test_known_value_pattern_any() {
-    let pattern = parse("KNOWN");
+    let pattern = parse("known");
 
     // Test with known values represented as tagged values with tag 40000
     let known_value_cbor = cbor("'1'"); // This represents known_values::IS_A as 40000(1)
@@ -855,8 +868,10 @@ fn test_known_value_pattern_any() {
 
 #[test]
 fn test_known_value_pattern_specific() {
-    let is_a_pattern = parse("KNOWN('isA')");
-    let date_pattern = parse("KNOWN('date')");
+    bc_components::register_tags();
+
+    let is_a_pattern = parse("'isA'");
+    let date_pattern = parse("'date'");
 
     let is_a_cbor = cbor("'1'"); // IS_A value as 40000(1)
     let date_cbor = cbor("'16'"); // DATE value as 40000(16)
@@ -893,12 +908,14 @@ fn test_known_value_pattern_specific() {
 
 #[test]
 fn test_known_value_pattern_named() {
-    let is_a_pattern = parse("KNOWN('isA')");
-    let date_pattern = parse("KNOWN('date')");
-    let unknown_pattern = parse("KNOWN('unknownValue')");
+    bc_components::register_tags();
 
-    let is_a_cbor = cbor("'1'"); // IS_A value as 40000(1)
-    let date_cbor = cbor("'16'"); // DATE value as 40000(16)
+    let is_a_pattern = parse("'isA'");
+    let date_pattern = parse("'date'");
+    let unknown_pattern = parse("'unknownValue'");
+
+    let is_a_cbor = cbor("'isA'"); // IS_A value as 40000(1)
+    let date_cbor = cbor("'date'"); // DATE value as 40000(16)
     let other_cbor = cbor("'42'"); // Some other known value as 40000(42)
     let plain_int_cbor = cbor("1"); // Plain integer, NOT a known value
     let text_cbor = cbor(r#""hello""#);
@@ -1003,19 +1020,19 @@ fn test_known_value_pattern_regex() {
 
 #[test]
 fn test_known_value_pattern_display() {
-    let any_pattern = parse("KNOWN");
-    assert_eq!(any_pattern.to_string(), "KNOWN");
+    let any_pattern = parse("known");
+    assert_eq!(any_pattern.to_string(), "known");
 
     let is_a_pattern = Pattern::known_value(known_values::IS_A);
-    assert_eq!(is_a_pattern.to_string(), "KNOWN('isA')");
+    assert_eq!(is_a_pattern.to_string(), "'isA'");
 
     let date_pattern = Pattern::known_value(known_values::DATE);
-    assert_eq!(date_pattern.to_string(), "KNOWN('date')");
+    assert_eq!(date_pattern.to_string(), "'date'");
 
     let named_pattern = Pattern::known_value_named("customName");
-    assert_eq!(named_pattern.to_string(), "KNOWN('customName')");
+    assert_eq!(named_pattern.to_string(), "'customName'");
 
     let regex_pattern =
         Pattern::known_value_regex(regex::Regex::new(r"^is.*").unwrap());
-    assert_eq!(regex_pattern.to_string(), "KNOWN(/^is.*/)");
+    assert_eq!(regex_pattern.to_string(), "'/^is.*/'");
 }

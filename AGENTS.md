@@ -169,7 +169,7 @@ Tests now use `assert_actual_expected!` with `format_paths_with_captures()` for 
         - Matches the Infinity value.
     - `-Infinity`
         - Matches the negative Infinity value.
-- Known Value
+- ✅ Known Value **COMPLETE**:
     - `known`
         - Matches any known value. (See the `known-values` crate for more information.)
     - `'value'`
