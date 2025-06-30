@@ -172,12 +172,12 @@ Tests now use `assert_actual_expected!` with `format_paths_with_captures()` for 
 - Known Value
     - `known`
         - Matches any known value. (See the `known-values` crate for more information.)
-    - `known'value'`
-        - Matches the specified known value, which is a u64 value. dCBOR prints known values enclosed in single quotes, so we use that syntax here for familiarity.
-    - `known'name'`
-        - Matches the known value with the specified name. Again we use single quotes here for familiarity.
-    - `known'/regex/'`
-        - Matches a known value with a name that matches the specified regex. We do not use the single quotes here.
+    - `'value'`
+        - Matches the specified known value, which is a u64 value. dCBOR prints known values enclosed in single quotes, so we use that syntax here for familiarity. Note: This is a non-prefixed single-quoted pattern.
+    - `'name'`
+        - Matches the known value with the specified name. Again we use single quotes here for familiarity. Note: This is a non-prefixed single-quoted pattern.
+    - `'/regex/'`
+        - Matches a known value with a name that matches the specified regex. We do not use the single quotes here. Note: This is a non-prefixed single-quoted pattern.
 
 
 - Tagged
