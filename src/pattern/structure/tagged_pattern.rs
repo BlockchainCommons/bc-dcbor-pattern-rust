@@ -7,23 +7,12 @@ use crate::pattern::{Matcher, Path, Pattern, vm::Instr};
 pub enum TaggedPattern {
     /// Matches any tagged value.
     Any,
-    /// Matches tagged values with the specific tag.
-    WithTag(Tag),
-    /// Matches tagged values with content that matches the given pattern.
-    WithContent(Box<Pattern>),
     /// Matches tagged values with specific tag AND content that matches the
     /// pattern.
     WithTagAndContent {
         tag: Tag,
         content_pattern: Box<Pattern>,
     },
-    /// Matches tagged values with a tag having the given name.
-    WithTagName(String),
-    /// Matches tagged values with a tag name that matches the given regex AND
-    /// content that matches the pattern.
-    WithTagNameRegex(regex::Regex),
-    /// Matches tagged values with a tag having the given name AND content that
-    /// matches the pattern.
     WithTagNameAndContent {
         tag_name: String,
         content_pattern: Box<Pattern>,
@@ -40,16 +29,6 @@ impl TaggedPattern {
     /// Creates a new `TaggedPattern` that matches any tagged value.
     pub fn any() -> Self { TaggedPattern::Any }
 
-    /// Creates a new `TaggedPattern` that matches tagged values with the
-    /// specific tag.
-    pub fn with_tag(tag: Tag) -> Self { TaggedPattern::WithTag(tag) }
-
-    /// Creates a new `TaggedPattern` that matches tagged values with content
-    /// that matches the given pattern.
-    pub fn with_content(pattern: Pattern) -> Self {
-        TaggedPattern::WithContent(Box::new(pattern))
-    }
-
     /// Creates a new `TaggedPattern` that matches tagged values with specific
     /// tag AND content that matches the pattern.
     pub fn with_tag_and_content(tag: Tag, content_pattern: Pattern) -> Self {
@@ -57,18 +36,6 @@ impl TaggedPattern {
             tag,
             content_pattern: Box::new(content_pattern),
         }
-    }
-
-    /// Creates a new `TaggedPattern` that matches tagged values with a tag
-    /// having the given name.
-    pub fn with_tag_name(tag_name: String) -> Self {
-        TaggedPattern::WithTagName(tag_name)
-    }
-
-    /// Creates a new `TaggedPattern` that matches tagged values with a tag name
-    /// that matches the given regex.
-    pub fn with_tag_name_regex(regex: regex::Regex) -> Self {
-        TaggedPattern::WithTagNameRegex(regex)
     }
 
     /// Creates a new `TaggedPattern` that matches tagged values with a tag
@@ -107,20 +74,6 @@ impl Matcher for TaggedPattern {
                         // itself
                         vec![vec![cbor.clone()]]
                     }
-                    TaggedPattern::WithTag(target_tag) => {
-                        if tag == target_tag {
-                            vec![vec![cbor.clone()]]
-                        } else {
-                            vec![]
-                        }
-                    }
-                    TaggedPattern::WithContent(pattern) => {
-                        if pattern.matches(content) {
-                            vec![vec![cbor.clone()]]
-                        } else {
-                            vec![]
-                        }
-                    }
                     TaggedPattern::WithTagAndContent {
                         tag: target_tag,
                         content_pattern,
@@ -128,30 +81,6 @@ impl Matcher for TaggedPattern {
                         if tag == target_tag && content_pattern.matches(content)
                         {
                             vec![vec![cbor.clone()]]
-                        } else {
-                            vec![]
-                        }
-                    }
-                    TaggedPattern::WithTagName(target_name) => {
-                        // Look up the tag name and compare
-                        if let Some(name) = tag.name() {
-                            if name.as_str() == target_name {
-                                vec![vec![cbor.clone()]]
-                            } else {
-                                vec![]
-                            }
-                        } else {
-                            vec![]
-                        }
-                    }
-                    TaggedPattern::WithTagNameRegex(regex) => {
-                        // Check if tag name matches the regex
-                        if let Some(name) = tag.name() {
-                            if regex.is_match(name.as_str()) {
-                                vec![vec![cbor.clone()]]
-                            } else {
-                                vec![]
-                            }
                         } else {
                             vec![]
                         }
@@ -218,22 +147,9 @@ impl Matcher for TaggedPattern {
             TaggedPattern::Any => {
                 // No captures in a simple any pattern
             }
-            TaggedPattern::WithTag(_) => {
-                // No captures in tag-only patterns
-            }
-            TaggedPattern::WithContent(content_pattern) => {
-                // Collect captures from the content pattern
-                content_pattern.collect_capture_names(names);
-            }
             TaggedPattern::WithTagAndContent { content_pattern, .. } => {
                 // Collect captures from the content pattern
                 content_pattern.collect_capture_names(names);
-            }
-            TaggedPattern::WithTagName(_) => {
-                // No captures in tag name patterns
-            }
-            TaggedPattern::WithTagNameRegex(_) => {
-                // No captures in tag name regex patterns
             }
             TaggedPattern::WithTagNameAndContent {
                 content_pattern, ..
@@ -264,41 +180,6 @@ impl Matcher for TaggedPattern {
             TaggedPattern::Any => {
                 // Matches any tagged value, no captures
                 (vec![vec![cbor.clone()]], std::collections::HashMap::new())
-            }
-            TaggedPattern::WithTag(expected_tag) => {
-                if *tag_value == *expected_tag {
-                    (vec![vec![cbor.clone()]], std::collections::HashMap::new())
-                } else {
-                    (vec![], std::collections::HashMap::new())
-                }
-            }
-            TaggedPattern::WithContent(content_pattern) => {
-                // Match any tag but check content with potential captures
-                let (content_paths, captures) = content_pattern.paths_with_captures(content);
-                if !content_paths.is_empty() {
-                    // Build paths that include the tagged value as root
-                    let tagged_paths: Vec<Path> = content_paths.iter()
-                        .map(|content_path| {
-                            let mut path = vec![cbor.clone()];
-                            path.extend_from_slice(&content_path[1..]);  // Skip the content's root
-                            path
-                        })
-                        .collect();                        // Update captures to include tagged value as root
-                        let mut updated_captures = std::collections::HashMap::new();
-                        for (name, capture_paths) in captures {
-                            let updated_paths: Vec<Path> = capture_paths.iter()
-                                .map(|_capture_path| {
-                                    // For tagged patterns, the capture path should be [tagged_value, content]
-                                    vec![cbor.clone(), content.clone()]
-                                })
-                                .collect();
-                            updated_captures.insert(name, updated_paths);
-                        }
-
-                    (tagged_paths, updated_captures)
-                } else {
-                    (vec![], captures)
-                }
             }
             TaggedPattern::WithTagAndContent { tag: expected_tag, content_pattern } => {
                 if *tag_value == *expected_tag {
@@ -346,20 +227,8 @@ impl std::fmt::Display for TaggedPattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             TaggedPattern::Any => write!(f, "tagged"),
-            TaggedPattern::WithTag(tag) => {
-                write!(f, "tagged({}, *)", tag.value())
-            }
-            TaggedPattern::WithContent(pattern) => {
-                write!(f, "tagged(*, {})", pattern)
-            }
             TaggedPattern::WithTagAndContent { tag, content_pattern } => {
                 write!(f, "tagged({}, {})", tag.value(), content_pattern)
-            }
-            TaggedPattern::WithTagName(name) => {
-                write!(f, "tagged({}, *)", name)
-            }
-            TaggedPattern::WithTagNameRegex(regex) => {
-                write!(f, "tagged(/{}/,  *)", regex.as_str())
             }
             TaggedPattern::WithTagNameAndContent {
                 tag_name,
@@ -386,10 +255,6 @@ impl PartialEq for TaggedPattern {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (TaggedPattern::Any, TaggedPattern::Any) => true,
-            (TaggedPattern::WithTag(a), TaggedPattern::WithTag(b)) => a == b,
-            (TaggedPattern::WithContent(a), TaggedPattern::WithContent(b)) => {
-                a == b
-            }
             (
                 TaggedPattern::WithTagAndContent {
                     tag: tag_a,
@@ -400,13 +265,6 @@ impl PartialEq for TaggedPattern {
                     content_pattern: content_b,
                 },
             ) => tag_a == tag_b && content_a == content_b,
-            (TaggedPattern::WithTagName(a), TaggedPattern::WithTagName(b)) => {
-                a == b
-            }
-            (
-                TaggedPattern::WithTagNameRegex(a),
-                TaggedPattern::WithTagNameRegex(b),
-            ) => a.as_str() == b.as_str(),
             (
                 TaggedPattern::WithTagNameAndContent {
                     tag_name: name_a,

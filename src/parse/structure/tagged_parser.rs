@@ -29,7 +29,7 @@ pub(crate) fn parse_tagged(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
                 Some(Ok(Token::ParenClose)) => {
                     let pattern = match tag_pattern {
                         TagSelector::Any => {
-                            TaggedPattern::with_content(content_pattern)
+                            TaggedPattern::Any
                         }
                         TagSelector::Value(tag_val) => {
                             let tag = Tag::new(tag_val, "");

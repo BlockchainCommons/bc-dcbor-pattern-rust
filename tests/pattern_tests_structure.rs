@@ -147,9 +147,9 @@ fn test_tagged_pattern_any() {
 
 /// Test TaggedPattern::WithTag matches tagged values with specific tag
 #[test]
-fn test_tagged_pattern_with_tag() {
+fn test_tagged_pattern_with_tag_and_any() {
     let target_tag = Tag::new(1234, "test_tag");
-    let pattern = TaggedPattern::with_tag(target_tag.clone());
+    let pattern = TaggedPattern::with_tag_and_content(target_tag.clone(), Pattern::any());
 
     // Should match tagged value with correct tag
     let tagged = cbor(r#"1234("content")"#);
@@ -167,26 +167,6 @@ fn test_tagged_pattern_with_tag() {
     // Should not match non-tagged value
     let not_tagged = cbor(r#""not tagged""#);
     assert!(!pattern.matches(&not_tagged));
-}
-
-/// Test TaggedPattern::WithContent matches tagged values with matching content
-#[test]
-fn test_tagged_pattern_with_content() {
-    let text_pattern = parse(r#""target_content""#);
-    let pattern = TaggedPattern::with_content(text_pattern);
-
-    // Should match tagged value with matching content
-    let tagged = cbor(r#"1234("target_content")"#);
-    let paths = pattern.paths(&tagged);
-    #[rustfmt::skip]
-    let expected = indoc! {r#"
-        1234("target_content")
-    "#}.trim();
-    assert_actual_expected!(format_paths(&paths), expected);
-
-    // Should not match tagged value with different content
-    let wrong_content = cbor(r#"1234("wrong_content")"#);
-    assert!(!pattern.matches(&wrong_content));
 }
 
 /// Test structure pattern display formatting
@@ -212,7 +192,7 @@ fn test_structure_pattern_display() {
     assert_eq!(format!("{}", TaggedPattern::any()), "tagged");
     let tag = Tag::new(1234, "test");
     assert_eq!(
-        format!("{}", TaggedPattern::with_tag(tag)),
+        format!("{}", TaggedPattern::with_tag_and_content(tag, Pattern::any())),
         "tagged(1234, *)"
     );
 }
