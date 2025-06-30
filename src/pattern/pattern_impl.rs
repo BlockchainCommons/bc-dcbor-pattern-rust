@@ -284,13 +284,6 @@ impl Pattern {
         Pattern::Meta(MetaPattern::Any(crate::pattern::meta::AnyPattern::new()))
     }
 
-    /// Creates a pattern that never matches any CBOR value.
-    pub fn none() -> Self {
-        Pattern::Meta(MetaPattern::None(
-            crate::pattern::meta::NonePattern::new(),
-        ))
-    }
-
     /// Creates a pattern that matches if all contained patterns match.
     pub fn and(patterns: Vec<Pattern>) -> Self {
         Pattern::Meta(MetaPattern::And(crate::pattern::meta::AndPattern::new(

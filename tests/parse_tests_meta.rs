@@ -121,7 +121,7 @@ fn test_nested_parentheses() -> Result<()> {
     Ok(())
 }
 
-/// Test * and NONE patterns
+/// Test * and !* patterns
 #[test]
 fn test_parse_any() -> Result<()> {
     let pattern = Pattern::parse("*")?;
@@ -131,10 +131,10 @@ fn test_parse_any() -> Result<()> {
 }
 
 #[test]
-fn test_parse_none() -> Result<()> {
-    let pattern = Pattern::parse("NONE")?;
+fn test_parse_not_any() -> Result<()> {
+    let pattern = Pattern::parse("!*")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
-    assert_eq!(pattern.to_string(), "NONE");
+    assert_eq!(pattern.to_string(), "!*");
     Ok(())
 }
 

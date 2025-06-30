@@ -153,12 +153,10 @@ Precedence: Repeat has the highest precedence, followed by And, Not, Sequence, a
 - Capture
     - `@name ( pattern )`
         - Matches the specified pattern and captures the match for later use with the given name.
-- None
-    - `NONE`
-        - Never matches.
 - Not
     - `! pattern`
         - Matches if the specified pattern does not match.
+            - The pattern `!*` matches no values.
 - Or
     - `pattern | pattern | pattern…`
         - Matches if any of the specified patterns match.

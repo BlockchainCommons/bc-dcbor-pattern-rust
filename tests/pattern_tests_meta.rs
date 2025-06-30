@@ -43,8 +43,8 @@ fn test_any_pattern() {
 }
 
 #[test]
-fn test_none_pattern() {
-    let pattern = Pattern::none();
+fn test_not_any_pattern() {
+    let pattern = Pattern::parse("!*").unwrap();
 
     // Should never match any CBOR value
     assert!(!pattern.matches(&cbor("42")));
@@ -53,8 +53,8 @@ fn test_none_pattern() {
     assert!(!pattern.matches(&cbor("[1, 2, 3]")));
     assert!(!pattern.matches(&cbor("null")));
 
-    // Display should show NONE
-    assert_eq!(pattern.to_string(), "NONE");
+    // Display should show !*
+    assert_eq!(pattern.to_string(), "!*");
 }
 
 #[test]
@@ -305,16 +305,16 @@ fn test_capture_pattern_any() {
 }
 
 #[test]
-fn test_capture_pattern_none() {
-    let pattern = Pattern::capture("nothing", Pattern::none());
+fn test_capture_pattern_not_any() {
+    let pattern = Pattern::capture("nothing", Pattern::parse("!*").unwrap());
 
-    // Should never match since inner pattern is NONE
+    // Should never match since inner pattern is !*
     assert!(!pattern.matches(&cbor("42")));
     assert!(!pattern.matches(&cbor(r#""hello""#)));
     assert!(!pattern.matches(&cbor("true")));
 
     // Display should show capture syntax
-    assert_eq!(pattern.to_string(), "@nothing(NONE)");
+    assert_eq!(pattern.to_string(), "@nothing(!*)");
 }
 
 #[test]

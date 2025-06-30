@@ -120,7 +120,6 @@ pub(crate) fn atomic_paths(
             crate::pattern::meta::MetaPattern::Any(_) => {
                 vec![vec![cbor.clone()]]
             }
-            crate::pattern::meta::MetaPattern::None(_) => vec![],
             crate::pattern::meta::MetaPattern::Search(_) => {
                 panic!(
                     "SearchPattern should be compiled to Search instruction, not MatchPredicate"

@@ -195,8 +195,8 @@ Tests now use `assert_actual_expected!` with `format_paths_with_captures()` for 
 - ✅ Any **COMPLETE**:
     - `*`
         - A bare asterisk matches any value.
-- None
-    - Remove, as `!*` is a pattern that matches no values.
-- Search
+- ✅ **REMOVED**: None
+    - The `NONE` syntax has been completely removed. Use `!*` instead, which provides identical behavior (matches no values).
+- ✅ Search **COMPLETE**:
     - `search ( pattern )`
         - Visits every node in the CBOR tree, matching the specified pattern against each node.

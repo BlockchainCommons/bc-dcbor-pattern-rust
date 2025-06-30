@@ -39,7 +39,6 @@ pub(crate) fn parse_primary(
         Token::RepeatZeroOrMore => Ok(Pattern::any()), /* '*' as standalone */
         // pattern means
         // "any"
-        Token::None => Ok(Pattern::none()),
         Token::Search => super::parse_search(lexer),
 
         // Parenthesized groups - parse the inner pattern and check for

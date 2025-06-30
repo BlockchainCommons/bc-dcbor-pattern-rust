@@ -85,9 +85,6 @@ pub enum Token {
     #[token("SEARCH")]
     Search,
 
-    #[token("NONE")]
-    None,
-
     // Special literals
     #[token("true")]
     BoolTrue,
