@@ -99,7 +99,7 @@ mod tests {
                 ]),
             ));
         let not_pattern = NotPattern::new(and_pattern);
-        assert_eq!(not_pattern.to_string(), r#"!(5&"hello")"#);
+        assert_eq!(not_pattern.to_string(), r#"!(5 & "hello")"#);
     }
 
     #[test]

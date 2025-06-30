@@ -86,7 +86,7 @@ fn test_and_pattern() {
     assert!(!pattern.matches(&cbor(r#""hello""#))); // not a number
 
     // Display should use & operator
-    assert_eq!(pattern.to_string(), ">5&<10");
+    assert_eq!(pattern.to_string(), ">5 & <10");
 }
 
 #[test]
@@ -119,7 +119,7 @@ fn test_or_pattern() {
     assert!(!pattern.matches(&cbor("false")));
 
     // Display should use | operator
-    assert_eq!(pattern.to_string(), r#"5|"hello"|true"#);
+    assert_eq!(pattern.to_string(), r#"5 | "hello" | true"#);
 }
 
 #[test]
@@ -177,7 +177,7 @@ fn test_not_pattern_complex() {
     assert!(!pattern.matches(&cbor("7")));
 
     // Display should wrap complex patterns in parentheses
-    assert_eq!(pattern.to_string(), "!(>5&<10)");
+    assert_eq!(pattern.to_string(), "!(>5 & <10)");
 }
 
 #[test]
@@ -211,7 +211,7 @@ fn test_nested_meta_patterns() {
     // Display should properly nest the operators
     assert_eq!(
         pattern.to_string(),
-        r#">5&<10|"hello""#
+        r#">5 & <10 | "hello""#
     );
 }
 

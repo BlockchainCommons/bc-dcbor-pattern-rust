@@ -7,7 +7,7 @@ fn test_parse_or_simple() -> Result<()> {
     assert!(matches!(pattern, Pattern::Meta(_)));
 
     // Test display formatting (without spaces around operators)
-    assert_eq!(pattern.to_string(), "bool|text");
+    assert_eq!(pattern.to_string(), "bool | text");
     Ok(())
 }
 
@@ -17,7 +17,7 @@ fn test_parse_or_three_patterns() -> Result<()> {
     assert!(matches!(pattern, Pattern::Meta(_)));
 
     // Test display formatting
-    assert_eq!(pattern.to_string(), "bool|text|number");
+    assert_eq!(pattern.to_string(), "bool | text | number");
     Ok(())
 }
 
@@ -36,7 +36,7 @@ fn test_parse_and_simple() -> Result<()> {
     assert!(matches!(pattern, Pattern::Meta(_)));
 
     // Test display formatting (without spaces around operators)
-    assert_eq!(pattern.to_string(), "bool&text");
+    assert_eq!(pattern.to_string(), "bool & text");
     Ok(())
 }
 
@@ -46,7 +46,7 @@ fn test_parse_and_three_patterns() -> Result<()> {
     assert!(matches!(pattern, Pattern::Meta(_)));
 
     // Test display formatting
-    assert_eq!(pattern.to_string(), "bool&text&number");
+    assert_eq!(pattern.to_string(), "bool & text & number");
     Ok(())
 }
 
@@ -152,7 +152,7 @@ fn test_parse_capture_complex() -> Result<()> {
     let pattern = Pattern::parse("@item(bool | text)")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
     // Display format may not include spaces
-    assert_eq!(pattern.to_string(), "@item(bool|text)");
+    assert_eq!(pattern.to_string(), "@item(bool | text)");
     Ok(())
 }
 
@@ -194,7 +194,7 @@ fn test_parse_empty_input() {
 fn test_integration_with_structure_patterns() -> Result<()> {
     let pattern = Pattern::parse("[*] | {*}")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
-    assert_eq!(pattern.to_string(), "[*]|{*}");
+    assert_eq!(pattern.to_string(), "[*] | {*}");
     Ok(())
 }
 
@@ -202,7 +202,7 @@ fn test_integration_with_structure_patterns() -> Result<()> {
 fn test_integration_with_value_patterns() -> Result<()> {
     let pattern = Pattern::parse(r#""hello" | 42"#)?;
     assert!(matches!(pattern, Pattern::Meta(_)));
-    assert_eq!(pattern.to_string(), r#""hello"|42"#);
+    assert_eq!(pattern.to_string(), r#""hello" | 42"#);
     Ok(())
 }
 
@@ -304,7 +304,7 @@ fn test_parse_search_with_complex_pattern() -> Result<()> {
     assert!(matches!(pattern, Pattern::Meta(_)));
 
     // Test display formatting
-    assert_eq!(pattern.to_string(), "SEARCH(bool|text)");
+    assert_eq!(pattern.to_string(), "SEARCH(bool | text)");
     Ok(())
 }
 
