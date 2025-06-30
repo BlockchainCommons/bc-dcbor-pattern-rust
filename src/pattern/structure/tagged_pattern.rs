@@ -9,8 +9,6 @@ pub enum TaggedPattern {
     Any,
     /// Matches tagged values with the specific tag.
     WithTag(Tag),
-    /// Matches tagged values with tags in the given set.
-    WithTagSet(Vec<Tag>),
     /// Matches tagged values with content that matches the given pattern.
     WithContent(Box<Pattern>),
     /// Matches tagged values with specific tag AND content that matches the
@@ -45,12 +43,6 @@ impl TaggedPattern {
     /// Creates a new `TaggedPattern` that matches tagged values with the
     /// specific tag.
     pub fn with_tag(tag: Tag) -> Self { TaggedPattern::WithTag(tag) }
-
-    /// Creates a new `TaggedPattern` that matches tagged values with tags in
-    /// the given set.
-    pub fn with_tag_set(tags: Vec<Tag>) -> Self {
-        TaggedPattern::WithTagSet(tags)
-    }
 
     /// Creates a new `TaggedPattern` that matches tagged values with content
     /// that matches the given pattern.
@@ -117,13 +109,6 @@ impl Matcher for TaggedPattern {
                     }
                     TaggedPattern::WithTag(target_tag) => {
                         if tag == target_tag {
-                            vec![vec![cbor.clone()]]
-                        } else {
-                            vec![]
-                        }
-                    }
-                    TaggedPattern::WithTagSet(tags) => {
-                        if tags.contains(tag) {
                             vec![vec![cbor.clone()]]
                         } else {
                             vec![]
@@ -236,9 +221,6 @@ impl Matcher for TaggedPattern {
             TaggedPattern::WithTag(_) => {
                 // No captures in tag-only patterns
             }
-            TaggedPattern::WithTagSet(_) => {
-                // No captures in tag set patterns
-            }
             TaggedPattern::WithContent(content_pattern) => {
                 // Collect captures from the content pattern
                 content_pattern.collect_capture_names(names);
@@ -285,13 +267,6 @@ impl Matcher for TaggedPattern {
             }
             TaggedPattern::WithTag(expected_tag) => {
                 if *tag_value == *expected_tag {
-                    (vec![vec![cbor.clone()]], std::collections::HashMap::new())
-                } else {
-                    (vec![], std::collections::HashMap::new())
-                }
-            }
-            TaggedPattern::WithTagSet(tags) => {
-                if tags.contains(tag_value) {
                     (vec![vec![cbor.clone()]], std::collections::HashMap::new())
                 } else {
                     (vec![], std::collections::HashMap::new())
@@ -374,11 +349,6 @@ impl std::fmt::Display for TaggedPattern {
             TaggedPattern::WithTag(tag) => {
                 write!(f, "tagged({}, *)", tag.value())
             }
-            TaggedPattern::WithTagSet(tags) => {
-                let tag_values: Vec<String> =
-                    tags.iter().map(|t| t.value().to_string()).collect();
-                write!(f, "tagged([{}], *)", tag_values.join(", "))
-            }
             TaggedPattern::WithContent(pattern) => {
                 write!(f, "tagged(*, {})", pattern)
             }
@@ -417,9 +387,6 @@ impl PartialEq for TaggedPattern {
         match (self, other) {
             (TaggedPattern::Any, TaggedPattern::Any) => true,
             (TaggedPattern::WithTag(a), TaggedPattern::WithTag(b)) => a == b,
-            (TaggedPattern::WithTagSet(a), TaggedPattern::WithTagSet(b)) => {
-                a == b
-            }
             (TaggedPattern::WithContent(a), TaggedPattern::WithContent(b)) => {
                 a == b
             }
