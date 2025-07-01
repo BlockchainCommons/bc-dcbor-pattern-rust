@@ -383,6 +383,30 @@ impl Pattern {
     /// - `bool | text` - matches boolean or text values
     /// - `@name(text)` - captures text with name "name"
     pub fn parse(input: &str) -> Result<Self> {
+        let (pattern, consumed) = Self::parse_partial(input)?;
+        if consumed < input.len() {
+            // Find where we stopped to provide accurate error span
+            return Err(Error::ExtraData(consumed..input.len()));
+        }
+        Ok(pattern)
+    }
+
+    /// Parses a pattern from the beginning of a string and returns both
+    /// the parsed Pattern and the number of bytes consumed.
+    ///
+    /// Unlike `parse()`, this function succeeds even if additional
+    /// characters follow the first pattern. The returned index points to the
+    /// first unparsed character after the pattern.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use dcbor_pattern::Pattern;
+    /// let (pattern, consumed) = Pattern::parse_partial("true rest").unwrap();
+    /// assert_eq!(pattern, Pattern::bool(true));
+    /// assert_eq!(consumed, 5); // "true ".len() - includes whitespace
+    /// ```
+    pub fn parse_partial(input: &str) -> Result<(Self, usize)> {
         use logos::Logos;
 
         use crate::parse::{Token, meta::parse_or};
@@ -390,29 +414,20 @@ impl Pattern {
         let mut lexer = Token::lexer(input);
         let pattern = parse_or(&mut lexer)?;
 
-        match lexer.next() {
-            None => Ok(pattern),
-            Some(Ok(_)) => Err(Error::ExtraData(lexer.span())),
-            Some(Err(e)) => {
-                // If we get an Unknown error from the lexer, convert it to
-                // UnrecognizedToken with span information
-                match e {
-                    Error::Unknown => {
-                        Err(Error::UnrecognizedToken(lexer.span()))
-                    }
-                    _ => Err(e),
-                }
-            }
-        }
+        // Calculate consumed bytes - much simpler than current approach!
+        let consumed = match lexer.next() {
+            Some(_) => lexer.span().start,
+            None => input.len(),
+        };
+
+        Ok((pattern, consumed))
     }
 }
 
 impl TryFrom<&str> for Pattern {
     type Error = Error;
 
-    fn try_from(value: &str) -> Result<Self> {
-        Self::parse(value)
-    }
+    fn try_from(value: &str) -> Result<Self> { Self::parse(value) }
 }
 
 impl Matcher for Pattern {
