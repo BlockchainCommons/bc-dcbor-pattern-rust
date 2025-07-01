@@ -3,7 +3,7 @@ mod common;
 use dcbor::prelude::*;
 use dcbor_parse::parse_dcbor_item;
 use dcbor_pattern::{
-    ArrayPattern, MapPattern, Matcher, Pattern, TaggedPattern, format_paths,
+    format_paths, ArrayPattern, Interval, MapPattern, Matcher, Pattern, TaggedPattern
 };
 use indoc::indoc;
 
@@ -176,7 +176,7 @@ fn test_structure_pattern_display() {
     assert_eq!(parse("[*]").to_string(), "[*]");
     assert_eq!(parse("[{5}]").to_string(), "[{5}]");
     assert_eq!(
-        format!("{}", ArrayPattern::with_length_range(1..=10)),
+        format!("{}", ArrayPattern::with_length_interval(Interval::new(1..=10))),
         "[{1,10}]"
     );
 

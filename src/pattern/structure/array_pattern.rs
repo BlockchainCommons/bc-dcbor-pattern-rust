@@ -1,9 +1,12 @@
 use dcbor::prelude::*;
 
-use crate::pattern::{
-    Matcher, MetaPattern, Path, Pattern,
-    meta::{RepeatPattern, SequencePattern},
-    vm::Instr,
+use crate::{
+    Interval,
+    pattern::{
+        Matcher, MetaPattern, Path, Pattern,
+        meta::{RepeatPattern, SequencePattern},
+        vm::Instr,
+    },
 };
 
 /// Pattern for matching CBOR array structures.
@@ -13,8 +16,8 @@ pub enum ArrayPattern {
     Any,
     /// Matches arrays with elements that match the given pattern.
     WithElements(Box<Pattern>),
-    /// Matches arrays with length in the given range (inclusive).
-    WithLengthRange(std::ops::RangeInclusive<usize>),
+    /// Matches arrays with length in the given interval.
+    WithLengthInterval(Interval),
 }
 
 impl ArrayPattern {
@@ -31,8 +34,8 @@ impl ArrayPattern {
 
     /// Creates a new `ArrayPattern` that matches arrays with length in the
     /// given range.
-    pub fn with_length_range(range: std::ops::RangeInclusive<usize>) -> Self {
-        ArrayPattern::WithLengthRange(range)
+    pub fn with_length_interval(interval: Interval) -> Self {
+        ArrayPattern::WithLengthInterval(interval)
     }
 
     /// Match a complex sequence against array elements using VM-based matching.
@@ -572,8 +575,8 @@ impl Matcher for ArrayPattern {
                             }
                         }
                     }
-                    ArrayPattern::WithLengthRange(range) => {
-                        if range.contains(&arr.len()) {
+                    ArrayPattern::WithLengthInterval(interval) => {
+                        if interval.contains(arr.len()) {
                             vec![vec![cbor.clone()]]
                         } else {
                             vec![]
@@ -655,7 +658,7 @@ impl Matcher for ArrayPattern {
                 // Collect captures from the element pattern
                 pattern.collect_capture_names(names);
             }
-            ArrayPattern::WithLengthRange(_) => {
+            ArrayPattern::WithLengthInterval(_) => {
                 // No captures in length range patterns
             }
         }
@@ -667,7 +670,7 @@ impl Matcher for ArrayPattern {
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         // For simple cases that never have captures, use the fast path
         match self {
-            ArrayPattern::Any | ArrayPattern::WithLengthRange(_) => {
+            ArrayPattern::Any | ArrayPattern::WithLengthInterval(_) => {
                 return (self.paths(cbor), std::collections::HashMap::new());
             }
             ArrayPattern::WithElements(pattern) => {
@@ -828,14 +831,8 @@ impl std::fmt::Display for ArrayPattern {
                     Self::format_array_element_pattern(pattern);
                 write!(f, "[{}]", formatted_pattern)
             }
-            ArrayPattern::WithLengthRange(range) => {
-                if range.end() == &usize::MAX {
-                    write!(f, "[{{{},}}]", range.start())
-                } else if range.start() == range.end() {
-                    write!(f, "[{{{}}}]", range.start())
-                } else {
-                    write!(f, "[{{{},{}}}]", range.start(), range.end())
-                }
+            ArrayPattern::WithLengthInterval(interval) => {
+                write!(f, "[{}]", interval)
             }
         }
     }

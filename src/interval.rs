@@ -10,7 +10,7 @@ use std::ops::{Bound, RangeBounds};
 /// maximum value.
 ///
 /// When the maximum is `None`, the interval is considered unbounded above.
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
 pub struct Interval {
     min: usize,
     max: Option<usize>, // None == unbounded

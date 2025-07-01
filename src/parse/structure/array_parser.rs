@@ -1,4 +1,4 @@
-use crate::{ArrayPattern, Error, Pattern, Result, parse::Token};
+use crate::{ArrayPattern, Error, Interval, Pattern, Result, parse::Token};
 
 /// Parse bracket-style array patterns: [pattern] or [*] or [{n}] etc.
 ///
@@ -41,12 +41,7 @@ pub(crate) fn parse_bracket_array(
             let quantifier = res?;
             lexer.next(); // consume the Range token
 
-            // Convert quantifier to appropriate ArrayPattern
-            let pattern = if let Some(max) = quantifier.max() {
-                ArrayPattern::with_length_range(quantifier.min()..=max)
-            } else {
-                ArrayPattern::with_length_range(quantifier.min()..=usize::MAX)
-            };
+            let pattern = ArrayPattern::with_length_interval(quantifier.into());
 
             // Expect closing bracket
             match lexer.next() {
@@ -64,7 +59,7 @@ pub(crate) fn parse_bracket_array(
             // This is [] - empty array (no elements)
             lexer.next(); // consume the closing bracket
             Ok(Pattern::Structure(crate::pattern::StructurePattern::Array(
-                ArrayPattern::with_length_range(0..=0),
+                ArrayPattern::with_length_interval(Interval::default()),
             )))
         }
         _ => {
@@ -214,7 +209,7 @@ mod tests {
         assert_eq!(
             pattern,
             Pattern::Structure(crate::pattern::StructurePattern::Array(
-                ArrayPattern::with_length_range(0..=0)
+                ArrayPattern::with_length_interval(Interval::default())
             ))
         );
     }
