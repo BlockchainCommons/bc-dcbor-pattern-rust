@@ -104,7 +104,7 @@ fn test_map_pattern_display() {
     assert_eq!(MapPattern::with_length(5).to_string(), "{{5}}");
     assert_eq!(MapPattern::with_length_range(2..=8).to_string(), "{{2,8}}");
     assert_eq!(
-        MapPattern::with_length_range(3..=usize::MAX).to_string(),
+        MapPattern::with_length_range(3..).to_string(),
         "{{3,}}"
     );
 }

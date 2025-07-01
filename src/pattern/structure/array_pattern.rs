@@ -1,3 +1,5 @@
+use std::ops::RangeBounds;
+
 use dcbor::prelude::*;
 
 use crate::{
@@ -30,6 +32,10 @@ impl ArrayPattern {
     /// that match the given pattern.
     pub fn with_elements(pattern: Pattern) -> Self {
         ArrayPattern::WithElements(Box::new(pattern))
+    }
+
+    pub fn with_length_range<R: RangeBounds<usize>>(range: R) -> Self {
+        ArrayPattern::WithLengthInterval(Interval::new(range))
     }
 
     /// Creates a new `ArrayPattern` that matches arrays with length in the

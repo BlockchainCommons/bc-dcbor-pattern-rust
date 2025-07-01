@@ -23,6 +23,8 @@ impl Quantifier {
 
     pub fn max(&self) -> Option<usize> { self.interval.max() }
 
+    pub fn interval(&self) -> Interval { self.interval }
+
     pub fn reluctance(&self) -> Reluctance { self.reluctance }
 
     pub fn contains(&self, count: usize) -> bool {

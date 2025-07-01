@@ -135,18 +135,7 @@ pub(crate) fn parse_primary(
             let quantifier = res?;
 
             // Convert quantifier to appropriate MapPattern
-            let pattern = if let Some(max) = quantifier.max() {
-                if quantifier.min() == max {
-                    // Exact count: {n}
-                    MapPattern::with_length(quantifier.min())
-                } else {
-                    // Range: {n,m}
-                    MapPattern::with_length_range(quantifier.min()..=max)
-                }
-            } else {
-                // Open-ended range: {n,}
-                MapPattern::with_length_range(quantifier.min()..=usize::MAX)
-            };
+            let pattern = MapPattern::with_length_interval(quantifier.into());
 
             Ok(Pattern::Structure(crate::pattern::StructurePattern::Map(
                 pattern,

@@ -1,6 +1,11 @@
+use std::ops::RangeBounds;
+
 use dcbor::prelude::*;
 
-use crate::pattern::{Matcher, Path, Pattern, vm::Instr};
+use crate::{
+    Interval,
+    pattern::{Matcher, Path, Pattern, vm::Instr},
+};
 
 /// Pattern for matching CBOR map structures.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -10,16 +15,15 @@ pub enum MapPattern {
     /// Matches maps with multiple key-value constraints that must all be
     /// satisfied.
     WithKeyValueConstraints(Vec<(Pattern, Pattern)>),
-    /// Matches maps with a specific number of key-value pairs.
-    WithLength(usize),
-    /// Matches maps with number of key-value pairs in the given range
-    /// (inclusive).
-    WithLengthRange(std::ops::RangeInclusive<usize>),
+    /// Matches maps with number of key-value pairs in the given interval.
+    WithLengthInterval(Interval),
 }
 
 impl MapPattern {
     /// Creates a new `MapPattern` that matches any map.
-    pub fn any() -> Self { MapPattern::Any }
+    pub fn any() -> Self {
+        MapPattern::Any
+    }
 
     /// Creates a new `MapPattern` that matches maps with multiple key-value
     /// constraints that must all be satisfied.
@@ -31,12 +35,20 @@ impl MapPattern {
 
     /// Creates a new `MapPattern` that matches maps with a specific number of
     /// key-value pairs.
-    pub fn with_length(length: usize) -> Self { MapPattern::WithLength(length) }
+    pub fn with_length(length: usize) -> Self {
+        MapPattern::WithLengthInterval(Interval::new(length..=length))
+    }
 
     /// Creates a new `MapPattern` that matches maps with number of key-value
     /// pairs in the given range.
-    pub fn with_length_range(range: std::ops::RangeInclusive<usize>) -> Self {
-        MapPattern::WithLengthRange(range)
+    pub fn with_length_range<R: RangeBounds<usize>>(range: R) -> Self {
+        MapPattern::WithLengthInterval(Interval::new(range))
+    }
+
+    /// Creates a new `MapPattern` that matches maps with number of key-value
+    /// pairs in the given range.
+    pub fn with_length_interval(interval: Interval) -> Self {
+        MapPattern::WithLengthInterval(interval)
     }
 }
 
@@ -68,15 +80,8 @@ impl Matcher for MapPattern {
                         }
                         vec![vec![cbor.clone()]]
                     }
-                    MapPattern::WithLength(target_length) => {
-                        if map.len() == *target_length {
-                            vec![vec![cbor.clone()]]
-                        } else {
-                            vec![]
-                        }
-                    }
-                    MapPattern::WithLengthRange(range) => {
-                        if range.contains(&map.len()) {
+                    MapPattern::WithLengthInterval(interval) => {
+                        if interval.contains(map.len()) {
                             vec![vec![cbor.clone()]]
                         } else {
                             vec![]
@@ -119,11 +124,8 @@ impl Matcher for MapPattern {
                     value_pattern.collect_capture_names(names);
                 }
             }
-            MapPattern::WithLength(_) => {
-                // No captures in length patterns
-            }
-            MapPattern::WithLengthRange(_) => {
-                // No captures in length range patterns
+            MapPattern::WithLengthInterval(_) => {
+                // No captures in length interval patterns
             }
         }
     }
@@ -226,15 +228,8 @@ impl std::fmt::Display for MapPattern {
                 }
                 write!(f, "}}")
             }
-            MapPattern::WithLength(length) => {
-                write!(f, "{{{{{}}}}}", length)
-            }
-            MapPattern::WithLengthRange(range) => {
-                if range.end() == &usize::MAX {
-                    write!(f, "{{{{{},}}}}", range.start())
-                } else {
-                    write!(f, "{{{{{},{}}}}}", range.start(), range.end())
-                }
+            MapPattern::WithLengthInterval(interval) => {
+                write!(f, "{{{}}}", interval)
             }
         }
     }

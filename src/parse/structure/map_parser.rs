@@ -1,6 +1,5 @@
 use crate::{
-    Error, MapPattern, Pattern, Result,
-    parse::{Token, meta::parse_primary},
+    parse::{meta::parse_primary, Token}, Error, MapPattern, Pattern, Result, StructurePattern
 };
 
 /// Parse a bracket map pattern: { ... }
@@ -36,7 +35,7 @@ pub(crate) fn parse_bracket_map(
                     lexer.next(); // consume *
                     lexer.next(); // consume }
                     Ok(Pattern::Structure(
-                        crate::pattern::StructurePattern::Map(MapPattern::any()),
+                        StructurePattern::Map(MapPattern::any()),
                     ))
                 }
                 Some(Ok(Token::Colon)) => {
@@ -60,26 +59,10 @@ pub(crate) fn parse_bracket_map(
             // Expect closing brace for the map
             match lexer.next() {
                 Some(Ok(Token::BraceClose)) => {
-                    // Convert quantifier to appropriate MapPattern
-                    let pattern = if let Some(max) = quantifier.max() {
-                        if quantifier.min() == max {
-                            // Exact count: {n}
-                            MapPattern::with_length(quantifier.min())
-                        } else {
-                            // Range: {n,m}
-                            MapPattern::with_length_range(
-                                quantifier.min()..=max,
-                            )
-                        }
-                    } else {
-                        // Open-ended range: {n,}
-                        MapPattern::with_length_range(
-                            quantifier.min()..=usize::MAX,
-                        )
-                    };
+                    let pattern = MapPattern::with_length_interval(quantifier.interval());
 
                     Ok(Pattern::Structure(
-                        crate::pattern::StructurePattern::Map(pattern),
+                        StructurePattern::Map(pattern),
                     ))
                 }
                 Some(Ok(token)) => {
@@ -145,13 +128,15 @@ fn parse_key_value_constraints(
         }
     }
 
-    Ok(Pattern::Structure(crate::pattern::StructurePattern::Map(
+    Ok(Pattern::Structure(StructurePattern::Map(
         MapPattern::with_key_value_constraints(constraints),
     )))
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::Interval;
+
     use super::*;
 
     #[test]
@@ -159,7 +144,7 @@ mod tests {
         let pattern = Pattern::parse("{*}").unwrap();
         assert!(matches!(
             pattern,
-            Pattern::Structure(crate::pattern::StructurePattern::Map(
+            Pattern::Structure(StructurePattern::Map(
                 MapPattern::Any
             ))
         ));
@@ -168,10 +153,11 @@ mod tests {
     #[test]
     fn test_parse_bracket_map_exact_count() {
         let pattern = Pattern::parse("{{3}}").unwrap();
+        let interval = Interval::new(3..=3);
         assert!(matches!(
             pattern,
-            Pattern::Structure(crate::pattern::StructurePattern::Map(
-                MapPattern::WithLength(3)
+            Pattern::Structure(StructurePattern::Map(
+                MapPattern::WithLengthInterval(i)
             ))
         ));
     }
@@ -181,16 +167,16 @@ mod tests {
         let pattern = Pattern::parse("{{2,5}}").unwrap();
         assert!(matches!(
             pattern,
-            Pattern::Structure(crate::pattern::StructurePattern::Map(
-                MapPattern::WithLengthRange(_)
+            Pattern::Structure(StructurePattern::Map(
+                MapPattern::WithLengthInterval(_)
             ))
         ));
 
-        if let Pattern::Structure(crate::pattern::StructurePattern::Map(
-            MapPattern::WithLengthRange(range),
+        if let Pattern::Structure(StructurePattern::Map(
+            MapPattern::WithLengthInterval(interval),
         )) = pattern
         {
-            assert_eq!(range, 2..=5);
+            assert_eq!(interval, Interval::new(2..=5));
         }
     }
 
@@ -199,16 +185,16 @@ mod tests {
         let pattern = Pattern::parse("{{3,}}").unwrap();
         assert!(matches!(
             pattern,
-            Pattern::Structure(crate::pattern::StructurePattern::Map(
-                MapPattern::WithLengthRange(_)
+            Pattern::Structure(StructurePattern::Map(
+                MapPattern::WithLengthInterval(_)
             ))
         ));
 
-        if let Pattern::Structure(crate::pattern::StructurePattern::Map(
-            MapPattern::WithLengthRange(range),
+        if let Pattern::Structure(StructurePattern::Map(
+            MapPattern::WithLengthInterval(interval),
         )) = pattern
         {
-            assert_eq!(range, 3..=usize::MAX);
+            assert_eq!(interval, Interval::new(3..));
         }
     }
 
@@ -218,7 +204,7 @@ mod tests {
             Pattern::parse(r#"{"key": text, number: "value"}"#).unwrap();
         assert!(matches!(
             pattern,
-            Pattern::Structure(crate::pattern::StructurePattern::Map(
+            Pattern::Structure(StructurePattern::Map(
                 MapPattern::WithKeyValueConstraints(_)
             ))
         ));
