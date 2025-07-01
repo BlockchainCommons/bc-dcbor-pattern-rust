@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod test_new_bool_syntax {
     use dcbor::prelude::*;
-    use dcbor_pattern::{Pattern, Matcher};
+    use dcbor_pattern::{Matcher, Pattern};
 
     #[test]
     fn test_bool_pattern_parsing() {

@@ -7,7 +7,9 @@ pub(crate) fn parse_text(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
 }
 
 /// Parse a string literal starting with double quote
-pub(crate) fn parse_text_string_literal(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
+pub(crate) fn parse_text_string_literal(
+    lexer: &mut logos::Lexer<Token>,
+) -> Result<Pattern> {
     let src = lexer.remainder();
     let (value, consumed) = parse_string_literal(src)?;
     lexer.bump(consumed);
@@ -15,7 +17,9 @@ pub(crate) fn parse_text_string_literal(lexer: &mut logos::Lexer<Token>) -> Resu
 }
 
 /// Parse a regex pattern starting with /
-pub(crate) fn parse_text_regex_literal(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
+pub(crate) fn parse_text_regex_literal(
+    lexer: &mut logos::Lexer<Token>,
+) -> Result<Pattern> {
     let src = lexer.remainder();
     let (regex, consumed) = parse_text_regex(src)?;
     lexer.bump(consumed);

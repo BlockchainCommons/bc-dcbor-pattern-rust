@@ -138,7 +138,8 @@ mod test_capture_behavior {
         }
 
         // This test documents current behavior and explores syntax options
-        // The `search` pattern works correctly for finding elements within arrays
+        // The `search` pattern works correctly for finding elements within
+        // arrays
     }
 
     #[test]
@@ -160,8 +161,7 @@ mod test_capture_behavior {
             Pattern::parse("[(*)*, @item(42), (*)*]");
 
         // Try to parse the variadic pattern syntax WITHOUT CAPTURE
-        let pattern_without_capture_result =
-            Pattern::parse("[(*)*, 42, (*)*]");
+        let pattern_without_capture_result = Pattern::parse("[(*)*, 42, (*)*]");
 
         match pattern_with_capture_result {
             Ok(pattern) => {
@@ -318,37 +318,26 @@ mod test_capture_behavior {
         let array_without_42 = parse_dcbor_item("[100, 200, 300]").unwrap();
 
         // Pattern that should match arrays containing 42
-        let pattern_42 =
-            Pattern::parse("[(*)*, 42, (*)*]").unwrap();
+        let pattern_42 = Pattern::parse("[(*)*, 42, (*)*]").unwrap();
 
         // Pattern that should match arrays containing 100
-        let pattern_100 =
-            Pattern::parse("[(*)*, 100, (*)*]").unwrap();
+        let pattern_100 = Pattern::parse("[(*)*, 100, (*)*]").unwrap();
 
         println!("=== Testing 42 pattern ===");
 
         // Test array with 42 in middle - should match
         let (paths, _) = pattern_42.paths_with_captures(&array_with_42);
-        println!(
-            "[100, 42, 200] with 42 pattern: {} paths",
-            paths.len()
-        );
+        println!("[100, 42, 200] with 42 pattern: {} paths", paths.len());
         assert!(!paths.is_empty(), "Should match array containing 42");
 
         // Test array with 100 in middle - should NOT match 42
         let (paths, _) = pattern_42.paths_with_captures(&array_with_100_middle);
-        println!(
-            "[42, 100, 200] with 42 pattern: {} paths",
-            paths.len()
-        );
+        println!("[42, 100, 200] with 42 pattern: {} paths", paths.len());
         assert!(!paths.is_empty(), "Should match because 42 is at start"); // 42 is at start, so should match
 
         // Test array without 42 - should NOT match
         let (paths, _) = pattern_42.paths_with_captures(&array_without_42);
-        println!(
-            "[100, 200, 300] with 42 pattern: {} paths",
-            paths.len()
-        );
+        println!("[100, 200, 300] with 42 pattern: {} paths", paths.len());
         assert!(paths.is_empty(), "Should NOT match array without 42");
 
         println!("\n=== Testing 100 pattern ===");
@@ -356,18 +345,12 @@ mod test_capture_behavior {
         // Test array with 100 in middle - should match 100
         let (paths, _) =
             pattern_100.paths_with_captures(&array_with_100_middle);
-        println!(
-            "[42, 100, 200] with 100 pattern: {} paths",
-            paths.len()
-        );
+        println!("[42, 100, 200] with 100 pattern: {} paths", paths.len());
         assert!(!paths.is_empty(), "Should match array containing 100");
 
         // Test array with 42 in middle - should NOT match 100
         let (paths, _) = pattern_100.paths_with_captures(&array_with_42);
-        println!(
-            "[100, 42, 200] with 100 pattern: {} paths",
-            paths.len()
-        );
+        println!("[100, 42, 200] with 100 pattern: {} paths", paths.len());
         assert!(!paths.is_empty(), "Should match because 100 is at start"); // 100 is at start, so should match
 
         // More specific test: array where the target number is ONLY in middle
@@ -382,10 +365,7 @@ mod test_capture_behavior {
 
         let (paths, _) = pattern_42.paths_with_captures(&array_100_only_middle);
         println!("[1, 100, 3] with 42 pattern: {} paths", paths.len());
-        assert!(
-            paths.is_empty(),
-            "Should NOT match [1, 100, 3] with 42"
-        );
+        assert!(paths.is_empty(), "Should NOT match [1, 100, 3] with 42");
     }
 
     #[test]
@@ -394,8 +374,7 @@ mod test_capture_behavior {
         // should work but don't
 
         let cbor_data = parse_dcbor_item("[1, 42, 3]").unwrap();
-        let pattern =
-            Pattern::parse("[(*)*, @item(42), (*)*]").unwrap();
+        let pattern = Pattern::parse("[(*)*, @item(42), (*)*]").unwrap();
 
         let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
@@ -444,8 +423,7 @@ mod test_capture_behavior {
         // Test variadic capture with multiple matches
 
         let cbor_data = parse_dcbor_item("[42, 100, 42]").unwrap();
-        let pattern =
-            Pattern::parse("[(*)*, @item(42), (*)*]").unwrap();
+        let pattern = Pattern::parse("[(*)*, @item(42), (*)*]").unwrap();
 
         let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
@@ -473,8 +451,7 @@ mod test_capture_behavior {
         // This should now work after the fix
 
         let cbor_data = parse_dcbor_item("[42, 100, 200]").unwrap();
-        let pattern =
-            Pattern::parse("[(*)*, @item(42), (*)*]").unwrap();
+        let pattern = Pattern::parse("[(*)*, @item(42), (*)*]").unwrap();
 
         let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
@@ -523,8 +500,7 @@ mod test_capture_behavior {
 
         for (cbor_str, description) in test_cases {
             let cbor_data = parse_dcbor_item(cbor_str).unwrap();
-            let pattern =
-                Pattern::parse("[(*)*, @item(42), (*)*]").unwrap();
+            let pattern = Pattern::parse("[(*)*, @item(42), (*)*]").unwrap();
 
             let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 

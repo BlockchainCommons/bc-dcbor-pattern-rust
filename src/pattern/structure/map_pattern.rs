@@ -21,9 +21,7 @@ pub enum MapPattern {
 
 impl MapPattern {
     /// Creates a new `MapPattern` that matches any map.
-    pub fn any() -> Self {
-        MapPattern::Any
-    }
+    pub fn any() -> Self { MapPattern::Any }
 
     /// Creates a new `MapPattern` that matches maps with multiple key-value
     /// constraints that must all be satisfied.

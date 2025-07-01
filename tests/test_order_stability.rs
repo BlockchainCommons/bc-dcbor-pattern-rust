@@ -8,8 +8,7 @@ mod test_order_stability {
         // Create a scenario that would generate multiple paths in a predictable
         // order
         let cbor_data = parse_dcbor_item(r#"[[1], [2], [3], [1]]"#).unwrap();
-        let pattern =
-            Pattern::parse("[@outer([@inner(number)])]").unwrap();
+        let pattern = Pattern::parse("[@outer([@inner(number)])]").unwrap();
 
         let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 

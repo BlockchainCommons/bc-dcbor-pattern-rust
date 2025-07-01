@@ -50,9 +50,7 @@ impl std::fmt::Display for Quantifier {
 }
 
 impl From<Quantifier> for Interval {
-    fn from(quantifier: Quantifier) -> Self {
-        quantifier.interval
-    }
+    fn from(quantifier: Quantifier) -> Self { quantifier.interval }
 }
 
 #[cfg(test)]

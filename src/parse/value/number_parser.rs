@@ -166,7 +166,8 @@ mod tests {
     fn test_number_range() {
         let pattern = Pattern::parse("1...10").expect("Failed to parse 1...10");
         assert_eq!(pattern.to_string(), "1...10");
-        let pattern = Pattern::parse("-5.5...5.5").expect("Failed to parse -5.5...5.5");
+        let pattern =
+            Pattern::parse("-5.5...5.5").expect("Failed to parse -5.5...5.5");
         assert_eq!(pattern.to_string(), "-5.5...5.5");
     }
 
@@ -189,17 +190,21 @@ mod tests {
     fn test_scientific_notation() {
         let pattern = Pattern::parse("1e10").expect("Failed to parse 1e10");
         assert_eq!(pattern.to_string(), "10000000000");
-        let pattern = Pattern::parse("3.2222e-2").expect("Failed to parse 3.2222e-2");
+        let pattern =
+            Pattern::parse("3.2222e-2").expect("Failed to parse 3.2222e-2");
         assert_eq!(pattern.to_string(), "0.032222");
     }
 
     #[test]
     fn test_number_infinity_parsing() {
-        let pattern = Pattern::parse("NaN").expect("NaN should parse successfully");
+        let pattern =
+            Pattern::parse("NaN").expect("NaN should parse successfully");
         assert_eq!(pattern.to_string(), "NaN");
-        let pattern = Pattern::parse("Infinity").expect("Infinity should parse successfully");
+        let pattern = Pattern::parse("Infinity")
+            .expect("Infinity should parse successfully");
         assert_eq!(pattern.to_string(), "Infinity");
-        let pattern = Pattern::parse("-Infinity").expect("-Infinity should parse successfully");
+        let pattern = Pattern::parse("-Infinity")
+            .expect("-Infinity should parse successfully");
         assert_eq!(pattern.to_string(), "-Infinity");
     }
 }

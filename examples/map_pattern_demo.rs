@@ -15,12 +15,12 @@ fn main() {
 
     // Parse different MAP patterns and test them
     let patterns = vec![
-        "{*}",        // Any map
-        "{{0}}",      // Empty map
-        "{{1}}",      // Single item map
-        "{{3}}",      // Three item map
-        "{{1,5}}",    // Range: 1-5 items
-        "{{2,}}",     // At least 2 items
+        "{*}",     // Any map
+        "{{0}}",   // Empty map
+        "{{1}}",   // Single item map
+        "{{3}}",   // Three item map
+        "{{1,5}}", // Range: 1-5 items
+        "{{2,}}",  // At least 2 items
     ];
 
     for pattern_str in patterns {
@@ -34,9 +34,7 @@ fn main() {
     }
 
     println!("\nPattern round-trip test:");
-    for pattern_str in
-        &["{*}", "{{0}}", "{{3}}", "{{2,8}}", "{{5,}}"]
-    {
+    for pattern_str in &["{*}", "{{0}}", "{{3}}", "{{2,8}}", "{{5,}}"] {
         let pattern = Pattern::parse(pattern_str).unwrap();
         let displayed = pattern.to_string();
         println!("  {} -> {}", pattern_str, displayed);

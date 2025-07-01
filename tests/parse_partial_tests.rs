@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod parse_partial_tests {
-    use dcbor_pattern::{Pattern, Error};
+    use dcbor_pattern::{Error, Pattern};
 
     #[test]
     fn test_parse_partial_basic() {
@@ -11,7 +11,8 @@ mod parse_partial_tests {
 
     #[test]
     fn test_parse_partial_with_whitespace() {
-        let (pattern, consumed) = Pattern::parse_partial("42    more stuff").unwrap();
+        let (pattern, consumed) =
+            Pattern::parse_partial("42    more stuff").unwrap();
         assert_eq!(pattern, Pattern::number(42));
         assert_eq!(consumed, 6); // "42    ".len() - includes whitespace that is skipped
     }
@@ -25,7 +26,8 @@ mod parse_partial_tests {
 
     #[test]
     fn test_parse_partial_complex_pattern() {
-        let (_pattern, consumed) = Pattern::parse_partial("number | text additional").unwrap();
+        let (_pattern, consumed) =
+            Pattern::parse_partial("number | text additional").unwrap();
         // Should parse "number | text" and stop before "additional"
         assert!(consumed > 10); // At least "number | text".len()
         assert!(consumed < "number | text additional".len()); // But not the full string

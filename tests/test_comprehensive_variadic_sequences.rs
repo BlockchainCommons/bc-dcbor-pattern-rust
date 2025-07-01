@@ -70,8 +70,7 @@ mod test_comprehensive_variadic_sequences {
         );
 
         // Multiple elements should match (multiple repetitions)
-        let (paths, captures) =
-            pattern.paths_with_captures(&multiple_elements);
+        let (paths, captures) = pattern.paths_with_captures(&multiple_elements);
         assert!(
             !paths.is_empty(),
             "[(*)*] should match multiple element array"
@@ -226,10 +225,7 @@ mod test_comprehensive_variadic_sequences {
 
         // Single element should match (exactly one repetition)
         let (paths, captures) = pattern.paths_with_captures(&single_element);
-        assert!(
-            !paths.is_empty(),
-            "[(*)] should match single element array"
-        );
+        assert!(!paths.is_empty(), "[(*)] should match single element array");
 
         #[rustfmt::skip]
         let expected_single = indoc! {r#"
@@ -438,10 +434,7 @@ mod test_comprehensive_variadic_sequences {
 
         // Only exactly 3 elements should match
         let (paths, _) = pattern.paths_with_captures(&empty_array);
-        assert!(
-            paths.is_empty(),
-            "[(*){{3}}] should NOT match empty array"
-        );
+        assert!(paths.is_empty(), "[(*){{3}}] should NOT match empty array");
 
         let (paths, _) = pattern.paths_with_captures(&two_elements);
         assert!(
@@ -450,10 +443,7 @@ mod test_comprehensive_variadic_sequences {
         );
 
         let (paths, _) = pattern.paths_with_captures(&three_elements);
-        assert!(
-            !paths.is_empty(),
-            "[(*){{3}}] should match 3-element array"
-        );
+        assert!(!paths.is_empty(), "[(*){{3}}] should match 3-element array");
 
         #[rustfmt::skip]
         let expected_three = indoc! {r#"
@@ -597,8 +587,7 @@ mod test_comprehensive_variadic_sequences {
         let only_numbers = parse_dcbor_item("[1, 2]").unwrap();
 
         // Numbers then text should match and capture the text
-        let (paths, captures) =
-            pattern.paths_with_captures(&numbers_then_text);
+        let (paths, captures) = pattern.paths_with_captures(&numbers_then_text);
         assert!(
             !paths.is_empty(),
             "[(number)*, @item(text)] should match numbers then text"
@@ -624,10 +613,7 @@ mod test_comprehensive_variadic_sequences {
             paths.is_empty(),
             "[(number)*, @item(text)] should NOT match only numbers"
         );
-        assert!(
-            captures.is_empty(),
-            "Should have no captures when no match"
-        );
+        assert!(captures.is_empty(), "Should have no captures when no match");
 
         // Test another pattern: [@first(number), (*)*]
         // This captures the first number and allows any additional elements

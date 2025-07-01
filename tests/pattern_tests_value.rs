@@ -626,7 +626,7 @@ fn test_date_pattern_earliest() {
 #[test]
 fn test_date_pattern_latest() {
     bc_components::register_tags();
-    
+
     let latest_date = Date::from_ymd(2023, 12, 30);
     let pattern = Pattern::date_latest(latest_date.clone());
 

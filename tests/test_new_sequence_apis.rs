@@ -16,7 +16,7 @@ fn test_sequence_pattern_new_api() {
     let display = sequence.to_string();
     assert!(display.contains("first"));
     assert!(display.contains("second"));
-    assert!(display.contains(", "));  // Changed from > to comma
+    assert!(display.contains(", ")); // Changed from > to comma
 
     // Verify sequence is marked as complex
     assert!(sequence.is_complex());

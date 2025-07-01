@@ -209,10 +209,7 @@ fn test_nested_meta_patterns() {
     assert!(!pattern.matches(&cbor(r#""world""#)));
 
     // Display should properly nest the operators
-    assert_eq!(
-        pattern.to_string(),
-        r#">5 & <10 | "hello""#
-    );
+    assert_eq!(pattern.to_string(), r#">5 & <10 | "hello""#);
 }
 
 #[test]

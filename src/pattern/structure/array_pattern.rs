@@ -24,9 +24,7 @@ pub enum ArrayPattern {
 
 impl ArrayPattern {
     /// Creates a new `ArrayPattern` that matches any array.
-    pub fn any() -> Self {
-        ArrayPattern::Any
-    }
+    pub fn any() -> Self { ArrayPattern::Any }
 
     /// Creates a new `ArrayPattern` that matches arrays with elements
     /// that match the given pattern.
@@ -466,8 +464,8 @@ impl Matcher for ArrayPattern {
                         //
                         // Examples:
                         // - [42] should match [42] but not [1, 42, 3]
-                        // - ["a" , "b"] should match ["a", "b"] but
-                        //   not ["a", "x", "b"]
+                        // - ["a" , "b"] should match ["a", "b"] but not ["a",
+                        //   "x", "b"]
 
                         // Check if this is a simple single-element case
                         use crate::pattern::{MetaPattern, Pattern};

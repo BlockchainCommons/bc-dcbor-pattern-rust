@@ -1,5 +1,6 @@
 use crate::{
-    parse::{meta::parse_primary, Token}, Error, MapPattern, Pattern, Result, StructurePattern
+    Error, MapPattern, Pattern, Result, StructurePattern,
+    parse::{Token, meta::parse_primary},
 };
 
 /// Parse a bracket map pattern: { ... }
@@ -34,9 +35,9 @@ pub(crate) fn parse_bracket_map(
                     // This is {*} - matches any map
                     lexer.next(); // consume *
                     lexer.next(); // consume }
-                    Ok(Pattern::Structure(
-                        StructurePattern::Map(MapPattern::any()),
-                    ))
+                    Ok(Pattern::Structure(StructurePattern::Map(
+                        MapPattern::any(),
+                    )))
                 }
                 Some(Ok(Token::Colon)) => {
                     // This is {*:pattern} - key-value constraint with * as key
@@ -59,11 +60,10 @@ pub(crate) fn parse_bracket_map(
             // Expect closing brace for the map
             match lexer.next() {
                 Some(Ok(Token::BraceClose)) => {
-                    let pattern = MapPattern::with_length_interval(quantifier.interval());
+                    let pattern =
+                        MapPattern::with_length_interval(quantifier.interval());
 
-                    Ok(Pattern::Structure(
-                        StructurePattern::Map(pattern),
-                    ))
+                    Ok(Pattern::Structure(StructurePattern::Map(pattern)))
                 }
                 Some(Ok(token)) => {
                     Err(Error::UnexpectedToken(Box::new(token), lexer.span()))
@@ -135,18 +135,15 @@ fn parse_key_value_constraints(
 
 #[cfg(test)]
 mod tests {
-    use crate::Interval;
-
     use super::*;
+    use crate::Interval;
 
     #[test]
     fn test_parse_bracket_map_any() {
         let pattern = Pattern::parse("{*}").unwrap();
         assert!(matches!(
             pattern,
-            Pattern::Structure(StructurePattern::Map(
-                MapPattern::Any
-            ))
+            Pattern::Structure(StructurePattern::Map(MapPattern::Any))
         ));
     }
 

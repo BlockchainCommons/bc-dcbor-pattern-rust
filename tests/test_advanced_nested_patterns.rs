@@ -365,7 +365,10 @@ fn test_multiple_levels_of_nesting_with_any() {
 #[test]
 fn test_extreme_nesting_depth() {
     // Test deeply nested structures for performance
-    let pattern = Pattern::parse(r#"tagged(400, {"level1": {"level2": {"level3": [42]}}})"#).unwrap();
+    let pattern = Pattern::parse(
+        r#"tagged(400, {"level1": {"level2": {"level3": [42]}}})"#,
+    )
+    .unwrap();
 
     let deep_structure =
         parse_dcbor_item(r#"400({"level1": {"level2": {"level3": [42]}}})"#)

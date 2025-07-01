@@ -1,7 +1,6 @@
-use crate::{
-    pattern::{Matcher, Path, Pattern, vm::Instr},
-};
 use dcbor::prelude::*;
+
+use crate::pattern::{Matcher, Path, Pattern, vm::Instr};
 
 /// A pattern that matches a sequence of patterns in order.
 ///
@@ -28,24 +27,16 @@ pub struct SequencePattern {
 
 impl SequencePattern {
     /// Creates a new sequence pattern with the given patterns.
-    pub fn new(patterns: Vec<Pattern>) -> Self {
-        Self { patterns }
-    }
+    pub fn new(patterns: Vec<Pattern>) -> Self { Self { patterns } }
 
     /// Returns a reference to the patterns in this sequence.
-    pub fn patterns(&self) -> &[Pattern] {
-        &self.patterns
-    }
+    pub fn patterns(&self) -> &[Pattern] { &self.patterns }
 
     /// Returns true if this sequence is empty.
-    pub fn is_empty(&self) -> bool {
-        self.patterns.is_empty()
-    }
+    pub fn is_empty(&self) -> bool { self.patterns.is_empty() }
 
     /// Returns the number of patterns in this sequence.
-    pub fn len(&self) -> usize {
-        self.patterns.len()
-    }
+    pub fn len(&self) -> usize { self.patterns.len() }
 }
 
 impl Matcher for SequencePattern {
@@ -80,11 +71,13 @@ impl Matcher for SequencePattern {
             return;
         }
 
-        // Multiple patterns in sequence - use ExtendSequence and CombineSequence
-        // to implement proper sequence semantics in the VM
+        // Multiple patterns in sequence - use ExtendSequence and
+        // CombineSequence to implement proper sequence semantics in the
+        // VM
         for (i, pattern) in self.patterns.iter().enumerate() {
             if i > 0 {
-                // For patterns after the first, extend the sequence to move to next element
+                // For patterns after the first, extend the sequence to move to
+                // next element
                 code.push(Instr::ExtendSequence);
             }
 
@@ -92,7 +85,8 @@ impl Matcher for SequencePattern {
             pattern.compile(code, literals, captures);
 
             if i > 0 {
-                // Combine the sequence after matching (except for the first pattern)
+                // Combine the sequence after matching (except for the first
+                // pattern)
                 code.push(Instr::CombineSequence);
             }
         }
@@ -126,7 +120,8 @@ impl std::fmt::Display for SequencePattern {
         if self.patterns.is_empty() {
             write!(f, "()")
         } else {
-            let patterns_str: Vec<String> = self.patterns.iter().map(|p| p.to_string()).collect();
+            let patterns_str: Vec<String> =
+                self.patterns.iter().map(|p| p.to_string()).collect();
             write!(f, "{}", patterns_str.join(", "))
         }
     }
@@ -134,15 +129,13 @@ impl std::fmt::Display for SequencePattern {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use dcbor_parse::parse_dcbor_item;
+
+    use super::*;
 
     #[test]
     fn test_sequence_pattern_new() {
-        let patterns = vec![
-            Pattern::text("first"),
-            Pattern::text("second"),
-        ];
+        let patterns = vec![Pattern::text("first"), Pattern::text("second")];
         let sequence = SequencePattern::new(patterns.clone());
         assert_eq!(sequence.patterns(), &patterns);
     }
@@ -156,7 +149,8 @@ mod tests {
 
     #[test]
     fn test_sequence_pattern_len() {
-        let patterns = vec![Pattern::text("a"), Pattern::text("b"), Pattern::text("c")];
+        let patterns =
+            vec![Pattern::text("a"), Pattern::text("b"), Pattern::text("c")];
         let sequence = SequencePattern::new(patterns);
         assert!(!sequence.is_empty());
         assert_eq!(sequence.len(), 3);
@@ -203,10 +197,7 @@ mod tests {
 
     #[test]
     fn test_sequence_pattern_compile() {
-        let patterns = vec![
-            Pattern::text("first"),
-            Pattern::text("second"),
-        ];
+        let patterns = vec![Pattern::text("first"), Pattern::text("second")];
         let sequence = SequencePattern::new(patterns);
 
         let mut code = Vec::new();
@@ -267,7 +258,8 @@ mod tests {
     #[test]
     fn test_sequence_pattern_with_array() {
         // Test sequence pattern within an array context using parse_dcbor_item
-        let _array_cbor = parse_dcbor_item(r#"["first", "second", "third"]"#).unwrap();
+        let _array_cbor =
+            parse_dcbor_item(r#"["first", "second", "third"]"#).unwrap();
 
         // Create a sequence pattern that matches the array elements
         let sequence = SequencePattern::new(vec![
@@ -292,7 +284,8 @@ mod tests {
     #[test]
     fn test_sequence_pattern_with_mixed_types() {
         // Test sequence with different CBOR types
-        let _mixed_array = parse_dcbor_item(r#"[42, "hello", true, null]"#).unwrap();
+        let _mixed_array =
+            parse_dcbor_item(r#"[42, "hello", true, null]"#).unwrap();
 
         let sequence = SequencePattern::new(vec![
             Pattern::number(42),
@@ -318,7 +311,9 @@ mod tests {
     #[test]
     fn test_sequence_pattern_partial_match() {
         // Test sequence that should match part of a larger array
-        let _large_array = parse_dcbor_item(r#"["start", "middle1", "middle2", "end"]"#).unwrap();
+        let _large_array =
+            parse_dcbor_item(r#"["start", "middle1", "middle2", "end"]"#)
+                .unwrap();
 
         // Create a sequence pattern for the middle elements
         let sequence = SequencePattern::new(vec![
@@ -388,7 +383,8 @@ mod tests {
     #[test]
     fn test_sequence_pattern_with_byte_strings() {
         // Test sequence with byte strings
-        let _bytes_array = parse_dcbor_item(r#"[h'deadbeef', h'cafebabe', "text"]"#).unwrap();
+        let _bytes_array =
+            parse_dcbor_item(r#"[h'deadbeef', h'cafebabe', "text"]"#).unwrap();
 
         let sequence = SequencePattern::new(vec![
             Pattern::byte_string(hex::decode("deadbeef").unwrap()),

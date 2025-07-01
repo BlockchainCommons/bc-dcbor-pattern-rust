@@ -3,7 +3,7 @@ mod common;
 use dcbor::prelude::*;
 use dcbor_parse::parse_dcbor_item;
 use dcbor_pattern::{
-    format_paths, ArrayPattern, MapPattern, Matcher, Pattern, TaggedPattern
+    ArrayPattern, MapPattern, Matcher, Pattern, TaggedPattern, format_paths,
 };
 use indoc::indoc;
 
