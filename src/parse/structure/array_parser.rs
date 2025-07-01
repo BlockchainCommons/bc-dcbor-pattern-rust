@@ -43,15 +43,8 @@ pub(crate) fn parse_bracket_array(
 
             // Convert quantifier to appropriate ArrayPattern
             let pattern = if let Some(max) = quantifier.max() {
-                if quantifier.min() == max {
-                    // Exact count: {n}
-                    ArrayPattern::with_length(quantifier.min())
-                } else {
-                    // Range: {n,m}
-                    ArrayPattern::with_length_range(quantifier.min()..=max)
-                }
+                ArrayPattern::with_length_range(quantifier.min()..=max)
             } else {
-                // Open-ended range: {n,}
                 ArrayPattern::with_length_range(quantifier.min()..=usize::MAX)
             };
 
@@ -71,7 +64,7 @@ pub(crate) fn parse_bracket_array(
             // This is [] - empty array (no elements)
             lexer.next(); // consume the closing bracket
             Ok(Pattern::Structure(crate::pattern::StructurePattern::Array(
-                ArrayPattern::with_length(0),
+                ArrayPattern::with_length_range(0..=0),
             )))
         }
         _ => {
@@ -221,7 +214,7 @@ mod tests {
         assert_eq!(
             pattern,
             Pattern::Structure(crate::pattern::StructurePattern::Array(
-                ArrayPattern::with_length(0)
+                ArrayPattern::with_length_range(0..=0)
             ))
         );
     }
