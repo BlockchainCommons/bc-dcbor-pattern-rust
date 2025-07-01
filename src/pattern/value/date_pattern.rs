@@ -18,7 +18,7 @@ pub enum DatePattern {
     /// Matches dates that are on or before the specified date.
     Latest(Date),
     /// Matches a date by its ISO-8601 string representation.
-    Iso8601(String),
+    String(String),
     /// Matches dates whose ISO-8601 string representation matches the given
     /// regex pattern.
     Regex(regex::Regex),
@@ -32,7 +32,7 @@ impl PartialEq for DatePattern {
             (DatePattern::Range(a), DatePattern::Range(b)) => a == b,
             (DatePattern::Earliest(a), DatePattern::Earliest(b)) => a == b,
             (DatePattern::Latest(a), DatePattern::Latest(b)) => a == b,
-            (DatePattern::Iso8601(a), DatePattern::Iso8601(b)) => a == b,
+            (DatePattern::String(a), DatePattern::String(b)) => a == b,
             (DatePattern::Regex(a), DatePattern::Regex(b)) => {
                 a.as_str() == b.as_str()
             }
@@ -66,7 +66,7 @@ impl std::hash::Hash for DatePattern {
                 4u8.hash(state);
                 date.hash(state);
             }
-            DatePattern::Iso8601(iso_string) => {
+            DatePattern::String(iso_string) => {
                 5u8.hash(state);
                 iso_string.hash(state);
             }
@@ -103,7 +103,7 @@ impl DatePattern {
     /// Creates a new `DatePattern` that matches a date by its ISO-8601 string
     /// representation.
     pub fn iso8601(iso_string: impl Into<String>) -> Self {
-        DatePattern::Iso8601(iso_string.into())
+        DatePattern::String(iso_string.into())
     }
 
     /// Creates a new `DatePattern` that matches dates whose ISO-8601 string
@@ -127,7 +127,7 @@ impl Matcher for DatePattern {
                         DatePattern::Range(range) => range.contains(&date),
                         DatePattern::Earliest(earliest) => date >= *earliest,
                         DatePattern::Latest(latest) => date <= *latest,
-                        DatePattern::Iso8601(expected_string) => {
+                        DatePattern::String(expected_string) => {
                             date.to_string() == *expected_string
                         }
                         DatePattern::Regex(regex) => {
@@ -178,7 +178,7 @@ impl std::fmt::Display for DatePattern {
             }
             DatePattern::Earliest(date) => write!(f, "date'{}...'", date),
             DatePattern::Latest(date) => write!(f, "date'...{}'", date),
-            DatePattern::Iso8601(iso_string) => {
+            DatePattern::String(iso_string) => {
                 write!(f, "date'{}'", iso_string)
             }
             DatePattern::Regex(regex) => {

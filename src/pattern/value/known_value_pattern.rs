@@ -14,7 +14,7 @@ pub enum KnownValuePattern {
     /// Matches the specific known value.
     Value(KnownValue),
     /// Matches the name of a known value.
-    Named(String),
+    Name(String),
     /// Matches the regex for a known value name.
     Regex(regex::Regex),
 }
@@ -26,7 +26,7 @@ impl PartialEq for KnownValuePattern {
             (KnownValuePattern::Value(a), KnownValuePattern::Value(b)) => {
                 a == b
             }
-            (KnownValuePattern::Named(a), KnownValuePattern::Named(b)) => {
+            (KnownValuePattern::Name(a), KnownValuePattern::Name(b)) => {
                 a == b
             }
             (KnownValuePattern::Regex(a), KnownValuePattern::Regex(b)) => {
@@ -49,7 +49,7 @@ impl std::hash::Hash for KnownValuePattern {
                 1u8.hash(state);
                 s.hash(state);
             }
-            KnownValuePattern::Named(name) => {
+            KnownValuePattern::Name(name) => {
                 2u8.hash(state);
                 name.hash(state);
             }
@@ -71,7 +71,7 @@ impl KnownValuePattern {
 
     /// Creates a new `KnownValuePattern` that matches a known value by name.
     pub fn named(name: impl Into<String>) -> Self {
-        KnownValuePattern::Named(name.into())
+        KnownValuePattern::Name(name.into())
     }
 
     /// Creates a new `KnownValuePattern` that matches the regex for a known
@@ -98,7 +98,7 @@ impl Matcher for KnownValuePattern {
                                 vec![]
                             }
                         }
-                        KnownValuePattern::Named(name) => {
+                        KnownValuePattern::Name(name) => {
                             // Look up the known value by name in the global
                             // registry
                             let binding = KNOWN_VALUES.get();
@@ -173,7 +173,7 @@ impl std::fmt::Display for KnownValuePattern {
             KnownValuePattern::Value(value) => {
                 write!(f, "'{}'", value.name())
             }
-            KnownValuePattern::Named(name) => write!(f, "'{}'", name),
+            KnownValuePattern::Name(name) => write!(f, "'{}'", name),
             KnownValuePattern::Regex(regex) => {
                 write!(f, "'/{}/'", regex.as_str())
             }

@@ -222,7 +222,7 @@ mod tests {
 
         // Should be an array with elements pattern
         if let Pattern::Structure(crate::pattern::StructurePattern::Array(
-            ArrayPattern::WithElements(_),
+            ArrayPattern::Elements(_),
         )) = pattern
         {
             // Test passes

@@ -21,22 +21,20 @@ use crate::pattern::{Matcher, Path, Pattern, vm::Instr};
 /// ]);
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct SequencePattern {
-    patterns: Vec<Pattern>,
-}
+pub struct SequencePattern(Vec<Pattern>);
 
 impl SequencePattern {
     /// Creates a new sequence pattern with the given patterns.
-    pub fn new(patterns: Vec<Pattern>) -> Self { Self { patterns } }
+    pub fn new(patterns: Vec<Pattern>) -> Self { Self(patterns) }
 
     /// Returns a reference to the patterns in this sequence.
-    pub fn patterns(&self) -> &[Pattern] { &self.patterns }
+    pub fn patterns(&self) -> &[Pattern] { &self.0 }
 
     /// Returns true if this sequence is empty.
-    pub fn is_empty(&self) -> bool { self.patterns.is_empty() }
+    pub fn is_empty(&self) -> bool { self.patterns().is_empty() }
 
     /// Returns the number of patterns in this sequence.
-    pub fn len(&self) -> usize { self.patterns.len() }
+    pub fn len(&self) -> usize { self.patterns().len() }
 }
 
 impl Matcher for SequencePattern {
@@ -60,21 +58,21 @@ impl Matcher for SequencePattern {
         literals: &mut Vec<Pattern>,
         captures: &mut Vec<String>,
     ) {
-        if self.patterns.is_empty() {
+        if self.patterns().is_empty() {
             // Empty sequence always matches
             return;
         }
 
-        if self.patterns.len() == 1 {
+        if self.patterns().len() == 1 {
             // Single pattern, just compile it directly
-            self.patterns[0].compile(code, literals, captures);
+            self.patterns()[0].compile(code, literals, captures);
             return;
         }
 
         // Multiple patterns in sequence - use ExtendSequence and
         // CombineSequence to implement proper sequence semantics in the
         // VM
-        for (i, pattern) in self.patterns.iter().enumerate() {
+        for (i, pattern) in self.patterns().iter().enumerate() {
             if i > 0 {
                 // For patterns after the first, extend the sequence to move to
                 // next element
@@ -93,7 +91,7 @@ impl Matcher for SequencePattern {
     }
 
     fn collect_capture_names(&self, names: &mut Vec<String>) {
-        for pattern in &self.patterns {
+        for pattern in self.patterns() {
             pattern.collect_capture_names(names);
         }
     }
@@ -101,7 +99,7 @@ impl Matcher for SequencePattern {
     fn is_complex(&self) -> bool {
         // A sequence is complex if it contains multiple patterns or
         // if any of its patterns are complex
-        self.patterns.len() > 1 || self.patterns.iter().any(|p| p.is_complex())
+        self.patterns().len() > 1 || self.patterns().iter().any(|p| p.is_complex())
     }
 
     fn paths_with_captures(
@@ -117,11 +115,11 @@ impl Matcher for SequencePattern {
 
 impl std::fmt::Display for SequencePattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.patterns.is_empty() {
+        if self.patterns().is_empty() {
             write!(f, "()")
         } else {
             let patterns_str: Vec<String> =
-                self.patterns.iter().map(|p| p.to_string()).collect();
+                self.patterns().iter().map(|p| p.to_string()).collect();
             write!(f, "{}", patterns_str.join(", "))
         }
     }

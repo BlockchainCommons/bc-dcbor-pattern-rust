@@ -228,7 +228,7 @@ mod tests {
         let pattern = Pattern::parse("tagged(/test.*/, text)").unwrap();
         match pattern {
             Pattern::Structure(crate::pattern::StructurePattern::Tagged(
-                TaggedPattern::WithTagNameRegex { .. },
+                TaggedPattern::Regex { .. },
             )) => {} // This is expected
             _ => panic!("Expected TaggedPattern with regex"),
         }
@@ -239,7 +239,7 @@ mod tests {
         let pattern = Pattern::parse("tagged(myTag, number)").unwrap();
         match pattern {
             Pattern::Structure(crate::pattern::StructurePattern::Tagged(
-                TaggedPattern::WithTagName { tag_name, .. },
+                TaggedPattern::Name { name: tag_name, .. },
             )) => {
                 assert_eq!(tag_name, "myTag");
             }
@@ -252,7 +252,7 @@ mod tests {
         let pattern = Pattern::parse("tagged(/^test[0-9]+$/, text)").unwrap();
         match pattern {
             Pattern::Structure(crate::pattern::StructurePattern::Tagged(
-                TaggedPattern::WithTagNameRegex { tag_regex, .. },
+                TaggedPattern::Regex { regex: tag_regex, .. },
             )) => {
                 assert_eq!(tag_regex.as_str(), "^test[0-9]+$");
             }
@@ -265,7 +265,7 @@ mod tests {
         let pattern = Pattern::parse("tagged(0, null)").unwrap();
         match pattern {
             Pattern::Structure(crate::pattern::StructurePattern::Tagged(
-                TaggedPattern::WithTag { tag, .. },
+                TaggedPattern::Tag { tag, .. },
             )) => {
                 assert_eq!(tag.value(), 0);
             }

@@ -17,29 +17,31 @@ pub enum ArrayPattern {
     /// Matches any array.
     Any,
     /// Matches arrays with elements that match the given pattern.
-    WithElements(Box<Pattern>),
+    Elements(Box<Pattern>),
     /// Matches arrays with length in the given interval.
-    WithLengthInterval(Interval),
+    Length(Interval),
 }
 
 impl ArrayPattern {
     /// Creates a new `ArrayPattern` that matches any array.
-    pub fn any() -> Self { ArrayPattern::Any }
+    pub fn any() -> Self {
+        ArrayPattern::Any
+    }
 
     /// Creates a new `ArrayPattern` that matches arrays with elements
     /// that match the given pattern.
     pub fn with_elements(pattern: Pattern) -> Self {
-        ArrayPattern::WithElements(Box::new(pattern))
+        ArrayPattern::Elements(Box::new(pattern))
     }
 
     pub fn with_length_range<R: RangeBounds<usize>>(range: R) -> Self {
-        ArrayPattern::WithLengthInterval(Interval::new(range))
+        ArrayPattern::Length(Interval::new(range))
     }
 
     /// Creates a new `ArrayPattern` that matches arrays with length in the
     /// given range.
     pub fn with_length_interval(interval: Interval) -> Self {
-        ArrayPattern::WithLengthInterval(interval)
+        ArrayPattern::Length(interval)
     }
 
     /// Match a complex sequence against array elements using VM-based matching.
@@ -457,7 +459,7 @@ impl Matcher for ArrayPattern {
                         // Match any array - return the array itself
                         vec![vec![cbor.clone()]]
                     }
-                    ArrayPattern::WithElements(pattern) => {
+                    ArrayPattern::Elements(pattern) => {
                         // For unified syntax, the pattern should match against
                         // the array elements
                         // as a sequence, not against any individual element.
@@ -579,7 +581,7 @@ impl Matcher for ArrayPattern {
                             }
                         }
                     }
-                    ArrayPattern::WithLengthInterval(interval) => {
+                    ArrayPattern::Length(interval) => {
                         if interval.contains(arr.len()) {
                             vec![vec![cbor.clone()]]
                         } else {
@@ -618,7 +620,7 @@ impl Matcher for ArrayPattern {
         } else {
             // Has captures, compile to VM navigation instructions
             match self {
-                ArrayPattern::WithElements(pattern) => {
+                ArrayPattern::Elements(pattern) => {
                     // First check that we have an array
                     let array_check_idx = literals.len();
                     literals.push(Pattern::Structure(
@@ -658,11 +660,11 @@ impl Matcher for ArrayPattern {
             ArrayPattern::Any => {
                 // No captures in a simple any pattern
             }
-            ArrayPattern::WithElements(pattern) => {
+            ArrayPattern::Elements(pattern) => {
                 // Collect captures from the element pattern
                 pattern.collect_capture_names(names);
             }
-            ArrayPattern::WithLengthInterval(_) => {
+            ArrayPattern::Length(_) => {
                 // No captures in length range patterns
             }
         }
@@ -674,10 +676,10 @@ impl Matcher for ArrayPattern {
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         // For simple cases that never have captures, use the fast path
         match self {
-            ArrayPattern::Any | ArrayPattern::WithLengthInterval(_) => {
+            ArrayPattern::Any | ArrayPattern::Length(_) => {
                 return (self.paths(cbor), std::collections::HashMap::new());
             }
-            ArrayPattern::WithElements(pattern) => {
+            ArrayPattern::Elements(pattern) => {
                 // Check if this specific pattern has any captures
                 let mut capture_names = Vec::new();
                 pattern.collect_capture_names(&mut capture_names);
@@ -698,7 +700,7 @@ impl Matcher for ArrayPattern {
 
         match cbor.as_case() {
             CBORCase::Array(_arr) => {
-                if let ArrayPattern::WithElements(pattern) = self {
+                if let ArrayPattern::Elements(pattern) = self {
                     // First check if this array pattern matches at all
                     if self.paths(cbor).is_empty() {
                         return (vec![], std::collections::HashMap::new());
@@ -830,12 +832,12 @@ impl std::fmt::Display for ArrayPattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ArrayPattern::Any => write!(f, "[*]"),
-            ArrayPattern::WithElements(pattern) => {
+            ArrayPattern::Elements(pattern) => {
                 let formatted_pattern =
                     Self::format_array_element_pattern(pattern);
                 write!(f, "[{}]", formatted_pattern)
             }
-            ArrayPattern::WithLengthInterval(interval) => {
+            ArrayPattern::Length(interval) => {
                 write!(f, "[{}]", interval)
             }
         }

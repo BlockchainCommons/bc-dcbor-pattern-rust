@@ -10,7 +10,7 @@ pub enum ByteStringPattern {
     /// Matches the specific byte string.
     Value(Vec<u8>),
     /// Matches the binary regex for a byte string.
-    Regex(regex::bytes::Regex),
+    BinaryRegex(regex::bytes::Regex),
 }
 
 impl PartialEq for ByteStringPattern {
@@ -20,7 +20,7 @@ impl PartialEq for ByteStringPattern {
             (ByteStringPattern::Value(a), ByteStringPattern::Value(b)) => {
                 a == b
             }
-            (ByteStringPattern::Regex(a), ByteStringPattern::Regex(b)) => {
+            (ByteStringPattern::BinaryRegex(a), ByteStringPattern::BinaryRegex(b)) => {
                 a.as_str() == b.as_str()
             }
             _ => false,
@@ -40,7 +40,7 @@ impl std::hash::Hash for ByteStringPattern {
                 1u8.hash(state);
                 s.hash(state);
             }
-            ByteStringPattern::Regex(regex) => {
+            ByteStringPattern::BinaryRegex(regex) => {
                 2u8.hash(state);
                 // Regex does not implement Hash, so we hash its pattern string.
                 regex.as_str().hash(state);
@@ -61,7 +61,7 @@ impl ByteStringPattern {
     /// Creates a new `ByteStringPattern` that matches the binary regex for a
     /// byte string.
     pub fn regex(regex: regex::bytes::Regex) -> Self {
-        ByteStringPattern::Regex(regex)
+        ByteStringPattern::BinaryRegex(regex)
     }
 }
 
@@ -70,7 +70,7 @@ impl Matcher for ByteStringPattern {
         let is_hit = cbor.as_byte_string().is_some_and(|bytes| match self {
             ByteStringPattern::Any => true,
             ByteStringPattern::Value(want) => bytes == want,
-            ByteStringPattern::Regex(regex) => regex.is_match(bytes),
+            ByteStringPattern::BinaryRegex(regex) => regex.is_match(bytes),
         });
 
         if is_hit {
@@ -101,7 +101,7 @@ impl std::fmt::Display for ByteStringPattern {
             ByteStringPattern::Value(value) => {
                 write!(f, "h'{}'", hex::encode(value))
             }
-            ByteStringPattern::Regex(regex) => {
+            ByteStringPattern::BinaryRegex(regex) => {
                 write!(f, "h'/{}/'", regex.as_str())
             }
         }

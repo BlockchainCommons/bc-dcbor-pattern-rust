@@ -10,7 +10,7 @@ pub enum NumberPattern {
     /// Matches any number.
     Any,
     /// Matches the exact number.
-    Exact(f64),
+    Value(f64),
     /// Matches numbers within a range, inclusive (..=).
     Range(RangeInclusive<f64>),
     /// Matches numbers that are greater than the specified value.
@@ -33,7 +33,7 @@ impl std::hash::Hash for NumberPattern {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         match self {
             NumberPattern::Any => 0u8.hash(state),
-            NumberPattern::Exact(value) => {
+            NumberPattern::Value(value) => {
                 1u8.hash(state);
                 value.to_bits().hash(state);
             }
@@ -69,7 +69,7 @@ impl PartialEq for NumberPattern {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (NumberPattern::Any, NumberPattern::Any) => true,
-            (NumberPattern::Exact(a), NumberPattern::Exact(b)) => a == b,
+            (NumberPattern::Value(a), NumberPattern::Value(b)) => a == b,
             (NumberPattern::Range(a), NumberPattern::Range(b)) => a == b,
             (NumberPattern::GreaterThan(a), NumberPattern::GreaterThan(b)) => {
                 a == b
@@ -95,14 +95,16 @@ impl Eq for NumberPattern {}
 
 impl NumberPattern {
     /// Creates a new `NumberPattern` that matches any number.
-    pub fn any() -> Self { NumberPattern::Any }
+    pub fn any() -> Self {
+        NumberPattern::Any
+    }
 
     /// Creates a new `NumberPattern` that matches the exact number.
-    pub fn exact<T>(value: T) -> Self
+    pub fn value<T>(value: T) -> Self
     where
         T: Into<f64>,
     {
-        NumberPattern::Exact(value.into())
+        NumberPattern::Value(value.into())
     }
 
     /// Creates a new `NumberPattern` that matches numbers within the specified
@@ -153,20 +155,26 @@ impl NumberPattern {
     }
 
     /// Creates a new `NumberPattern` that matches NaN values.
-    pub fn nan() -> Self { NumberPattern::NaN }
+    pub fn nan() -> Self {
+        NumberPattern::NaN
+    }
 
     /// Creates a new `NumberPattern` that matches positive infinity.
-    pub fn infinity() -> Self { NumberPattern::Infinity }
+    pub fn infinity() -> Self {
+        NumberPattern::Infinity
+    }
 
     /// Creates a new `NumberPattern` that matches negative infinity.
-    pub fn neg_infinity() -> Self { NumberPattern::NegInfinity }
+    pub fn neg_infinity() -> Self {
+        NumberPattern::NegInfinity
+    }
 }
 
 impl Matcher for NumberPattern {
     fn paths(&self, cbor: &CBOR) -> Vec<Path> {
         let is_hit = match self {
             NumberPattern::Any => cbor.is_number(),
-            NumberPattern::Exact(want) => {
+            NumberPattern::Value(want) => {
                 if let Ok(value) = f64::try_from_cbor(cbor) {
                     value == *want
                 } else {
@@ -256,7 +264,7 @@ impl std::fmt::Display for NumberPattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             NumberPattern::Any => write!(f, "number"),
-            NumberPattern::Exact(value) => write!(f, "{}", value),
+            NumberPattern::Value(value) => write!(f, "{}", value),
             NumberPattern::Range(range) => {
                 write!(f, "{}...{}", range.start(), range.end())
             }
@@ -284,7 +292,7 @@ mod tests {
     #[test]
     fn test_number_pattern_display() {
         assert_eq!(NumberPattern::any().to_string(), "number");
-        assert_eq!(NumberPattern::exact(42.0).to_string(), "42");
+        assert_eq!(NumberPattern::value(42.0).to_string(), "42");
         assert_eq!(NumberPattern::range(1.0..=10.0).to_string(), "1...10");
         assert_eq!(NumberPattern::greater_than(5.0).to_string(), ">5");
         assert_eq!(
@@ -315,7 +323,7 @@ mod tests {
         assert!(!any_pattern.matches(&text_cbor));
 
         // Test exact patterns
-        let exact_pattern = NumberPattern::exact(42.0);
+        let exact_pattern = NumberPattern::value(42.0);
         assert!(exact_pattern.matches(&int_cbor));
         assert!(!exact_pattern.matches(&float_cbor));
         assert!(!exact_pattern.matches(&text_cbor));
@@ -360,7 +368,7 @@ mod tests {
         let text_paths = any_pattern.paths(&text_cbor);
         assert_eq!(text_paths.len(), 0);
 
-        let exact_pattern = NumberPattern::exact(42.0);
+        let exact_pattern = NumberPattern::value(42.0);
         let paths = exact_pattern.paths(&int_cbor);
         assert_eq!(paths.len(), 1);
         assert_eq!(paths[0].len(), 1);

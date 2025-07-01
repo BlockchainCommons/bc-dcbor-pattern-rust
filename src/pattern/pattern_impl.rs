@@ -41,7 +41,7 @@ impl Pattern {
         T: Into<f64>,
     {
         Pattern::Value(ValuePattern::Number(
-            crate::pattern::value::NumberPattern::exact(value),
+            crate::pattern::value::NumberPattern::value(value),
         ))
     }
 

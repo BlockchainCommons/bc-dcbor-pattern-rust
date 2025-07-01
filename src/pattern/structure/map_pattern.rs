@@ -14,39 +14,41 @@ pub enum MapPattern {
     Any,
     /// Matches maps with multiple key-value constraints that must all be
     /// satisfied.
-    WithKeyValueConstraints(Vec<(Pattern, Pattern)>),
+    Constraints(Vec<(Pattern, Pattern)>),
     /// Matches maps with number of key-value pairs in the given interval.
-    WithLengthInterval(Interval),
+    Length(Interval),
 }
 
 impl MapPattern {
     /// Creates a new `MapPattern` that matches any map.
-    pub fn any() -> Self { MapPattern::Any }
+    pub fn any() -> Self {
+        MapPattern::Any
+    }
 
     /// Creates a new `MapPattern` that matches maps with multiple key-value
     /// constraints that must all be satisfied.
     pub fn with_key_value_constraints(
         constraints: Vec<(Pattern, Pattern)>,
     ) -> Self {
-        MapPattern::WithKeyValueConstraints(constraints)
+        MapPattern::Constraints(constraints)
     }
 
     /// Creates a new `MapPattern` that matches maps with a specific number of
     /// key-value pairs.
     pub fn with_length(length: usize) -> Self {
-        MapPattern::WithLengthInterval(Interval::new(length..=length))
+        MapPattern::Length(Interval::new(length..=length))
     }
 
     /// Creates a new `MapPattern` that matches maps with number of key-value
     /// pairs in the given range.
     pub fn with_length_range<R: RangeBounds<usize>>(range: R) -> Self {
-        MapPattern::WithLengthInterval(Interval::new(range))
+        MapPattern::Length(Interval::new(range))
     }
 
     /// Creates a new `MapPattern` that matches maps with number of key-value
     /// pairs in the given range.
     pub fn with_length_interval(interval: Interval) -> Self {
-        MapPattern::WithLengthInterval(interval)
+        MapPattern::Length(interval)
     }
 }
 
@@ -60,7 +62,7 @@ impl Matcher for MapPattern {
                         // Match any map - return the map itself
                         vec![vec![cbor.clone()]]
                     }
-                    MapPattern::WithKeyValueConstraints(constraints) => {
+                    MapPattern::Constraints(constraints) => {
                         // All constraints must be satisfied
                         for (key_pattern, value_pattern) in constraints {
                             let mut found_match = false;
@@ -78,7 +80,7 @@ impl Matcher for MapPattern {
                         }
                         vec![vec![cbor.clone()]]
                     }
-                    MapPattern::WithLengthInterval(interval) => {
+                    MapPattern::Length(interval) => {
                         if interval.contains(map.len()) {
                             vec![vec![cbor.clone()]]
                         } else {
@@ -115,14 +117,14 @@ impl Matcher for MapPattern {
             MapPattern::Any => {
                 // No captures in a simple any pattern
             }
-            MapPattern::WithKeyValueConstraints(constraints) => {
+            MapPattern::Constraints(constraints) => {
                 // Collect captures from all key and value patterns
                 for (key_pattern, value_pattern) in constraints {
                     key_pattern.collect_capture_names(names);
                     value_pattern.collect_capture_names(names);
                 }
             }
-            MapPattern::WithLengthInterval(_) => {
+            MapPattern::Length(_) => {
                 // No captures in length interval patterns
             }
         }
@@ -142,7 +144,7 @@ impl Matcher for MapPattern {
                 // Matches any map, no captures
                 (vec![vec![cbor.clone()]], std::collections::HashMap::new())
             }
-            MapPattern::WithKeyValueConstraints(constraints) => {
+            MapPattern::Constraints(constraints) => {
                 // Match if all key-value constraints are satisfied
                 let mut all_captures = std::collections::HashMap::new();
                 let mut all_constraints_satisfied = true;
@@ -214,7 +216,7 @@ impl std::fmt::Display for MapPattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             MapPattern::Any => write!(f, "{{*}}"),
-            MapPattern::WithKeyValueConstraints(constraints) => {
+            MapPattern::Constraints(constraints) => {
                 write!(f, "{{")?;
                 for (i, (key_pattern, value_pattern)) in
                     constraints.iter().enumerate()
@@ -226,7 +228,7 @@ impl std::fmt::Display for MapPattern {
                 }
                 write!(f, "}}")
             }
-            MapPattern::WithLengthInterval(interval) => {
+            MapPattern::Length(interval) => {
                 write!(f, "{{{}}}", interval)
             }
         }

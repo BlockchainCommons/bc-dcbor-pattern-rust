@@ -153,9 +153,7 @@ mod tests {
         let interval = Interval::new(3..=3);
         assert!(matches!(
             pattern,
-            Pattern::Structure(StructurePattern::Map(
-                MapPattern::WithLengthInterval(i)
-            ))
+            Pattern::Structure(StructurePattern::Map(MapPattern::Length(i)))
         ));
     }
 
@@ -164,14 +162,12 @@ mod tests {
         let pattern = Pattern::parse("{{2,5}}").unwrap();
         assert!(matches!(
             pattern,
-            Pattern::Structure(StructurePattern::Map(
-                MapPattern::WithLengthInterval(_)
-            ))
+            Pattern::Structure(StructurePattern::Map(MapPattern::Length(_)))
         ));
 
-        if let Pattern::Structure(StructurePattern::Map(
-            MapPattern::WithLengthInterval(interval),
-        )) = pattern
+        if let Pattern::Structure(StructurePattern::Map(MapPattern::Length(
+            interval,
+        ))) = pattern
         {
             assert_eq!(interval, Interval::new(2..=5));
         }
@@ -182,14 +178,12 @@ mod tests {
         let pattern = Pattern::parse("{{3,}}").unwrap();
         assert!(matches!(
             pattern,
-            Pattern::Structure(StructurePattern::Map(
-                MapPattern::WithLengthInterval(_)
-            ))
+            Pattern::Structure(StructurePattern::Map(MapPattern::Length(_)))
         ));
 
-        if let Pattern::Structure(StructurePattern::Map(
-            MapPattern::WithLengthInterval(interval),
-        )) = pattern
+        if let Pattern::Structure(StructurePattern::Map(MapPattern::Length(
+            interval,
+        ))) = pattern
         {
             assert_eq!(interval, Interval::new(3..));
         }
@@ -201,9 +195,9 @@ mod tests {
             Pattern::parse(r#"{"key": text, number: "value"}"#).unwrap();
         assert!(matches!(
             pattern,
-            Pattern::Structure(StructurePattern::Map(
-                MapPattern::WithKeyValueConstraints(_)
-            ))
+            Pattern::Structure(StructurePattern::Map(MapPattern::Constraints(
+                _
+            )))
         ));
     }
 }
