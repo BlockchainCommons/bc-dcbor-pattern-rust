@@ -102,7 +102,7 @@ mod test_capture_behavior {
         // Let's test what syntax actually works for finding 42 within any array
 
         // Approach 1: Use search pattern
-        let search_pattern = Pattern::parse("SEARCH(@item(42))");
+        let search_pattern = Pattern::parse("search(@item(42))");
         match search_pattern {
             Ok(pattern) => {
                 let (paths, captures) = pattern.paths_with_captures(&cbor_data);
@@ -138,7 +138,7 @@ mod test_capture_behavior {
         }
 
         // This test documents current behavior and explores syntax options
-        // The SEARCH pattern works correctly for finding elements within arrays
+        // The `search` pattern works correctly for finding elements within arrays
     }
 
     #[test]

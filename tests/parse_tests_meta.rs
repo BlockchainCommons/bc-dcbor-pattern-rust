@@ -267,88 +267,88 @@ fn test_grouping_functionality() -> Result<()> {
     Ok(())
 }
 
-/// Test SEARCH pattern parsing
+/// Test `search` pattern parsing
 #[test]
 fn test_parse_search_simple() -> Result<()> {
-    let pattern = Pattern::parse("SEARCH(42)")?;
+    let pattern = Pattern::parse("search(42)")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
 
     // Test display formatting
-    assert_eq!(pattern.to_string(), "SEARCH(42)");
+    assert_eq!(pattern.to_string(), "search(42)");
     Ok(())
 }
 
 #[test]
 fn test_parse_search_with_text() -> Result<()> {
-    let pattern = Pattern::parse(r#"SEARCH("hello")"#)?;
+    let pattern = Pattern::parse(r#"search("hello")"#)?;
     assert!(matches!(pattern, Pattern::Meta(_)));
 
     // Test display formatting
-    assert_eq!(pattern.to_string(), r#"SEARCH("hello")"#);
+    assert_eq!(pattern.to_string(), r#"search("hello")"#);
     Ok(())
 }
 
 #[test]
 fn test_parse_search_with_any() -> Result<()> {
-    let pattern = Pattern::parse("SEARCH(*)")?;
+    let pattern = Pattern::parse("search(*)")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
 
     // Test display formatting
-    assert_eq!(pattern.to_string(), "SEARCH(*)");
+    assert_eq!(pattern.to_string(), "search(*)");
     Ok(())
 }
 
 #[test]
 fn test_parse_search_with_complex_pattern() -> Result<()> {
-    let pattern = Pattern::parse("SEARCH(bool | text)")?;
+    let pattern = Pattern::parse("search(bool | text)")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
 
     // Test display formatting
-    assert_eq!(pattern.to_string(), "SEARCH(bool | text)");
+    assert_eq!(pattern.to_string(), "search(bool | text)");
     Ok(())
 }
 
 #[test]
 fn test_parse_search_with_capture() -> Result<()> {
-    let pattern = Pattern::parse("SEARCH(@found(42))")?;
+    let pattern = Pattern::parse("search(@found(42))")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
 
     // Test display formatting
-    assert_eq!(pattern.to_string(), "SEARCH(@found(42))");
+    assert_eq!(pattern.to_string(), "search(@found(42))");
     Ok(())
 }
 
 #[test]
 fn test_parse_search_with_nested_structure() -> Result<()> {
-    let pattern = Pattern::parse("SEARCH([*])")?;
+    let pattern = Pattern::parse("search([*])")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
 
     // Test display formatting
-    assert_eq!(pattern.to_string(), "SEARCH([*])");
+    assert_eq!(pattern.to_string(), "search([*])");
     Ok(())
 }
 
 #[test]
 fn test_parse_search_errors() {
     // Missing opening parenthesis
-    assert!(Pattern::parse("SEARCH 42").is_err());
+    assert!(Pattern::parse("search 42").is_err());
 
     // Missing closing parenthesis
-    assert!(Pattern::parse("SEARCH(42").is_err());
+    assert!(Pattern::parse("search(42").is_err());
 
     // Empty search pattern
-    assert!(Pattern::parse("SEARCH()").is_err());
+    assert!(Pattern::parse("search()").is_err());
 }
 
 /// Test combinations with search patterns
 #[test]
 fn test_parse_search_in_combinations() -> Result<()> {
     // Search within OR pattern
-    let pattern = Pattern::parse("SEARCH(42) | text")?;
+    let pattern = Pattern::parse("search(42) | text")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
 
     // AND with search
-    let pattern = Pattern::parse("SEARCH(42) & SEARCH(text)")?;
+    let pattern = Pattern::parse("search(42) & search(text)")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
 
     Ok(())

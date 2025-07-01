@@ -587,8 +587,8 @@ fn test_search_pattern_basic() {
     assert!(!pattern.matches(&cbor("[1, 2, 3]")));
     assert!(!pattern.matches(&cbor("{1: 2}")));
 
-    // Display should show SEARCH(...)
-    assert_eq!(pattern.to_string(), "SEARCH(42)");
+    // Display should show `search(...)`
+    assert_eq!(pattern.to_string(), "search(42)");
 }
 
 #[test]
@@ -626,8 +626,8 @@ fn test_search_pattern_text() {
     // Test that it doesn't match when the text is not present
     assert!(!pattern.matches(&cbor(r#"["goodbye", "world"]"#)));
 
-    // Display should show SEARCH(...)
-    assert_eq!(pattern.to_string(), r#"SEARCH("hello")"#);
+    // Display should show `search(...)`
+    assert_eq!(pattern.to_string(), r#"search("hello")"#);
 }
 
 #[test]
@@ -665,8 +665,8 @@ fn test_search_pattern_any() {
     let expected = "{}";
     assert_actual_expected!(format_paths(&paths), expected);
 
-    // Display should show SEARCH(*)
-    assert_eq!(pattern.to_string(), "SEARCH(*)");
+    // Display should show `search(*)`
+    assert_eq!(pattern.to_string(), "search(*)");
 }
 
 #[test]
@@ -726,7 +726,7 @@ fn test_search_pattern_with_captures() {
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Display should show the capture in the search
-    assert_eq!(pattern.to_string(), "SEARCH(@found(42))");
+    assert_eq!(pattern.to_string(), "search(@found(42))");
 }
 
 #[test]
@@ -803,7 +803,7 @@ fn test_search_pattern_with_structure_pattern() {
 #[test]
 fn test_search_array_order() {
     let data = cbor(r#"[[1, 2, 3], [4, 5, 6]]"#);
-    let pattern = Pattern::parse("SEARCH([*])").unwrap();
+    let pattern = Pattern::parse("search([*])").unwrap();
 
     let paths = pattern.paths(&data);
     #[rustfmt::skip]
@@ -816,7 +816,7 @@ fn test_search_array_order() {
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 
-    let pattern = Pattern::parse("SEARCH(number)").unwrap();
+    let pattern = Pattern::parse("search(number)").unwrap();
     let paths = pattern.paths(&data);
     #[rustfmt::skip]
     let expected = indoc! {r#"

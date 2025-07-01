@@ -12,7 +12,7 @@ use crate::{Error, MapPattern, Pattern, Result};
 /// Parse a primary pattern - the most basic unit of pattern matching.
 ///
 /// This parser handles:
-/// - *, NONE, and SEARCH meta patterns
+/// - * and search meta patterns
 /// - Parenthesized group patterns
 /// - Capture patterns (@name(...))
 /// - All atomic value patterns (bool, text, number, etc.)

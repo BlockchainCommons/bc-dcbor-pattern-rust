@@ -118,7 +118,7 @@ fn test_large_array_with_search_performance() {
     // Search pattern that needs to traverse a large structure
     #[rustfmt::skip]
     let pattern = Pattern::parse(r#"
-        SEARCH("needle")
+        search("needle")
     "#).unwrap();
     let pattern_creation_time = start.elapsed();
 

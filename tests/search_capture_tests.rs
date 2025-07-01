@@ -14,7 +14,7 @@ fn parse(s: &str) -> Pattern { Pattern::parse(s).unwrap() }
 
 #[test]
 fn test_search_capture_basic() {
-    let pattern = parse("SEARCH(@found(42))");
+    let pattern = parse("search(@found(42))");
     let cbor_data = cbor(r#"[1, [2, 42], 3]"#);
 
     // Test regular paths first
@@ -53,7 +53,7 @@ fn test_search_capture_basic() {
     assert!(captures.contains_key("found"));
     let captured_paths = &captures["found"];
     assert_eq!(captured_paths.len(), 1);
-    // SEARCH captures include the full path to the found element
+    // `search` captures include the full path to the found element
     assert_eq!(
         captured_paths[0],
         vec![cbor(r#"[1, [2, 42], 3]"#), cbor(r#"[2, 42]"#), cbor("42")]
@@ -62,7 +62,7 @@ fn test_search_capture_basic() {
 
 #[test]
 fn test_search_capture_multiple_matches() {
-    let pattern = parse("SEARCH(@target(42))");
+    let pattern = parse("search(@target(42))");
     let cbor_data = cbor(r#"[42, [2, 42], {"key": 42}]"#);
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
@@ -99,7 +99,7 @@ fn test_search_capture_multiple_matches() {
 
 #[test]
 fn test_search_capture_nested_structure() {
-    let pattern = parse(r#"SEARCH(@deep("target"))"#);
+    let pattern = parse(r#"search(@deep("target"))"#);
     let cbor_data = cbor(r#"{"level1": {"level2": {"level3": "target"}}}"#);
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
@@ -128,7 +128,7 @@ fn test_search_capture_nested_structure() {
 
 #[test]
 fn test_search_capture_with_array_elements() {
-    let pattern = parse("SEARCH(@item([*]))");
+    let pattern = parse("search(@item([*]))");
     let cbor_data = cbor(r#"[1, [2, 3], {"arrays": [4, 5, 6]}]"#);
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
@@ -161,7 +161,7 @@ fn test_search_capture_with_array_elements() {
 
 #[test]
 fn test_search_capture_collect_names() {
-    let pattern = parse("SEARCH(@first(number)) | SEARCH(@second(text))");
+    let pattern = parse("search(@first(number)) | search(@second(text))");
 
     let mut capture_names = Vec::new();
     pattern.collect_capture_names(&mut capture_names);
@@ -174,7 +174,7 @@ fn test_search_capture_collect_names() {
 
 #[test]
 fn test_search_capture_no_match() {
-    let pattern = parse("SEARCH(@notfound(999))");
+    let pattern = parse("search(@notfound(999))");
     let cbor_data = cbor(r#"[1, [2, 42], 3]"#);
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
@@ -192,7 +192,7 @@ fn test_search_capture_no_match() {
 
 #[test]
 fn test_search_capture_complex_pattern() {
-    let pattern = parse(r#"SEARCH(@found({"id": @id_value(number)}))"#);
+    let pattern = parse(r#"search(@found({"id": @id_value(number)}))"#);
     let cbor_data = cbor(
         r#"{"users": [{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]}"#,
     );
@@ -234,7 +234,7 @@ fn test_search_capture_complex_pattern() {
 
 #[test]
 fn test_search_capture_api_consistency() {
-    let pattern = parse("SEARCH(@item(42))");
+    let pattern = parse("search(@item(42))");
     let cbor_data = cbor(r#"[1, 42, 3]"#);
 
     // Test that both direct and API methods give same results

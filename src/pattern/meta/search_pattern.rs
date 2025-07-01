@@ -237,6 +237,6 @@ impl Matcher for SearchPattern {
 
 impl std::fmt::Display for SearchPattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "SEARCH({})", self.pattern())
+        write!(f, "search({})", self.pattern())
     }
 }

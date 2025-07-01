@@ -82,7 +82,7 @@ pub enum Token {
     DigestQuoted(Result<DigestPattern>),
 
     // Meta Pattern Keywords
-    #[token("SEARCH")]
+    #[token("search")]
     Search,
 
     // Special literals

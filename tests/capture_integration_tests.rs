@@ -251,7 +251,7 @@ fn test_capture_in_map() -> Result<()> {
 /// Test captures with search patterns
 #[test]
 fn test_capture_with_search() -> Result<()> {
-    let pattern = Pattern::parse("SEARCH(@found(42))")?;
+    let pattern = Pattern::parse("search(@found(42))")?;
     let cbor = parse_dcbor_item(r#"[1, [2, 42], 3]"#).unwrap();
 
     let (paths, captures) = pattern.paths_with_captures(&cbor);
@@ -317,7 +317,7 @@ fn test_capture_performance() -> Result<()> {
     .unwrap();
 
     // Pattern that will search through the structure
-    let pattern = Pattern::parse("SEARCH(@nums(number))")?;
+    let pattern = Pattern::parse("search(@nums(number))")?;
 
     let start = std::time::Instant::now();
     let (paths, captures) = pattern.paths_with_captures(&cbor);
