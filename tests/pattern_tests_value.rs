@@ -2,14 +2,18 @@ mod common;
 
 use dcbor::prelude::*;
 use dcbor_parse::parse_dcbor_item;
-use dcbor_pattern::{Matcher, Pattern, format_paths};
+use dcbor_pattern::{format_paths, Matcher, Pattern};
 use indoc::indoc;
 
 /// Helper function to parse CBOR diagnostic notation into CBOR objects
-fn cbor(s: &str) -> CBOR { parse_dcbor_item(s).unwrap() }
+fn cbor(s: &str) -> CBOR {
+    parse_dcbor_item(s).unwrap()
+}
 
 /// Helper function to parse pattern text into Pattern objects
-fn parse(s: &str) -> Pattern { Pattern::parse(s).unwrap() }
+fn parse(s: &str) -> Pattern {
+    Pattern::parse(s).unwrap()
+}
 
 #[test]
 fn test_bool_pattern_any() {
@@ -1038,13 +1042,96 @@ fn test_known_value_pattern_display() {
 }
 
 #[test]
-fn test_map_pattern() {
+fn test_map_int_keys() {
     let map_pattern = Pattern::parse(r#"{1: text}"#).unwrap();
     let cbor = parse_dcbor_item(r#"{1: "first", 2: "second"}"#).unwrap();
     let paths = map_pattern.paths(&cbor);
     #[rustfmt::skip]
     let expected = indoc! {r#"
         {1: "first", 2: "second"}
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+}
+
+#[test]
+fn test_map_negative_keys() {
+    let map_pattern = Pattern::parse(r#"{-1: text}"#).unwrap();
+    let cbor = parse_dcbor_item(r#"{-1: "first", 2: "second"}"#).unwrap();
+    let paths = map_pattern.paths(&cbor);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        {2: "second", -1: "first"}
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+}
+
+#[test]
+fn test_map_float_keys() {
+    let map_pattern = Pattern::parse(r#"{3.2222: text}"#).unwrap();
+    let cbor = parse_dcbor_item(r#"{3.2222: "first", 2: "second"}"#).unwrap();
+    let paths = map_pattern.paths(&cbor);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        {2: "second", 3.2222: "first"}
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+}
+
+#[test]
+fn test_map_bool_keys() {
+    let map_pattern = Pattern::parse(r#"{true: text}"#).unwrap();
+    let cbor = parse_dcbor_item(r#"{true: "first", false: "second"}"#).unwrap();
+    let paths = map_pattern.paths(&cbor);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        {false: "second", true: "first"}
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+}
+
+#[test]
+fn test_map_bstr_keys() {
+    let map_pattern = Pattern::parse(r#"{h'68656c6c6f': text}"#).unwrap();
+    let cbor = parse_dcbor_item(
+        r#"{h'68656c6c6f': "first", h'776f726c64': "second"}"#,
+    )
+    .unwrap();
+    let paths = map_pattern.paths(&cbor);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        {h'68656c6c6f': "first", h'776f726c64': "second"}
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+}
+
+#[test]
+fn test_map_known_value_keys() {
+    bc_components::register_tags();
+    let map_pattern = Pattern::parse(r#"{'100': text}"#).unwrap();
+    let cbor =
+        parse_dcbor_item(r#"{'100': "first", '200': "second"}"#).unwrap();
+    let paths = map_pattern.paths(&cbor);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        {40000(100): "first", 40000(200): "second"}
+    "#}.trim();
+    assert_actual_expected!(
+        format_paths(&paths),
+        expected
+    );
+}
+
+#[test]
+fn test_map_complex_keys() {
+    let map_pattern = Pattern::parse(r#"{"a"|"b": text}"#).unwrap();
+    let cbor = parse_dcbor_item(
+        r#"{"z": "first", "b": "second"}"#,
+    )
+    .unwrap();
+    let paths = map_pattern.paths(&cbor);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        {"z": "first", "b": "second"}
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 }

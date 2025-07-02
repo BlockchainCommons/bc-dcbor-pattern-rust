@@ -526,23 +526,82 @@ fn parse_brace_open(lex: &mut Lexer<Token>) -> Token {
     let remainder = lex.remainder();
 
     // Skip whitespace and see if we have a digit pattern
-    let chars = remainder.chars();
+    let mut chars = remainder.chars();
+    let mut pos = 0;
 
     // Skip whitespace
-    for ch in chars {
+    while let Some(ch) = chars.next() {
         if !matches!(ch, ' ' | '\t' | '\n' | '\r' | '\u{0c}') {
-            // If the first non-whitespace character is a digit, try to parse as
-            // Range
+            // If the first non-whitespace character is a digit, we need to look ahead further
+            // to determine if this is really a range pattern or a map key-value constraint
             if ch.is_ascii_digit() {
-                let quantifier_result = parse_range_from_remainder(lex);
-                return Token::Range(quantifier_result);
+                // Look ahead to see if this looks like a range pattern
+                if looks_like_range_pattern(&remainder[pos..]) {
+                    let quantifier_result = parse_range_from_remainder(lex);
+                    return Token::Range(quantifier_result);
+                }
             }
             // Otherwise, it's just a regular BraceOpen
             break;
         }
+        pos += ch.len_utf8();
     }
 
     Token::BraceOpen
+}
+
+/// Helper function to determine if the content after `{` looks like a range pattern
+fn looks_like_range_pattern(content: &str) -> bool {
+    let mut chars = content.chars();
+    let mut has_digit = false;
+    
+    // Skip whitespace
+    while let Some(ch) = chars.next() {
+        if matches!(ch, ' ' | '\t' | '\n' | '\r' | '\u{0c}') {
+            continue;
+        } else if ch.is_ascii_digit() {
+            has_digit = true;
+            break;
+        } else {
+            return false;
+        }
+    }
+    
+    if !has_digit {
+        return false;
+    }
+    
+    // Skip remaining digits
+    while let Some(ch) = chars.next() {
+        if ch.is_ascii_digit() {
+            continue;
+        } else {
+            // After digits, we should see whitespace, comma, or closing brace for a range
+            // If we see a colon, it's definitely a map key-value constraint
+            if ch == ':' {
+                return false;
+            }
+            // Skip whitespace
+            if matches!(ch, ' ' | '\t' | '\n' | '\r' | '\u{0c}') {
+                // Continue to look for comma or closing brace
+                while let Some(next_ch) = chars.next() {
+                    if matches!(next_ch, ' ' | '\t' | '\n' | '\r' | '\u{0c}') {
+                        continue;
+                    } else if next_ch == ',' || next_ch == '}' {
+                        return true;
+                    } else if next_ch == ':' {
+                        return false;
+                    } else {
+                        return false;
+                    }
+                }
+            }
+            // First non-digit, non-whitespace char should be comma or closing brace
+            return ch == ',' || ch == '}';
+        }
+    }
+    
+    false
 }
 
 /// Helper function to parse a range pattern from the current position
