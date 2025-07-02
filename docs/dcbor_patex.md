@@ -109,7 +109,7 @@ Structure patterns match parts of dCBOR items.
         - Matches an array with between `n` and `m` elements, inclusive.
     - `[{n,}]`
         - Matches an array with at least `n` elements.
-    - `[pattern]`
+    - `[patex]`
         - Matches an array where the elements match the specified pattern. The pattern can be a simple pattern, a sequence of patterns, or patterns with repeat quantifiers.
         - Examples:
             - `[42]` - Array containing exactly one element: the number 42
@@ -126,16 +126,16 @@ Structure patterns match parts of dCBOR items.
         - Matches a map with between `n` and `m` entries, inclusive.
     - `{{n,}}`
         - Matches a map with at least `n` entries.
-    - `{pattern: pattern, pattern: pattern, ...}`
+    - `{patex: patex, patex: patex, ...}`
         - Matches if the specified patterns match the map's keys and values (order isn't important).
 - Tagged
     - `tagged`
         - Matches any CBOR tagged value.
-    - `tagged ( value, pattern )`
+    - `tagged ( value, patex )`
         - Matches the specified CBOR tagged value with content that matches the given pattern. The tag value is a u64 value, formatted as a bare integer with no delimiters apart from the enclosing parentheses.
-    - `tagged ( name, pattern )`
-        - Matches the CBOR tagged value with the specified name and content that matches the given pattern. The tag name is formatted as a bare alphanumeric string (including hyphens and underscores) with no delimiters apart from the enclosing parentheses.
-    - `tagged ( /regex/, pattern )`
+    - `tagged ( name, patex )`
+        - Matches the CBOR tagged value with the specified name and content that matches the given patex. The tag name is formatted as a bare alphanumeric string (including hyphens and underscores) with no delimiters apart from the enclosing parentheses.
+    - `tagged ( /regex/, patex )`
         - Matches a CBOR tagged value with a name that matches the specified regex and content that matches the given pattern.
 
 ## Meta Patterns
@@ -145,43 +145,43 @@ The following meta patterns are available to combine or modify other patterns.
 Precedence: Repeat has the highest precedence, followed by And, Not, Sequence, and then Or. Parentheses can be used to group patterns and change precedence.
 
 - And
-    - `pattern & pattern & pattern`…
+    - `patex & patex & patex`…
         - Matches if all specified patterns match.
 - Any
     - `*`
         - A bare asterisk matches any value.
 - Capture
-    - `@name ( pattern )`
+    - `@name ( patex )`
         - Matches the specified pattern and captures the match for later use with the given name.
 - Not
-    - `! pattern`
+    - `! patex`
         - Matches if the specified pattern does not match.
             - The pattern `!*` matches no values.
 - Or
-    - `pattern | pattern | pattern…`
+    - `patex | patex | patex...`
         - Matches if any of the specified patterns match.
 - Repeat
     - Greedy — grabs as many repetitions as possible, then backtracks if the rest of the pattern cannot match.
-        - `( pattern )` (exactly once, this is used to group patterns)
-        - `( pattern )*` (0 or more)
-        - `( pattern )?` (0 or 1)
-        - `( pattern )+` (1 or more)
-        - `( pattern ){ n , m }` (`n` to `m` repeats, inclusive)
+        - `( patex )` (exactly once, this is used to group patterns)
+        - `( patex )*` (0 or more)
+        - `( patex )?` (0 or 1)
+        - `( patex )+` (1 or more)
+        - `( patex ){ n , m }` (`n` to `m` repeats, inclusive)
     - Lazy — starts with as few repetitions as possible, adding more only if the rest of the pattern cannot match.
-        - `( pattern )*?` (0 or more)
-        - `( pattern )??` (0 or 1)
-        - `( pattern )+?` (1 or more)
-        - `( pattern ){ n , m }?` (`n` to `m` repeats, inclusive)
+        - `( patex )*?` (0 or more)
+        - `( patex )??` (0 or 1)
+        - `( patex )+?` (1 or more)
+        - `( patex ){ n , m }?` (`n` to `m` repeats, inclusive)
     - Possessive — grabs as many repetitions as possible and never backtracks; if the rest of the pattern cannot match, the whole match fails.
-        - `( pattern )*+` (0 or more)
-        - `( pattern )?+` (0 or 1)
-        - `( pattern )++` (1 or more)
-        - `( pattern ){ n , m }+` (`n` to `m` repeats, inclusive)
+        - `( patex )*+` (0 or more)
+        - `( patex )?+` (0 or 1)
+        - `( patex )++` (1 or more)
+        - `( patex ){ n , m }+` (`n` to `m` repeats, inclusive)
 - Search
-    - `search ( pattern )`
+    - `search ( patex )`
       - Visits every node in the CBOR tree, matching the specified pattern against each node.
 - Sequence
-    - `pattern, pattern, pattern`
+    - `patex, patex, patex...`
         - Matches if the specified patterns match in sequence, with no other nodes in between.
 
 ## Advanced Composite Patterns
@@ -189,9 +189,9 @@ Precedence: Repeat has the highest precedence, followed by And, Not, Sequence, a
 The following patterns show examples of combining structure patterns with meta patterns to create complex matching expressions:
 
 - Nested Structure Patterns
-    - `tagged ( value , [ pattern ] )`
+    - `tagged ( value , [ patex ] )`
         - Matches a tagged value containing an array with the specified pattern. The pattern can be simple patterns, sequences, or patterns with repeat quantifiers.
-    - `{pattern: [{{n,}}]}`
+    - `{patex: [{{n,}}]}`
         - Matches a map where the specified key pattern maps to an array with at least `n` elements.
-    - `[{pattern: pattern}, (pattern)*]`
+    - `[{patex: patex}, (patex)*]`
         - Matches an array starting with a map that contains the specified key-value pattern, followed by any other elements.

@@ -6,6 +6,8 @@ use crate::{
     },
 };
 
+use dcbor::prelude::*;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Pattern {
     Value(ValuePattern),
@@ -168,14 +170,14 @@ impl Pattern {
     }
 
     /// Creates a pattern that matches a specific date value.
-    pub fn date(date: dcbor::Date) -> Self {
+    pub fn date(date: Date) -> Self {
         Pattern::Value(ValuePattern::Date(
             crate::pattern::value::DatePattern::value(date),
         ))
     }
 
     /// Creates a pattern that matches dates within a range (inclusive).
-    pub fn date_range(range: std::ops::RangeInclusive<dcbor::Date>) -> Self {
+    pub fn date_range(range: std::ops::RangeInclusive<Date>) -> Self {
         Pattern::Value(ValuePattern::Date(
             crate::pattern::value::DatePattern::range(range),
         ))
@@ -183,7 +185,7 @@ impl Pattern {
 
     /// Creates a pattern that matches dates that are on or after the specified
     /// date.
-    pub fn date_earliest(date: dcbor::Date) -> Self {
+    pub fn date_earliest(date: Date) -> Self {
         Pattern::Value(ValuePattern::Date(
             crate::pattern::value::DatePattern::earliest(date),
         ))
@@ -191,7 +193,7 @@ impl Pattern {
 
     /// Creates a pattern that matches dates that are on or before the specified
     /// date.
-    pub fn date_latest(date: dcbor::Date) -> Self {
+    pub fn date_latest(date: Date) -> Self {
         Pattern::Value(ValuePattern::Date(
             crate::pattern::value::DatePattern::latest(date),
         ))
@@ -201,7 +203,7 @@ impl Pattern {
     /// representation.
     pub fn date_iso8601(iso_string: impl Into<String>) -> Self {
         Pattern::Value(ValuePattern::Date(
-            crate::pattern::value::DatePattern::iso8601(iso_string),
+            crate::pattern::value::DatePattern::string(iso_string),
         ))
     }
 
@@ -215,9 +217,7 @@ impl Pattern {
 
     /// Creates a pattern that matches null values.
     pub fn null() -> Self {
-        Pattern::Value(ValuePattern::Null(
-            crate::pattern::value::NullPattern::new(),
-        ))
+        Pattern::Value(ValuePattern::Null(crate::pattern::value::NullPattern))
     }
 
     /// Creates a pattern that matches any known value.
@@ -354,11 +354,37 @@ impl Pattern {
             crate::pattern::structure::MapPattern::any(),
         ))
     }
+}
 
+
+impl Pattern {
     /// Creates a pattern that matches any tagged value.
     pub fn any_tagged() -> Self {
         Pattern::Structure(crate::pattern::structure::StructurePattern::Tagged(
             crate::pattern::structure::TaggedPattern::any(),
+        ))
+    }
+
+    /// Creates a pattern that matches a tagged item with content pattern.
+    pub fn tagged(tag: impl Into<Tag>, pattern: Pattern) -> Self {
+        Pattern::Structure(crate::pattern::structure::StructurePattern::Tagged(
+            crate::pattern::structure::TaggedPattern::with_tag(tag, pattern),
+        ))
+    }
+
+    /// Creates a pattern that matches a tagged item with content pattern and
+    /// a specific tag name.
+    pub fn tagged_name(name: impl Into<String>, pattern: Pattern) -> Self {
+        Pattern::Structure(crate::pattern::structure::StructurePattern::Tagged(
+            crate::pattern::structure::TaggedPattern::with_name(name, pattern),
+        ))
+    }
+
+    /// Creates a pattern that matches a tagged item with content pattern and
+    /// a regex for the tag name.
+    pub fn tagged_regex(regex: regex::Regex, pattern: Pattern) -> Self {
+        Pattern::Structure(crate::pattern::structure::StructurePattern::Tagged(
+            crate::pattern::structure::TaggedPattern::with_regex(regex, pattern),
         ))
     }
 }
@@ -427,13 +453,15 @@ impl Pattern {
 impl TryFrom<&str> for Pattern {
     type Error = Error;
 
-    fn try_from(value: &str) -> Result<Self> { Self::parse(value) }
+    fn try_from(value: &str) -> Result<Self> {
+        Self::parse(value)
+    }
 }
 
 impl Matcher for Pattern {
     fn paths_with_captures(
         &self,
-        cbor: &dcbor::CBOR,
+        cbor: &CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         // Collect all capture names from this pattern
         let mut capture_names = Vec::new();
@@ -480,7 +508,7 @@ impl Matcher for Pattern {
         crate::pattern::vm::run(&program, cbor)
     }
 
-    fn paths(&self, cbor: &dcbor::CBOR) -> Vec<Path> {
+    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
         match self {
             Pattern::Value(pattern) => pattern.paths(cbor),
             Pattern::Structure(pattern) => pattern.paths(cbor),

@@ -25,7 +25,7 @@ impl Matcher for OrPattern {
 
     fn paths_with_captures(
         &self,
-        cbor: &dcbor::CBOR,
+        cbor: &CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         let mut all_paths = Vec::new();
         let mut all_captures = std::collections::HashMap::new();

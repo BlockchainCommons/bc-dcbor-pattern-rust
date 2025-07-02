@@ -81,10 +81,14 @@ impl std::hash::Hash for DatePattern {
 
 impl DatePattern {
     /// Creates a new `DatePattern` that matches any date.
-    pub fn any() -> Self { DatePattern::Any }
+    pub fn any() -> Self {
+        DatePattern::Any
+    }
 
     /// Creates a new `DatePattern` that matches a specific date.
-    pub fn value(date: Date) -> Self { DatePattern::Value(date) }
+    pub fn value(date: Date) -> Self {
+        DatePattern::Value(date)
+    }
 
     /// Creates a new `DatePattern` that matches dates within a range
     /// (inclusive).
@@ -94,21 +98,27 @@ impl DatePattern {
 
     /// Creates a new `DatePattern` that matches dates that are on or after the
     /// specified date.
-    pub fn earliest(date: Date) -> Self { DatePattern::Earliest(date) }
+    pub fn earliest(date: Date) -> Self {
+        DatePattern::Earliest(date)
+    }
 
     /// Creates a new `DatePattern` that matches dates that are on or before the
     /// specified date.
-    pub fn latest(date: Date) -> Self { DatePattern::Latest(date) }
+    pub fn latest(date: Date) -> Self {
+        DatePattern::Latest(date)
+    }
 
     /// Creates a new `DatePattern` that matches a date by its ISO-8601 string
     /// representation.
-    pub fn iso8601(iso_string: impl Into<String>) -> Self {
+    pub fn string(iso_string: impl Into<String>) -> Self {
         DatePattern::String(iso_string.into())
     }
 
     /// Creates a new `DatePattern` that matches dates whose ISO-8601 string
     /// representation matches the given regex pattern.
-    pub fn regex(regex: regex::Regex) -> Self { DatePattern::Regex(regex) }
+    pub fn regex(regex: regex::Regex) -> Self {
+        DatePattern::Regex(regex)
+    }
 }
 
 impl Matcher for DatePattern {
@@ -292,12 +302,12 @@ mod tests {
         let iso_string = date.to_string();
 
         // Test matching ISO string
-        let pattern = DatePattern::iso8601(iso_string.clone());
+        let pattern = DatePattern::string(iso_string.clone());
         let paths = pattern.paths(&cbor);
         assert_eq!(paths.len(), 1);
 
         // Test non-matching ISO string
-        let pattern = DatePattern::iso8601("2024-01-01T00:00:00Z");
+        let pattern = DatePattern::string("2024-01-01T00:00:00Z");
         let paths = pattern.paths(&cbor);
         assert!(paths.is_empty());
     }
@@ -347,7 +357,7 @@ mod tests {
         );
 
         assert_eq!(
-            DatePattern::iso8601("2023-12-25T00:00:00Z").to_string(),
+            DatePattern::string("2023-12-25T00:00:00Z").to_string(),
             "date'2023-12-25T00:00:00Z'"
         );
 

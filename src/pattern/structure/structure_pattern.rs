@@ -1,5 +1,6 @@
 use super::{ArrayPattern, MapPattern, TaggedPattern};
 use crate::pattern::{Matcher, Path, Pattern, vm::Instr};
+use dcbor::prelude::*;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum StructurePattern {
@@ -9,7 +10,7 @@ pub enum StructurePattern {
 }
 
 impl Matcher for StructurePattern {
-    fn paths(&self, cbor: &dcbor::CBOR) -> Vec<Path> {
+    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
         match self {
             StructurePattern::Array(pattern) => pattern.paths(cbor),
             StructurePattern::Map(pattern) => pattern.paths(cbor),
@@ -52,7 +53,7 @@ impl Matcher for StructurePattern {
 
     fn paths_with_captures(
         &self,
-        cbor: &dcbor::CBOR,
+        cbor: &CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         match self {
             StructurePattern::Array(pattern) => {

@@ -1,8 +1,9 @@
 use dcbor_parse::parse_dcbor_item;
 use dcbor_pattern::{Matcher, Pattern};
+use dcbor::prelude::*;
 
 /// Helper function to parse CBOR diagnostic notation into CBOR objects
-fn cbor(s: &str) -> dcbor::CBOR { parse_dcbor_item(s).unwrap() }
+fn cbor(s: &str) -> CBOR { parse_dcbor_item(s).unwrap() }
 
 #[test]
 fn parse_bool_any() {
@@ -84,7 +85,7 @@ fn parse_date_value() {
 
     // Create expected date using dcbor-parse
     let date_cbor = cbor("2023-12-25");
-    let expected_date = dcbor::Date::try_from(date_cbor).unwrap();
+    let expected_date = Date::try_from(date_cbor).unwrap();
 
     assert_eq!(p, Pattern::date(expected_date.clone()));
     // The display format may be different than input due to date normalization
@@ -98,7 +99,7 @@ fn parse_date_with_time() {
 
     // Create expected date using dcbor-parse
     let date_cbor = cbor("2023-12-25T15:30:45Z");
-    let expected_date = dcbor::Date::try_from(date_cbor).unwrap();
+    let expected_date = Date::try_from(date_cbor).unwrap();
 
     assert_eq!(p, Pattern::date(expected_date));
     assert!(p.to_string().starts_with("date'"));
@@ -112,8 +113,8 @@ fn parse_date_range() {
     // Create expected dates using dcbor-parse
     let start_cbor = cbor("2023-12-24");
     let end_cbor = cbor("2023-12-26");
-    let start_date = dcbor::Date::try_from(start_cbor).unwrap();
-    let end_date = dcbor::Date::try_from(end_cbor).unwrap();
+    let start_date = Date::try_from(start_cbor).unwrap();
+    let end_date = Date::try_from(end_cbor).unwrap();
 
     assert_eq!(p, Pattern::date_range(start_date..=end_date));
     assert!(p.to_string().contains("..."));
@@ -126,7 +127,7 @@ fn parse_date_earliest() {
 
     // Create expected date using dcbor-parse
     let date_cbor = cbor("2023-12-24");
-    let expected_date = dcbor::Date::try_from(date_cbor).unwrap();
+    let expected_date = Date::try_from(date_cbor).unwrap();
 
     assert_eq!(p, Pattern::date_earliest(expected_date));
     assert!(p.to_string().ends_with("...'"));
@@ -139,7 +140,7 @@ fn parse_date_latest() {
 
     // Create expected date using dcbor-parse
     let date_cbor = cbor("2023-12-26");
-    let expected_date = dcbor::Date::try_from(date_cbor).unwrap();
+    let expected_date = Date::try_from(date_cbor).unwrap();
 
     assert_eq!(p, Pattern::date_latest(expected_date));
     assert!(p.to_string().starts_with("date'..."));
@@ -158,8 +159,8 @@ fn parse_date_regex() {
 #[test]
 fn parse_date_patterns_round_trip() {
     // Create some date patterns and test round-trip parsing
-    let date1 = dcbor::Date::try_from(cbor("2023-05-15")).unwrap();
-    let date2 = dcbor::Date::try_from(cbor("2023-12-25")).unwrap();
+    let date1 = Date::try_from(cbor("2023-05-15")).unwrap();
+    let date2 = Date::try_from(cbor("2023-12-25")).unwrap();
 
     let patterns = vec![
         Pattern::any_date(),

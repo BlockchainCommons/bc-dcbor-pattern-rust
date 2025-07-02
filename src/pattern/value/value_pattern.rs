@@ -3,6 +3,7 @@ use super::{
     KnownValuePattern, NullPattern, NumberPattern, TextPattern,
 };
 use crate::pattern::{Matcher, Path, Pattern, vm::Instr};
+use dcbor::prelude::*;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ValuePattern {
@@ -17,7 +18,7 @@ pub enum ValuePattern {
 }
 
 impl Matcher for ValuePattern {
-    fn paths(&self, cbor: &dcbor::CBOR) -> Vec<Path> {
+    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
         match self {
             ValuePattern::Bool(pattern) => pattern.paths(cbor),
             ValuePattern::ByteString(pattern) => pattern.paths(cbor),

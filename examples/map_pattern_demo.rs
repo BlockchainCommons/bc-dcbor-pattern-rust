@@ -1,8 +1,9 @@
 use dcbor_parse::parse_dcbor_item;
 use dcbor_pattern::{Matcher, Pattern};
+use dcbor::prelude::*;
 
 /// Helper function to parse CBOR diagnostic notation into CBOR objects
-fn cbor(s: &str) -> dcbor::CBOR { parse_dcbor_item(s).unwrap() }
+fn cbor(s: &str) -> CBOR { parse_dcbor_item(s).unwrap() }
 
 fn main() {
     println!("MAP Pattern Parsing Demo");

@@ -672,7 +672,7 @@ impl Matcher for ArrayPattern {
 
     fn paths_with_captures(
         &self,
-        cbor: &dcbor::CBOR,
+        cbor: &CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         // For simple cases that never have captures, use the fast path
         match self {
@@ -695,8 +695,6 @@ impl Matcher for ArrayPattern {
                 // Has captures, continue with complex logic below
             }
         }
-
-        use dcbor::CBORCase;
 
         match cbor.as_case() {
             CBORCase::Array(_arr) => {

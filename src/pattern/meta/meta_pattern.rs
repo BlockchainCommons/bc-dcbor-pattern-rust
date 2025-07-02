@@ -103,7 +103,7 @@ impl Matcher for MetaPattern {
 
     fn paths_with_captures(
         &self,
-        cbor: &dcbor::CBOR,
+        cbor: &CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         match self {
             MetaPattern::Any(pattern) => pattern.paths_with_captures(cbor),

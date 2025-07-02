@@ -33,14 +33,14 @@ impl SearchPattern {
 
         // Recursively search children based on CBOR type
         match cbor.as_case() {
-            dcbor::CBORCase::Array(arr) => {
+            CBORCase::Array(arr) => {
                 for child in arr.iter() {
                     let mut new_path = path.clone();
                     new_path.push(child.clone());
                     self.search_recursive(child, new_path, results);
                 }
             }
-            dcbor::CBORCase::Map(map) => {
+            CBORCase::Map(map) => {
                 for (key, value) in map.iter() {
                     // Search both keys and values
                     let mut key_path = path.clone();
@@ -52,7 +52,7 @@ impl SearchPattern {
                     self.search_recursive(value, value_path, results);
                 }
             }
-            dcbor::CBORCase::Tagged(_, content) => {
+            CBORCase::Tagged(_, content) => {
                 let mut new_path = path.clone();
                 new_path.push(content.clone());
                 self.search_recursive(content, new_path, results);
@@ -92,7 +92,7 @@ impl SearchPattern {
 
         // Recursively search children based on CBOR type
         match cbor.as_case() {
-            dcbor::CBORCase::Array(arr) => {
+            CBORCase::Array(arr) => {
                 for child in arr.iter() {
                     let mut new_path = path.clone();
                     new_path.push(child.clone());
@@ -104,7 +104,7 @@ impl SearchPattern {
                     );
                 }
             }
-            dcbor::CBORCase::Map(map) => {
+            CBORCase::Map(map) => {
                 for (key, value) in map.iter() {
                     // Search both keys and values
                     let mut key_path = path.clone();
@@ -126,7 +126,7 @@ impl SearchPattern {
                     );
                 }
             }
-            dcbor::CBORCase::Tagged(_, content) => {
+            CBORCase::Tagged(_, content) => {
                 let mut tagged_path = path.clone();
                 tagged_path.push(content.clone());
                 self.search_recursive_with_captures(
@@ -174,7 +174,7 @@ impl Matcher for SearchPattern {
 
     fn paths_with_captures(
         &self,
-        cbor: &dcbor::CBOR,
+        cbor: &CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         let mut result_paths = Vec::new();
         let mut all_captures = std::collections::HashMap::new();

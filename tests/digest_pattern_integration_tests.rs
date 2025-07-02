@@ -1,6 +1,6 @@
 use bc_components::Digest;
 use bc_ur::UREncodable;
-use dcbor::CBOREncodable;
+use dcbor::prelude::*;
 use dcbor_pattern::{Matcher, Pattern};
 
 #[test]

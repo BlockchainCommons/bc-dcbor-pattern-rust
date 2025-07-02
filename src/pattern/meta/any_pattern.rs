@@ -23,7 +23,7 @@ impl Matcher for AnyPattern {
 
     fn paths_with_captures(
         &self,
-        cbor: &dcbor::CBOR,
+        cbor: &CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         // AnyPattern has no internal captures, so just return paths and empty
         // captures

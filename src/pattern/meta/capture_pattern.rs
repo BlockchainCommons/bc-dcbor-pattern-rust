@@ -72,7 +72,7 @@ impl Matcher for CapturePattern {
 
     fn paths_with_captures(
         &self,
-        cbor: &dcbor::CBOR,
+        cbor: &CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         // Get paths from the inner pattern
         let (paths, mut captures) = self.pattern.paths_with_captures(cbor);

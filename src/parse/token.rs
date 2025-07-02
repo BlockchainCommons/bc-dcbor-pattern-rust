@@ -392,7 +392,6 @@ fn parse_digest_quoted(lex: &mut Lexer<Token>) -> Result<DigestPattern> {
 fn parse_date_quoted(
     lex: &mut Lexer<Token>,
 ) -> Result<crate::pattern::DatePattern> {
-    use dcbor::Date;
     use dcbor_parse::parse_dcbor_item;
 
     let src = lex.remainder(); // everything after "date'"

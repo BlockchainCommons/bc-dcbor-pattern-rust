@@ -29,10 +29,14 @@ impl RepeatPattern {
     }
 
     /// Returns the sub-pattern of this repeat pattern.
-    pub fn pattern(&self) -> &Pattern { &self.pattern }
+    pub fn pattern(&self) -> &Pattern {
+        &self.pattern
+    }
 
     /// Returns the quantifier of this repeat pattern.
-    pub fn quantifier(&self) -> &Quantifier { &self.quantifier }
+    pub fn quantifier(&self) -> &Quantifier {
+        &self.quantifier
+    }
 }
 
 impl Matcher for RepeatPattern {
@@ -65,7 +69,7 @@ impl Matcher for RepeatPattern {
 
     fn paths_with_captures(
         &self,
-        cbor: &dcbor::CBOR,
+        cbor: &CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         // For now, repeat patterns use basic implementation without captures
         // TODO: Implement full repeat capture support

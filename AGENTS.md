@@ -244,13 +244,13 @@ Tests now use `assert_actual_expected!` with `format_paths_with_captures()` for 
 
 ### Current Task: Syntax Simplification
 
-- These are updates to [docs/DCBORPatternSyntax.md](docs/DCBORPatternSyntax.md) to reflect the new simplified syntax.
+- These are updates to [docs/DCBORPatternSyntax.md](docs/dcbor_patex.md) to reflect the new simplified syntax.
 
 - The new syntax generalizes the use of "prefixed single-quoted" patterns, e.g., `prefix'content'`. With no prefix, single-quoted patterns are understood as "known values" as defined below.
 
 - Remember, all tests that expect multi-line output should use the rubric as shown in `tests/common/mod.rs` to ensure consistent formatting.
 
-- As we complete each section, mark it as complete in this document, and update [docs/DCBORPatternSyntax.md](docs/DCBORPatternSyntax.md) to reflect the new syntax.
+- As we complete each section, mark it as complete in this document, and update [docs/DCBORPatternSyntax.md](docs/dcbor_patex.md) to reflect the new syntax.
 
 #### Value Patterns
 

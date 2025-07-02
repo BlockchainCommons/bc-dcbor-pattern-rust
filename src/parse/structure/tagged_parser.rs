@@ -35,16 +35,10 @@ pub(crate) fn parse_tagged(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
                         }
                         TagSelector::Name(tag_name) => {
                             // For named tags, treat it as a named tag match
-                            TaggedPattern::with_tag_name(
-                                tag_name,
-                                content_pattern,
-                            )
+                            TaggedPattern::with_name(tag_name, content_pattern)
                         }
                         TagSelector::Regex(regex) => {
-                            TaggedPattern::with_tag_name_regex(
-                                regex,
-                                content_pattern,
-                            )
+                            TaggedPattern::with_regex(regex, content_pattern)
                         }
                     };
 

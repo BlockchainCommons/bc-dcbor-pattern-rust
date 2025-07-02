@@ -104,7 +104,7 @@ impl Matcher for SequencePattern {
 
     fn paths_with_captures(
         &self,
-        cbor: &dcbor::CBOR,
+        cbor: &CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         // For sequence patterns, the capture logic is handled by the
         // VM when compiled by the main Pattern. When called directly,

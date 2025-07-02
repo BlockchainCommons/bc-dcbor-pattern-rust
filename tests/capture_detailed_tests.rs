@@ -1,5 +1,6 @@
 mod common;
 
+use dcbor::prelude::*;
 use dcbor_parse::parse_dcbor_item;
 use dcbor_pattern::{
     FormatPathsOpts, Matcher, Pattern, Result, format_paths,
@@ -8,10 +9,14 @@ use dcbor_pattern::{
 use indoc::indoc;
 
 /// Helper function to parse CBOR diagnostic notation into CBOR objects
-fn cbor(s: &str) -> dcbor::CBOR { parse_dcbor_item(s).unwrap() }
+fn cbor(s: &str) -> CBOR {
+    parse_dcbor_item(s).unwrap()
+}
 
 /// Helper function to parse pattern text into Pattern objects
-fn parse(s: &str) -> Pattern { Pattern::parse(s).unwrap() }
+fn parse(s: &str) -> Pattern {
+    Pattern::parse(s).unwrap()
+}
 
 #[test]
 fn test_simple_pattern_without_capture() -> Result<()> {

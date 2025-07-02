@@ -3,17 +3,8 @@ use dcbor::prelude::*;
 use crate::pattern::{Matcher, Path, Pattern, vm::Instr};
 
 /// Pattern for matching null values in dCBOR.
-#[derive(Debug, Clone, Hash, Eq, PartialEq)]
+#[derive(Debug, Clone, Hash, Eq, PartialEq, Default)]
 pub struct NullPattern;
-
-impl NullPattern {
-    /// Creates a new `NullPattern` that matches null values.
-    pub fn new() -> Self { NullPattern }
-}
-
-impl Default for NullPattern {
-    fn default() -> Self { NullPattern::new() }
-}
 
 impl Matcher for NullPattern {
     fn paths(&self, cbor: &CBOR) -> Vec<Path> {
@@ -51,7 +42,7 @@ mod tests {
     #[test]
     fn test_null_pattern_matching() {
         let null_cbor = CBOR::null();
-        let pattern = NullPattern::new();
+        let pattern = NullPattern;
         let paths = pattern.paths(&null_cbor);
         assert_eq!(paths.len(), 1);
         assert_eq!(paths[0], vec![null_cbor.clone()]);
@@ -68,12 +59,12 @@ mod tests {
 
     #[test]
     fn test_null_pattern_display() {
-        assert_eq!(NullPattern::new().to_string(), "null");
+        assert_eq!(NullPattern.to_string(), "null");
     }
 
     #[test]
     fn test_null_pattern_matches() {
-        let pattern = NullPattern::new();
+        let pattern = NullPattern;
         let null_cbor = CBOR::null();
         assert!(pattern.matches(&null_cbor));
 

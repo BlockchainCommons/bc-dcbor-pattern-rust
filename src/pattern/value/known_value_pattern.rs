@@ -1,4 +1,4 @@
-use dcbor::{CBOR, CBORCase, Tag};
+use dcbor::prelude::*;
 use known_values::{KNOWN_VALUES, KnownValue};
 
 use crate::pattern::{Matcher, Path, Pattern, vm::Instr};

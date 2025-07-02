@@ -28,7 +28,7 @@ impl Matcher for NotPattern {
 
     fn paths_with_captures(
         &self,
-        cbor: &dcbor::CBOR,
+        cbor: &CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         // For NOT patterns, we match if the inner pattern does NOT match
         let (inner_paths, _inner_captures) =

@@ -132,10 +132,10 @@ impl Matcher for MapPattern {
 
     fn paths_with_captures(
         &self,
-        cbor: &dcbor::CBOR,
+        cbor: &CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         // Check if this CBOR value is a map
-        let dcbor::CBORCase::Map(map) = cbor.as_case() else {
+        let CBORCase::Map(map) = cbor.as_case() else {
             return (vec![], std::collections::HashMap::new());
         };
 

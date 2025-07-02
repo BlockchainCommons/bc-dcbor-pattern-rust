@@ -25,7 +25,7 @@ impl Matcher for AndPattern {
 
     fn paths_with_captures(
         &self,
-        cbor: &dcbor::CBOR,
+        cbor: &CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         // For AND patterns, all patterns must match, and we merge captures
         let mut all_captures = std::collections::HashMap::new();

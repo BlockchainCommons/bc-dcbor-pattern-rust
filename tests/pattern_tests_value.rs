@@ -1,6 +1,6 @@
 mod common;
 
-use dcbor::{Date, prelude::*};
+use dcbor::prelude::*;
 use dcbor_parse::parse_dcbor_item;
 use dcbor_pattern::{Matcher, Pattern, format_paths};
 use indoc::indoc;

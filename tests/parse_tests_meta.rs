@@ -1,4 +1,5 @@
 use dcbor_pattern::{Pattern, Result};
+use dcbor::prelude::*;
 
 /// Test the OR parser with various patterns
 #[test]
@@ -219,7 +220,7 @@ fn test_complex_mixed_pattern() -> Result<()> {
 /// Test functional correctness of precedence (not just parsing)
 #[test]
 fn test_precedence_functionality() -> Result<()> {
-    use dcbor::CBOR;
+    use CBOR;
     use dcbor_pattern::Matcher;
 
     // Test that "bool | text & number" is parsed as "bool | (text & number)"
@@ -246,7 +247,7 @@ fn test_precedence_functionality() -> Result<()> {
 
 #[test]
 fn test_grouping_functionality() -> Result<()> {
-    use dcbor::CBOR;
+    use CBOR;
     use dcbor_pattern::Matcher;
 
     // Test that "(bool | text) & number" groups correctly
