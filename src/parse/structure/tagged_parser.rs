@@ -19,9 +19,11 @@ pub(crate) fn parse_tagged(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
             // Consume the '(' token
             lexer.next();
 
+            // Track the current lexer position for error adjustment
+            let remainder_start = lexer.span().end;
             let src = lexer.remainder();
             let (tag_pattern, content_pattern, consumed) =
-                parse_tagged_inner(src)?;
+                parse_tagged_inner(src, remainder_start)?;
             lexer.bump(consumed);
 
             // Expect closing parenthesis
@@ -70,7 +72,10 @@ enum TagSelector {
     Regex(regex::Regex),
 }
 
-fn parse_tagged_inner(src: &str) -> Result<(TagSelector, Pattern, usize)> {
+fn parse_tagged_inner(
+    src: &str,
+    remainder_start: usize,
+) -> Result<(TagSelector, Pattern, usize)> {
     let mut pos = 0;
     skip_ws(src, &mut pos);
 
@@ -119,7 +124,187 @@ fn parse_tagged_inner(src: &str) -> Result<(TagSelector, Pattern, usize)> {
     }
 
     let pattern_src = &src[pattern_start..pos];
-    let content_pattern = Pattern::parse(pattern_src.trim())?;
+    let trimmed_pattern = pattern_src.trim();
+    let trim_offset = pattern_src.len() - pattern_src.trim_start().len();
+
+    let content_pattern = Pattern::parse(trimmed_pattern).map_err(|e| {
+        // Adjust error spans to be relative to the original input
+        match e {
+            Error::UnrecognizedToken(span) => {
+                let adjusted_start =
+                    remainder_start + pattern_start + trim_offset + span.start;
+                let adjusted_end =
+                    remainder_start + pattern_start + trim_offset + span.end;
+                Error::UnrecognizedToken(adjusted_start..adjusted_end)
+            }
+            Error::ExtraData(span) => {
+                let adjusted_start =
+                    remainder_start + pattern_start + trim_offset + span.start;
+                let adjusted_end =
+                    remainder_start + pattern_start + trim_offset + span.end;
+                Error::ExtraData(adjusted_start..adjusted_end)
+            }
+            Error::UnexpectedToken(token, span) => {
+                let adjusted_start =
+                    remainder_start + pattern_start + trim_offset + span.start;
+                let adjusted_end =
+                    remainder_start + pattern_start + trim_offset + span.end;
+                Error::UnexpectedToken(token, adjusted_start..adjusted_end)
+            }
+            Error::InvalidRegex(span) => {
+                let adjusted_start =
+                    remainder_start + pattern_start + trim_offset + span.start;
+                let adjusted_end =
+                    remainder_start + pattern_start + trim_offset + span.end;
+                Error::InvalidRegex(adjusted_start..adjusted_end)
+            }
+            Error::UnterminatedRegex(span) => {
+                let adjusted_start =
+                    remainder_start + pattern_start + trim_offset + span.start;
+                let adjusted_end =
+                    remainder_start + pattern_start + trim_offset + span.end;
+                Error::UnterminatedRegex(adjusted_start..adjusted_end)
+            }
+            Error::UnterminatedString(span) => {
+                let adjusted_start =
+                    remainder_start + pattern_start + trim_offset + span.start;
+                let adjusted_end =
+                    remainder_start + pattern_start + trim_offset + span.end;
+                Error::UnterminatedString(adjusted_start..adjusted_end)
+            }
+            Error::InvalidRange(span) => {
+                let adjusted_start =
+                    remainder_start + pattern_start + trim_offset + span.start;
+                let adjusted_end =
+                    remainder_start + pattern_start + trim_offset + span.end;
+                Error::InvalidRange(adjusted_start..adjusted_end)
+            }
+            Error::InvalidHexString(span) => {
+                let adjusted_start =
+                    remainder_start + pattern_start + trim_offset + span.start;
+                let adjusted_end =
+                    remainder_start + pattern_start + trim_offset + span.end;
+                Error::InvalidHexString(adjusted_start..adjusted_end)
+            }
+            Error::UnterminatedHexString(span) => {
+                let adjusted_start =
+                    remainder_start + pattern_start + trim_offset + span.start;
+                let adjusted_end =
+                    remainder_start + pattern_start + trim_offset + span.end;
+                Error::UnterminatedHexString(adjusted_start..adjusted_end)
+            }
+            Error::InvalidDateFormat(span) => {
+                let adjusted_start =
+                    remainder_start + pattern_start + trim_offset + span.start;
+                let adjusted_end =
+                    remainder_start + pattern_start + trim_offset + span.end;
+                Error::InvalidDateFormat(adjusted_start..adjusted_end)
+            }
+            Error::InvalidNumberFormat(span) => {
+                let adjusted_start =
+                    remainder_start + pattern_start + trim_offset + span.start;
+                let adjusted_end =
+                    remainder_start + pattern_start + trim_offset + span.end;
+                Error::InvalidNumberFormat(adjusted_start..adjusted_end)
+            }
+            Error::InvalidUr(msg, span) => {
+                let adjusted_start =
+                    remainder_start + pattern_start + trim_offset + span.start;
+                let adjusted_end =
+                    remainder_start + pattern_start + trim_offset + span.end;
+                Error::InvalidUr(msg, adjusted_start..adjusted_end)
+            }
+            Error::ExpectedOpenParen(span) => {
+                let adjusted_start =
+                    remainder_start + pattern_start + trim_offset + span.start;
+                let adjusted_end =
+                    remainder_start + pattern_start + trim_offset + span.end;
+                Error::ExpectedOpenParen(adjusted_start..adjusted_end)
+            }
+            Error::ExpectedCloseParen(span) => {
+                let adjusted_start =
+                    remainder_start + pattern_start + trim_offset + span.start;
+                let adjusted_end =
+                    remainder_start + pattern_start + trim_offset + span.end;
+                Error::ExpectedCloseParen(adjusted_start..adjusted_end)
+            }
+            Error::ExpectedCloseBracket(span) => {
+                let adjusted_start =
+                    remainder_start + pattern_start + trim_offset + span.start;
+                let adjusted_end =
+                    remainder_start + pattern_start + trim_offset + span.end;
+                Error::ExpectedCloseBracket(adjusted_start..adjusted_end)
+            }
+            Error::ExpectedCloseBrace(span) => {
+                let adjusted_start =
+                    remainder_start + pattern_start + trim_offset + span.start;
+                let adjusted_end =
+                    remainder_start + pattern_start + trim_offset + span.end;
+                Error::ExpectedCloseBrace(adjusted_start..adjusted_end)
+            }
+            Error::ExpectedColon(span) => {
+                let adjusted_start =
+                    remainder_start + pattern_start + trim_offset + span.start;
+                let adjusted_end =
+                    remainder_start + pattern_start + trim_offset + span.end;
+                Error::ExpectedColon(adjusted_start..adjusted_end)
+            }
+            Error::ExpectedPattern(span) => {
+                let adjusted_start =
+                    remainder_start + pattern_start + trim_offset + span.start;
+                let adjusted_end =
+                    remainder_start + pattern_start + trim_offset + span.end;
+                Error::ExpectedPattern(adjusted_start..adjusted_end)
+            }
+            Error::UnmatchedParentheses(span) => {
+                let adjusted_start =
+                    remainder_start + pattern_start + trim_offset + span.start;
+                let adjusted_end =
+                    remainder_start + pattern_start + trim_offset + span.end;
+                Error::UnmatchedParentheses(adjusted_start..adjusted_end)
+            }
+            Error::UnmatchedBraces(span) => {
+                let adjusted_start =
+                    remainder_start + pattern_start + trim_offset + span.start;
+                let adjusted_end =
+                    remainder_start + pattern_start + trim_offset + span.end;
+                Error::UnmatchedBraces(adjusted_start..adjusted_end)
+            }
+            Error::InvalidCaptureGroupName(name, span) => {
+                let adjusted_start =
+                    remainder_start + pattern_start + trim_offset + span.start;
+                let adjusted_end =
+                    remainder_start + pattern_start + trim_offset + span.end;
+                Error::InvalidCaptureGroupName(
+                    name,
+                    adjusted_start..adjusted_end,
+                )
+            }
+            Error::InvalidDigestPattern(msg, span) => {
+                let adjusted_start =
+                    remainder_start + pattern_start + trim_offset + span.start;
+                let adjusted_end =
+                    remainder_start + pattern_start + trim_offset + span.end;
+                Error::InvalidDigestPattern(msg, adjusted_start..adjusted_end)
+            }
+            Error::UnterminatedDigestQuoted(span) => {
+                let adjusted_start =
+                    remainder_start + pattern_start + trim_offset + span.start;
+                let adjusted_end =
+                    remainder_start + pattern_start + trim_offset + span.end;
+                Error::UnterminatedDigestQuoted(adjusted_start..adjusted_end)
+            }
+            Error::UnterminatedDateQuoted(span) => {
+                let adjusted_start =
+                    remainder_start + pattern_start + trim_offset + span.start;
+                let adjusted_end =
+                    remainder_start + pattern_start + trim_offset + span.end;
+                Error::UnterminatedDateQuoted(adjusted_start..adjusted_end)
+            }
+            // For errors without spans, return them as-is
+            _ => e,
+        }
+    })?;
 
     Ok((tag_selector, content_pattern, pos))
 }
