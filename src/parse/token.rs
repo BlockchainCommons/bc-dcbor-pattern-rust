@@ -554,7 +554,7 @@ fn parse_brace_open(lex: &mut Lexer<Token>) -> Token {
 fn looks_like_range_pattern(content: &str) -> bool {
     let mut chars = content.chars();
     let mut has_digit = false;
-    
+
     // Skip whitespace
     while let Some(ch) = chars.next() {
         if matches!(ch, ' ' | '\t' | '\n' | '\r' | '\u{0c}') {
@@ -566,11 +566,11 @@ fn looks_like_range_pattern(content: &str) -> bool {
             return false;
         }
     }
-    
+
     if !has_digit {
         return false;
     }
-    
+
     // Skip remaining digits
     while let Some(ch) = chars.next() {
         if ch.is_ascii_digit() {
@@ -600,7 +600,7 @@ fn looks_like_range_pattern(content: &str) -> bool {
             return ch == ',' || ch == '}';
         }
     }
-    
+
     false
 }
 
