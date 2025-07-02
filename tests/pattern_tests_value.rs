@@ -1036,3 +1036,15 @@ fn test_known_value_pattern_display() {
         Pattern::known_value_regex(regex::Regex::new(r"^is.*").unwrap());
     assert_eq!(regex_pattern.to_string(), "'/^is.*/'");
 }
+
+#[test]
+fn test_map_pattern() {
+    let map_pattern = Pattern::parse(r#"{1: text}"#).unwrap();
+    let cbor = parse_dcbor_item(r#"{1: "first", 2: "second"}"#).unwrap();
+    let paths = map_pattern.paths(&cbor);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        {1: "first", 2: "second"}
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+}
