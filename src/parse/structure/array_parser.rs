@@ -162,14 +162,14 @@ pub(crate) fn parse_array_not(
 pub(crate) fn parse_array_sequence(
     lexer: &mut logos::Lexer<Token>,
 ) -> Result<Pattern> {
-    let mut patterns = vec![super::super::meta::parse_primary(lexer)?];
+    let mut patterns = vec![super::super::meta::parse_or(lexer)?];
 
     loop {
         let mut lookahead = lexer.clone();
         match lookahead.next() {
             Some(Ok(Token::Comma)) => {
                 lexer.next(); // consume the comma token (,)
-                patterns.push(super::super::meta::parse_primary(lexer)?);
+                patterns.push(super::super::meta::parse_or(lexer)?);
             }
             _ => break,
         }

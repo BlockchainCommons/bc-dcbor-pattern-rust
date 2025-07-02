@@ -1129,3 +1129,66 @@ fn test_map_complex_keys() {
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 }
+
+#[test]
+fn test_array_complex_elements() {
+    // OR patterns work in array elements
+    let pattern = Pattern::parse(r#"["a"|"b"]"#).unwrap();
+    let cbor = parse_dcbor_item(r#"["b"]"#).unwrap();
+    let paths = pattern.paths(&cbor);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        ["b"]
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // OR patterns work with proper precedence
+    // [(1|2), "hello"] means first element is 1 OR 2, second element is "hello"
+    let sequence_pattern = Pattern::parse(r#"[(1|2), "hello"]"#).unwrap();
+    let cbor = parse_dcbor_item(r#"[2, "hello"]"#).unwrap();
+    let paths = sequence_pattern.paths(&cbor);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        [2, "hello"]
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // OR patterns work after commas in sequences
+    let complex_pattern = Pattern::parse(r#"["hello", "a"|"b"]"#).unwrap();
+    let cbor = parse_dcbor_item(r#"["hello", "b"]"#).unwrap();
+    let paths = complex_pattern.paths(&cbor);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        ["hello", "b"]
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+}
+
+#[test]
+fn test_array_or_precedence_issue() {
+    // Test that demonstrates correct precedence behavior
+    // The pattern [1|2, "hello"] should be parsed as [(1|2), "hello"]
+
+    let pattern = Pattern::parse(r#"[1|2, "hello"]"#).unwrap();
+    println!("Pattern display: {}", pattern);
+
+    // Test correct precedence [(1|2), "hello"]:
+    let cbor_1_hello = parse_dcbor_item(r#"[1, "hello"]"#).unwrap();
+    let cbor_2_hello = parse_dcbor_item(r#"[2, "hello"]"#).unwrap();
+    let cbor_1_only = parse_dcbor_item(r#"[1]"#).unwrap();
+
+    println!("Matches [1, \"hello\"]: {}", pattern.matches(&cbor_1_hello));
+    println!("Matches [2, \"hello\"]: {}", pattern.matches(&cbor_2_hello));
+    println!("Matches [1]: {}", pattern.matches(&cbor_1_only));
+
+    // With correct precedence [(1|2), "hello"], we should have:
+    assert!(
+        pattern.matches(&cbor_1_hello),
+        "[1, \"hello\"] should match"
+    );
+    assert!(
+        pattern.matches(&cbor_2_hello),
+        "[2, \"hello\"] should match"
+    );
+    assert!(!pattern.matches(&cbor_1_only), "[1] should NOT match");
+}
