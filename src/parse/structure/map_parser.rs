@@ -1,6 +1,9 @@
 use crate::{
     Error, MapPattern, Pattern, Result, StructurePattern,
-    parse::{Token, meta::parse_primary},
+    parse::{
+        Token,
+        meta::{parse_or, parse_primary},
+    },
 };
 
 /// Parse a bracket map pattern: { ... }
@@ -87,7 +90,7 @@ fn parse_key_value_constraints(
 
     loop {
         // Parse the key pattern
-        let key_pattern = parse_primary(lexer)?;
+        let key_pattern = parse_or(lexer)?;
 
         // Expect colon
         match lexer.next() {
@@ -103,7 +106,7 @@ fn parse_key_value_constraints(
         }
 
         // Parse the value pattern
-        let value_pattern = parse_primary(lexer)?;
+        let value_pattern = parse_or(lexer)?;
 
         constraints.push((key_pattern, value_pattern));
 

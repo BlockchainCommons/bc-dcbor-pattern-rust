@@ -2,7 +2,7 @@ mod common;
 
 use dcbor::prelude::*;
 use dcbor_parse::parse_dcbor_item;
-use dcbor_pattern::{format_paths, Matcher, Pattern};
+use dcbor_pattern::{Matcher, Pattern, format_paths};
 use indoc::indoc;
 
 /// Helper function to parse CBOR diagnostic notation into CBOR objects
@@ -1115,23 +1115,17 @@ fn test_map_known_value_keys() {
     let expected = indoc! {r#"
         {40000(100): "first", 40000(200): "second"}
     "#}.trim();
-    assert_actual_expected!(
-        format_paths(&paths),
-        expected
-    );
+    assert_actual_expected!(format_paths(&paths), expected);
 }
 
 #[test]
 fn test_map_complex_keys() {
     let map_pattern = Pattern::parse(r#"{"a"|"b": text}"#).unwrap();
-    let cbor = parse_dcbor_item(
-        r#"{"z": "first", "b": "second"}"#,
-    )
-    .unwrap();
+    let cbor = parse_dcbor_item(r#"{"z": "first", "b": "second"}"#).unwrap();
     let paths = map_pattern.paths(&cbor);
     #[rustfmt::skip]
     let expected = indoc! {r#"
-        {"z": "first", "b": "second"}
+        {"b": "second", "z": "first"}
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
 }
