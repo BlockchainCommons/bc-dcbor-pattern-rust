@@ -17,6 +17,8 @@ dcbor-pattern = "0.1.0"
 
 ## Version History
 
+* **0.1.0** — 7/3/2025 — Initial release of dcbor-pattern crate with comprehensive pattern matching for dCBOR. Implemented text-based pattern syntax with support for value, structure, and meta patterns. Added named capture support for extracting values from matched patterns. Implemented virtual machine-based pattern execution for performance. Added extensive test coverage with 400+ tests covering all pattern types.
+
 ## Related Projects
 
 _forthcoming_
