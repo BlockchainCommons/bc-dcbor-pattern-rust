@@ -18,16 +18,16 @@ pub enum ValuePattern {
 }
 
 impl Matcher for ValuePattern {
-    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
+    fn paths(&self, haystack: &CBOR) -> Vec<Path> {
         match self {
-            ValuePattern::Bool(pattern) => pattern.paths(cbor),
-            ValuePattern::ByteString(pattern) => pattern.paths(cbor),
-            ValuePattern::Date(pattern) => pattern.paths(cbor),
-            ValuePattern::Digest(pattern) => pattern.paths(cbor),
-            ValuePattern::KnownValue(pattern) => pattern.paths(cbor),
-            ValuePattern::Null(pattern) => pattern.paths(cbor),
-            ValuePattern::Number(pattern) => pattern.paths(cbor),
-            ValuePattern::Text(pattern) => pattern.paths(cbor),
+            ValuePattern::Bool(pattern) => pattern.paths(haystack),
+            ValuePattern::ByteString(pattern) => pattern.paths(haystack),
+            ValuePattern::Date(pattern) => pattern.paths(haystack),
+            ValuePattern::Digest(pattern) => pattern.paths(haystack),
+            ValuePattern::KnownValue(pattern) => pattern.paths(haystack),
+            ValuePattern::Null(pattern) => pattern.paths(haystack),
+            ValuePattern::Number(pattern) => pattern.paths(haystack),
+            ValuePattern::Text(pattern) => pattern.paths(haystack),
         }
     }
 

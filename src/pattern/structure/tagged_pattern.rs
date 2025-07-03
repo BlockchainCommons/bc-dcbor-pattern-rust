@@ -74,19 +74,19 @@ impl TaggedPattern {
 }
 
 impl Matcher for TaggedPattern {
-    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
+    fn paths(&self, haystack: &CBOR) -> Vec<Path> {
         // First check if this is a tagged value
-        match cbor.as_case() {
+        match haystack.as_case() {
             CBORCase::Tagged(tag, content) => {
                 match self {
                     TaggedPattern::Any => {
                         // Match any tagged value - return the tagged value
                         // itself
-                        vec![vec![cbor.clone()]]
+                        vec![vec![haystack.clone()]]
                     }
                     TaggedPattern::Tag { tag: target_tag, pattern } => {
                         if tag == target_tag && pattern.matches(content) {
-                            vec![vec![cbor.clone()]]
+                            vec![vec![haystack.clone()]]
                         } else {
                             vec![]
                         }
@@ -96,7 +96,7 @@ impl Matcher for TaggedPattern {
                             if name.as_str() == tag_name
                                 && pattern.matches(content)
                             {
-                                vec![vec![cbor.clone()]]
+                                vec![vec![haystack.clone()]]
                             } else {
                                 vec![]
                             }
@@ -109,7 +109,7 @@ impl Matcher for TaggedPattern {
                             if tag_regex.is_match(name.as_str())
                                 && pattern.matches(content)
                             {
-                                vec![vec![cbor.clone()]]
+                                vec![vec![haystack.clone()]]
                             } else {
                                 vec![]
                             }
@@ -164,17 +164,17 @@ impl Matcher for TaggedPattern {
 
     fn paths_with_captures(
         &self,
-        cbor: &CBOR,
+        haystack: &CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         // Check if this CBOR value is a tagged value
-        let CBORCase::Tagged(tag_value, content) = cbor.as_case() else {
+        let CBORCase::Tagged(tag_value, content) = haystack.as_case() else {
             return (vec![], std::collections::HashMap::new());
         };
 
         match self {
             TaggedPattern::Any => {
                 // Matches any tagged value, no captures
-                (vec![vec![cbor.clone()]], std::collections::HashMap::new())
+                (vec![vec![haystack.clone()]], std::collections::HashMap::new())
             }
             TaggedPattern::Tag { tag: expected_tag, pattern } => {
                 if *tag_value == *expected_tag {
@@ -187,7 +187,7 @@ impl Matcher for TaggedPattern {
                         let tagged_paths: Vec<Path> = content_paths
                             .iter()
                             .map(|content_path| {
-                                let mut path = vec![cbor.clone()];
+                                let mut path = vec![haystack.clone()];
                                 path.extend_from_slice(&content_path[1..]); // Skip the content's root
                                 path
                             })
@@ -202,7 +202,7 @@ impl Matcher for TaggedPattern {
                                 .map(|_capture_path| {
                                     // For tagged patterns, the capture path
                                     // should be [tagged_value, content]
-                                    vec![cbor.clone(), content.clone()]
+                                    vec![haystack.clone(), content.clone()]
                                 })
                                 .collect();
                             updated_captures.insert(name, updated_paths);
@@ -218,7 +218,7 @@ impl Matcher for TaggedPattern {
             }
             _ => {
                 // For other variants, fall back to basic paths without captures
-                (self.paths(cbor), std::collections::HashMap::new())
+                (self.paths(haystack), std::collections::HashMap::new())
             }
         }
     }

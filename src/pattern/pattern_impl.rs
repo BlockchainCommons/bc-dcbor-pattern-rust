@@ -461,7 +461,7 @@ impl TryFrom<&str> for Pattern {
 impl Matcher for Pattern {
     fn paths_with_captures(
         &self,
-        cbor: &CBOR,
+        haystack: &CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         // Collect all capture names from this pattern
         let mut capture_names = Vec::new();
@@ -469,7 +469,7 @@ impl Matcher for Pattern {
 
         // If no captures, use the faster direct path matching
         if capture_names.is_empty() {
-            return (self.paths(cbor), std::collections::HashMap::new());
+            return (self.paths(haystack), std::collections::HashMap::new());
         }
 
         // For certain pattern types, delegate directly to their
@@ -478,12 +478,12 @@ impl Matcher for Pattern {
             Pattern::Meta(pattern) => {
                 // Meta patterns like SearchPattern handle their own capture
                 // logic
-                return pattern.paths_with_captures(cbor);
+                return pattern.paths_with_captures(haystack);
             }
             Pattern::Structure(pattern) => {
                 // Structure patterns like ArrayPattern handle their own capture
                 // logic, including special handling for SequencePattern
-                return pattern.paths_with_captures(cbor);
+                return pattern.paths_with_captures(haystack);
             }
             _ => {
                 // Use VM for other pattern types that need it
@@ -505,14 +505,14 @@ impl Matcher for Pattern {
         };
 
         // Run VM to get paths and captures
-        crate::pattern::vm::run(&program, cbor)
+        crate::pattern::vm::run(&program, haystack)
     }
 
-    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
+    fn paths(&self, haystack: &CBOR) -> Vec<Path> {
         match self {
-            Pattern::Value(pattern) => pattern.paths(cbor),
-            Pattern::Structure(pattern) => pattern.paths(cbor),
-            Pattern::Meta(pattern) => pattern.paths(cbor),
+            Pattern::Value(pattern) => pattern.paths(haystack),
+            Pattern::Structure(pattern) => pattern.paths(haystack),
+            Pattern::Meta(pattern) => pattern.paths(haystack),
         }
     }
 

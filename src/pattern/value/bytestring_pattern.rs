@@ -66,15 +66,15 @@ impl ByteStringPattern {
 }
 
 impl Matcher for ByteStringPattern {
-    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
-        let is_hit = cbor.as_byte_string().is_some_and(|bytes| match self {
+    fn paths(&self, haystack: &CBOR) -> Vec<Path> {
+        let is_hit = haystack.as_byte_string().is_some_and(|bytes| match self {
             ByteStringPattern::Any => true,
             ByteStringPattern::Value(want) => bytes == want,
             ByteStringPattern::BinaryRegex(regex) => regex.is_match(bytes),
         });
 
         if is_hit {
-            vec![vec![cbor.clone()]]
+            vec![vec![haystack.clone()]]
         } else {
             vec![]
         }

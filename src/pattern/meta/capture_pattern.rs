@@ -30,11 +30,11 @@ impl CapturePattern {
 }
 
 impl Matcher for CapturePattern {
-    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
+    fn paths(&self, haystack: &CBOR) -> Vec<Path> {
         // For the basic paths() method, we just return the paths from the inner
         // pattern The capture functionality is handled by the VM during
         // compilation/execution
-        self.pattern.paths(cbor)
+        self.pattern.paths(haystack)
     }
 
     fn compile(
@@ -72,10 +72,10 @@ impl Matcher for CapturePattern {
 
     fn paths_with_captures(
         &self,
-        cbor: &CBOR,
+        haystack: &CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         // Get paths from the inner pattern
-        let (paths, mut captures) = self.pattern.paths_with_captures(cbor);
+        let (paths, mut captures) = self.pattern.paths_with_captures(haystack);
 
         // For all paths that match, add them as captures for this capture name
         if !paths.is_empty() {

@@ -38,7 +38,7 @@ impl SequencePattern {
 }
 
 impl Matcher for SequencePattern {
-    fn paths(&self, _cbor: &CBOR) -> Vec<Path> {
+    fn paths(&self, _haystack: &CBOR) -> Vec<Path> {
         // For a sequence pattern, we need to find paths where all patterns
         // match consecutively. This is primarily used within array patterns
         // or other structural contexts.

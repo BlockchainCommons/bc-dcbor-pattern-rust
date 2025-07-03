@@ -16,11 +16,11 @@ impl NotPattern {
 }
 
 impl Matcher for NotPattern {
-    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
+    fn paths(&self, haystack: &CBOR) -> Vec<Path> {
         // If the inner pattern doesn't match, then we return the current
         // CBOR value as a match
-        if !self.pattern().matches(cbor) {
-            vec![vec![cbor.clone()]]
+        if !self.pattern().matches(haystack) {
+            vec![vec![haystack.clone()]]
         } else {
             vec![]
         }
@@ -28,14 +28,14 @@ impl Matcher for NotPattern {
 
     fn paths_with_captures(
         &self,
-        cbor: &CBOR,
+        haystack: &CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         // For NOT patterns, we match if the inner pattern does NOT match
         let (inner_paths, _inner_captures) =
-            self.pattern().paths_with_captures(cbor);
+            self.pattern().paths_with_captures(haystack);
         if inner_paths.is_empty() {
             // Inner pattern doesn't match, so NOT matches
-            (vec![vec![cbor.clone()]], std::collections::HashMap::new())
+            (vec![vec![haystack.clone()]], std::collections::HashMap::new())
         } else {
             // Inner pattern matches, so NOT doesn't match
             (vec![], std::collections::HashMap::new())

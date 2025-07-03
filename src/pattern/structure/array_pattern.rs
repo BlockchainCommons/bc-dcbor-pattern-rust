@@ -450,14 +450,14 @@ impl ArrayPattern {
 }
 
 impl Matcher for ArrayPattern {
-    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
+    fn paths(&self, haystack: &CBOR) -> Vec<Path> {
         // First check if this is an array
-        match cbor.as_case() {
+        match haystack.as_case() {
             CBORCase::Array(arr) => {
                 match self {
                     ArrayPattern::Any => {
                         // Match any array - return the array itself
-                        vec![vec![cbor.clone()]]
+                        vec![vec![haystack.clone()]]
                     }
                     ArrayPattern::Elements(pattern) => {
                         // For unified syntax, the pattern should match against
@@ -478,7 +478,7 @@ impl Matcher for ArrayPattern {
                             Pattern::Value(_) | Pattern::Structure(_) => {
                                 if arr.len() == 1 {
                                     if pattern.matches(&arr[0]) {
-                                        vec![vec![cbor.clone()]]
+                                        vec![vec![haystack.clone()]]
                                     } else {
                                         vec![]
                                     }
@@ -509,7 +509,7 @@ impl Matcher for ArrayPattern {
                                 if has_repeat_patterns {
                                     // Use VM-based matching for complex
                                     // sequences
-                                    self.match_complex_sequence(cbor, pattern)
+                                    self.match_complex_sequence(haystack, pattern)
                                 } else {
                                     // Simple sequence: match each pattern
                                     // against consecutive elements
@@ -524,7 +524,7 @@ impl Matcher for ArrayPattern {
                                                 return vec![];
                                             }
                                         }
-                                        vec![vec![cbor.clone()]]
+                                        vec![vec![haystack.clone()]]
                                     } else {
                                         vec![]
                                     }
@@ -534,7 +534,7 @@ impl Matcher for ArrayPattern {
                             // For individual repeat patterns
                             Pattern::Meta(MetaPattern::Repeat(_)) => {
                                 // Use VM-based matching for repeat patterns
-                                self.match_complex_sequence(cbor, pattern)
+                                self.match_complex_sequence(haystack, pattern)
                             }
 
                             // For other meta patterns, handle them properly
@@ -552,7 +552,7 @@ impl Matcher for ArrayPattern {
                                     });
 
                                 if has_matching_element {
-                                    vec![vec![cbor.clone()]]
+                                    vec![vec![haystack.clone()]]
                                 } else {
                                     vec![]
                                 }
@@ -573,7 +573,7 @@ impl Matcher for ArrayPattern {
                                 let mut result = Vec::new();
                                 for element in arr {
                                     if pattern.matches(element) {
-                                        result.push(vec![cbor.clone()]);
+                                        result.push(vec![haystack.clone()]);
                                         break;
                                     }
                                 }
@@ -583,7 +583,7 @@ impl Matcher for ArrayPattern {
                     }
                     ArrayPattern::Length(interval) => {
                         if interval.contains(arr.len()) {
-                            vec![vec![cbor.clone()]]
+                            vec![vec![haystack.clone()]]
                         } else {
                             vec![]
                         }

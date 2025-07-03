@@ -28,16 +28,16 @@ pub enum MetaPattern {
 }
 
 impl Matcher for MetaPattern {
-    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
+    fn paths(&self, haystack: &CBOR) -> Vec<Path> {
         match self {
-            MetaPattern::Any(pattern) => pattern.paths(cbor),
-            MetaPattern::And(pattern) => pattern.paths(cbor),
-            MetaPattern::Or(pattern) => pattern.paths(cbor),
-            MetaPattern::Not(pattern) => pattern.paths(cbor),
-            MetaPattern::Repeat(pattern) => pattern.paths(cbor),
-            MetaPattern::Capture(pattern) => pattern.paths(cbor),
-            MetaPattern::Search(pattern) => pattern.paths(cbor),
-            MetaPattern::Sequence(pattern) => pattern.paths(cbor),
+            MetaPattern::Any(pattern) => pattern.paths(haystack),
+            MetaPattern::And(pattern) => pattern.paths(haystack),
+            MetaPattern::Or(pattern) => pattern.paths(haystack),
+            MetaPattern::Not(pattern) => pattern.paths(haystack),
+            MetaPattern::Repeat(pattern) => pattern.paths(haystack),
+            MetaPattern::Capture(pattern) => pattern.paths(haystack),
+            MetaPattern::Search(pattern) => pattern.paths(haystack),
+            MetaPattern::Sequence(pattern) => pattern.paths(haystack),
         }
     }
 
@@ -103,17 +103,17 @@ impl Matcher for MetaPattern {
 
     fn paths_with_captures(
         &self,
-        cbor: &CBOR,
+        haystack: &CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         match self {
-            MetaPattern::Any(pattern) => pattern.paths_with_captures(cbor),
-            MetaPattern::And(pattern) => pattern.paths_with_captures(cbor),
-            MetaPattern::Or(pattern) => pattern.paths_with_captures(cbor),
-            MetaPattern::Not(pattern) => pattern.paths_with_captures(cbor),
-            MetaPattern::Repeat(pattern) => pattern.paths_with_captures(cbor),
-            MetaPattern::Capture(pattern) => pattern.paths_with_captures(cbor),
-            MetaPattern::Search(pattern) => pattern.paths_with_captures(cbor),
-            MetaPattern::Sequence(pattern) => pattern.paths_with_captures(cbor),
+            MetaPattern::Any(pattern) => pattern.paths_with_captures(haystack),
+            MetaPattern::And(pattern) => pattern.paths_with_captures(haystack),
+            MetaPattern::Or(pattern) => pattern.paths_with_captures(haystack),
+            MetaPattern::Not(pattern) => pattern.paths_with_captures(haystack),
+            MetaPattern::Repeat(pattern) => pattern.paths_with_captures(haystack),
+            MetaPattern::Capture(pattern) => pattern.paths_with_captures(haystack),
+            MetaPattern::Search(pattern) => pattern.paths_with_captures(haystack),
+            MetaPattern::Sequence(pattern) => pattern.paths_with_captures(haystack),
         }
     }
 }

@@ -53,14 +53,14 @@ impl MapPattern {
 }
 
 impl Matcher for MapPattern {
-    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
+    fn paths(&self, haystack: &CBOR) -> Vec<Path> {
         // First check if this is a map
-        match cbor.as_case() {
+        match haystack.as_case() {
             CBORCase::Map(map) => {
                 match self {
                     MapPattern::Any => {
                         // Match any map - return the map itself
-                        vec![vec![cbor.clone()]]
+                        vec![vec![haystack.clone()]]
                     }
                     MapPattern::Constraints(constraints) => {
                         // All constraints must be satisfied
@@ -78,11 +78,11 @@ impl Matcher for MapPattern {
                                 return vec![];
                             }
                         }
-                        vec![vec![cbor.clone()]]
+                        vec![vec![haystack.clone()]]
                     }
                     MapPattern::Length(interval) => {
                         if interval.contains(map.len()) {
-                            vec![vec![cbor.clone()]]
+                            vec![vec![haystack.clone()]]
                         } else {
                             vec![]
                         }
@@ -132,17 +132,17 @@ impl Matcher for MapPattern {
 
     fn paths_with_captures(
         &self,
-        cbor: &CBOR,
+        haystack: &CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         // Check if this CBOR value is a map
-        let CBORCase::Map(map) = cbor.as_case() else {
+        let CBORCase::Map(map) = haystack.as_case() else {
             return (vec![], std::collections::HashMap::new());
         };
 
         match self {
             MapPattern::Any => {
                 // Matches any map, no captures
-                (vec![vec![cbor.clone()]], std::collections::HashMap::new())
+                (vec![vec![haystack.clone()]], std::collections::HashMap::new())
             }
             MapPattern::Constraints(constraints) => {
                 // Match if all key-value constraints are satisfied
@@ -166,7 +166,7 @@ impl Matcher for MapPattern {
                                 let updated_paths: Vec<Path> = capture_paths
                                     .iter()
                                     .map(|_capture_path| {
-                                        vec![cbor.clone(), key.clone()]
+                                        vec![haystack.clone(), key.clone()]
                                     })
                                     .collect();
                                 all_captures
@@ -180,7 +180,7 @@ impl Matcher for MapPattern {
                                 let updated_paths: Vec<Path> = capture_paths
                                     .iter()
                                     .map(|_capture_path| {
-                                        vec![cbor.clone(), value.clone()]
+                                        vec![haystack.clone(), value.clone()]
                                     })
                                     .collect();
                                 all_captures
@@ -199,14 +199,14 @@ impl Matcher for MapPattern {
                 }
 
                 if all_constraints_satisfied {
-                    (vec![vec![cbor.clone()]], all_captures)
+                    (vec![vec![haystack.clone()]], all_captures)
                 } else {
                     (vec![], all_captures)
                 }
             }
             _ => {
                 // For other variants, fall back to basic paths without captures
-                (self.paths(cbor), std::collections::HashMap::new())
+                (self.paths(haystack), std::collections::HashMap::new())
             }
         }
     }

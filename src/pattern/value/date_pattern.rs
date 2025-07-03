@@ -122,13 +122,13 @@ impl DatePattern {
 }
 
 impl Matcher for DatePattern {
-    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
+    fn paths(&self, haystack: &CBOR) -> Vec<Path> {
         // Check if the CBOR is a tagged value with date tag (tag 1)
-        if let CBORCase::Tagged(tag, _) = cbor.as_case() {
+        if let CBORCase::Tagged(tag, _) = haystack.as_case() {
             // Check if this is a date tag (tag 1)
             if tag.value() == 1 {
                 // Try to extract the date
-                if let Ok(date) = Date::try_from(cbor.clone()) {
+                if let Ok(date) = Date::try_from(haystack.clone()) {
                     let is_hit = match self {
                         DatePattern::Any => true,
                         DatePattern::Value(expected_date) => {
@@ -146,7 +146,7 @@ impl Matcher for DatePattern {
                     };
 
                     if is_hit {
-                        vec![vec![cbor.clone()]]
+                        vec![vec![haystack.clone()]]
                     } else {
                         vec![]
                     }

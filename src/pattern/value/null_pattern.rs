@@ -7,9 +7,9 @@ use crate::pattern::{Matcher, Path, Pattern, vm::Instr};
 pub struct NullPattern;
 
 impl Matcher for NullPattern {
-    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
-        if cbor.is_null() {
-            vec![vec![cbor.clone()]]
+    fn paths(&self, haystack: &CBOR) -> Vec<Path> {
+        if haystack.is_null() {
+            vec![vec![haystack.clone()]]
         } else {
             vec![]
         }

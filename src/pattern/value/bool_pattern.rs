@@ -20,14 +20,14 @@ impl BoolPattern {
 }
 
 impl Matcher for BoolPattern {
-    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
-        let is_hit = cbor.as_bool().is_some_and(|value| match self {
+    fn paths(&self, haystack: &CBOR) -> Vec<Path> {
+        let is_hit = haystack.as_bool().is_some_and(|value| match self {
             BoolPattern::Any => true,
             BoolPattern::Value(want) => value == *want,
         });
 
         if is_hit {
-            vec![vec![cbor.clone()]]
+            vec![vec![haystack.clone()]]
         } else {
             vec![]
         }

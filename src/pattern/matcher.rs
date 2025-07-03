@@ -13,7 +13,7 @@ pub trait Matcher: std::fmt::Debug + std::fmt::Display + Clone {
     /// Return all matching paths along with any named captures.
     fn paths_with_captures(
         &self,
-        _cbor: &CBOR,
+        _haystack: &CBOR,
     ) -> (Vec<Path>, HashMap<String, Vec<Path>>) {
         unimplemented!(
             "Matcher::paths_with_captures not implemented for {:?}",
@@ -22,11 +22,11 @@ pub trait Matcher: std::fmt::Debug + std::fmt::Display + Clone {
     }
 
     /// Return only the matching paths, discarding any captures.
-    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
-        self.paths_with_captures(cbor).0
+    fn paths(&self, haystack: &CBOR) -> Vec<Path> {
+        self.paths_with_captures(haystack).0
     }
 
-    fn matches(&self, cbor: &CBOR) -> bool { !self.paths(cbor).is_empty() }
+    fn matches(&self, haystack: &CBOR) -> bool { !self.paths(haystack).is_empty() }
 
     fn compile(
         &self,

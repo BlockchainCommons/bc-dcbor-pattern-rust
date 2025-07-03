@@ -40,12 +40,12 @@ impl RepeatPattern {
 }
 
 impl Matcher for RepeatPattern {
-    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
+    fn paths(&self, haystack: &CBOR) -> Vec<Path> {
         // For repeat patterns, we need to handle the quantifier logic
         // This is a simplified implementation that doesn't use the full VM
         // capability
 
-        let inner_paths = self.pattern.paths(cbor);
+        let inner_paths = self.pattern.paths(haystack);
         let matches = !inner_paths.is_empty();
 
         if matches {
@@ -59,7 +59,7 @@ impl Matcher for RepeatPattern {
             // Inner pattern doesn't match
             if self.quantifier.contains(0) {
                 // Zero matches are allowed, so succeed
-                vec![vec![cbor.clone()]]
+                vec![vec![haystack.clone()]]
             } else {
                 // Zero matches not allowed, so fail
                 vec![]
@@ -69,11 +69,11 @@ impl Matcher for RepeatPattern {
 
     fn paths_with_captures(
         &self,
-        cbor: &CBOR,
+        haystack: &CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         // For now, repeat patterns use basic implementation without captures
         // TODO: Implement full repeat capture support
-        (self.paths(cbor), std::collections::HashMap::new())
+        (self.paths(haystack), std::collections::HashMap::new())
     }
 
     fn compile(

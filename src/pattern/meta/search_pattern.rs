@@ -151,9 +151,9 @@ impl Default for SearchPattern {
 }
 
 impl Matcher for SearchPattern {
-    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
+    fn paths(&self, haystack: &CBOR) -> Vec<Path> {
         let mut result_paths = Vec::new();
-        self.search_recursive(cbor, vec![cbor.clone()], &mut result_paths);
+        self.search_recursive(haystack, vec![haystack.clone()], &mut result_paths);
 
         // Remove duplicates based on CBOR values in the path
         let mut seen = std::collections::HashSet::new();
@@ -174,14 +174,14 @@ impl Matcher for SearchPattern {
 
     fn paths_with_captures(
         &self,
-        cbor: &CBOR,
+        haystack: &CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         let mut result_paths = Vec::new();
         let mut all_captures = std::collections::HashMap::new();
 
         self.search_recursive_with_captures(
-            cbor,
-            vec![cbor.clone()],
+            haystack,
+            vec![haystack.clone()],
             &mut result_paths,
             &mut all_captures,
         );

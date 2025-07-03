@@ -171,67 +171,67 @@ impl NumberPattern {
 }
 
 impl Matcher for NumberPattern {
-    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
+    fn paths(&self, haystack: &CBOR) -> Vec<Path> {
         let is_hit = match self {
-            NumberPattern::Any => cbor.is_number(),
+            NumberPattern::Any => haystack.is_number(),
             NumberPattern::Value(want) => {
-                if let Ok(value) = f64::try_from_cbor(cbor) {
+                if let Ok(value) = f64::try_from_cbor(haystack) {
                     value == *want
                 } else {
                     false
                 }
             }
             NumberPattern::Range(want) => {
-                if let Ok(value) = f64::try_from_cbor(cbor) {
+                if let Ok(value) = f64::try_from_cbor(haystack) {
                     want.contains(&value)
                 } else {
                     false
                 }
             }
             NumberPattern::GreaterThan(want) => {
-                if let Ok(value) = f64::try_from_cbor(cbor) {
+                if let Ok(value) = f64::try_from_cbor(haystack) {
                     value > *want
                 } else {
                     false
                 }
             }
             NumberPattern::GreaterThanOrEqual(want) => {
-                if let Ok(value) = f64::try_from_cbor(cbor) {
+                if let Ok(value) = f64::try_from_cbor(haystack) {
                     value >= *want
                 } else {
                     false
                 }
             }
             NumberPattern::LessThan(want) => {
-                if let Ok(value) = f64::try_from_cbor(cbor) {
+                if let Ok(value) = f64::try_from_cbor(haystack) {
                     value < *want
                 } else {
                     false
                 }
             }
             NumberPattern::LessThanOrEqual(want) => {
-                if let Ok(value) = f64::try_from_cbor(cbor) {
+                if let Ok(value) = f64::try_from_cbor(haystack) {
                     value <= *want
                 } else {
                     false
                 }
             }
             NumberPattern::NaN => {
-                if let Ok(value) = f64::try_from_cbor(cbor) {
+                if let Ok(value) = f64::try_from_cbor(haystack) {
                     value.is_nan()
                 } else {
                     false
                 }
             }
             NumberPattern::Infinity => {
-                if let Ok(value) = f64::try_from_cbor(cbor) {
+                if let Ok(value) = f64::try_from_cbor(haystack) {
                     value.is_infinite() && value.is_sign_positive()
                 } else {
                     false
                 }
             }
             NumberPattern::NegInfinity => {
-                if let Ok(value) = f64::try_from_cbor(cbor) {
+                if let Ok(value) = f64::try_from_cbor(haystack) {
                     value.is_infinite() && value.is_sign_negative()
                 } else {
                     false
@@ -240,7 +240,7 @@ impl Matcher for NumberPattern {
         };
 
         if is_hit {
-            vec![vec![cbor.clone()]]
+            vec![vec![haystack.clone()]]
         } else {
             vec![]
         }

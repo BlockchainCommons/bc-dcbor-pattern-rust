@@ -82,18 +82,17 @@ impl KnownValuePattern {
 }
 
 impl Matcher for KnownValuePattern {
-    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
-        // Known values are represented as tagged values with tag 40000
-        // (KNOWN_VALUE)
-        if let CBORCase::Tagged(tag, content) = cbor.as_case() {
+    fn paths(&self, haystack: &CBOR) -> Vec<Path> {
+        // Known values are represented as tagged values with tag 40000(u64)
+        if let CBORCase::Tagged(tag, content) = haystack.as_case() {
             if *tag == KNOWN_VALUE_TAG {
                 if let CBORCase::Unsigned(value) = content.as_case() {
                     let known_value = KnownValue::new(*value);
                     match self {
-                        KnownValuePattern::Any => vec![vec![cbor.clone()]],
+                        KnownValuePattern::Any => vec![vec![haystack.clone()]],
                         KnownValuePattern::Value(expected) => {
                             if known_value == *expected {
-                                vec![vec![cbor.clone()]]
+                                vec![vec![haystack.clone()]]
                             } else {
                                 vec![]
                             }
@@ -107,7 +106,7 @@ impl Matcher for KnownValuePattern {
                                     known_values_store.known_value_named(name)
                                 {
                                     if known_value == *expected_value {
-                                        vec![vec![cbor.clone()]]
+                                        vec![vec![haystack.clone()]]
                                     } else {
                                         vec![]
                                     }
@@ -135,7 +134,7 @@ impl Matcher for KnownValuePattern {
                             };
 
                             if regex.is_match(&name) {
-                                vec![vec![cbor.clone()]]
+                                vec![vec![haystack.clone()]]
                             } else {
                                 vec![]
                             }

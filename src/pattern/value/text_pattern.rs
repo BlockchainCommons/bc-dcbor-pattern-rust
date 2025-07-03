@@ -61,15 +61,15 @@ impl TextPattern {
 }
 
 impl Matcher for TextPattern {
-    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
-        let is_hit = cbor.as_text().is_some_and(|value| match self {
+    fn paths(&self, haystack: &CBOR) -> Vec<Path> {
+        let is_hit = haystack.as_text().is_some_and(|value| match self {
             TextPattern::Any => true,
             TextPattern::Value(want) => value == *want,
             TextPattern::Regex(regex) => regex.is_match(value),
         });
 
         if is_hit {
-            vec![vec![cbor.clone()]]
+            vec![vec![haystack.clone()]]
         } else {
             vec![]
         }

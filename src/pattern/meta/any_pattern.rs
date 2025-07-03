@@ -16,18 +16,18 @@ impl Default for AnyPattern {
 }
 
 impl Matcher for AnyPattern {
-    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
+    fn paths(&self, haystack: &CBOR) -> Vec<Path> {
         // Always matches - return the current CBOR value as a path
-        vec![vec![cbor.clone()]]
+        vec![vec![haystack.clone()]]
     }
 
     fn paths_with_captures(
         &self,
-        cbor: &CBOR,
+        haystack: &CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         // AnyPattern has no internal captures, so just return paths and empty
         // captures
-        (self.paths(cbor), std::collections::HashMap::new())
+        (self.paths(haystack), std::collections::HashMap::new())
     }
 
     fn compile(

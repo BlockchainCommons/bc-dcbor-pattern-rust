@@ -78,9 +78,9 @@ impl DigestPattern {
 }
 
 impl Matcher for DigestPattern {
-    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
+    fn paths(&self, haystack: &CBOR) -> Vec<Path> {
         // Check if the CBOR value is a tagged digest (tag 40001)
-        if let CBORCase::Tagged(tag, content) = cbor.as_case() {
+        if let CBORCase::Tagged(tag, content) = haystack.as_case() {
             if tag.value() == tags::TAG_DIGEST {
                 // Try to extract the digest from the tagged content
                 match CBOR::try_into_byte_string(content.clone()) {
@@ -100,7 +100,7 @@ impl Matcher for DigestPattern {
                             };
 
                             if is_hit {
-                                return vec![vec![cbor.clone()]];
+                                return vec![vec![haystack.clone()]];
                             }
                         }
                     }

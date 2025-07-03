@@ -15,9 +15,9 @@ impl AndPattern {
 }
 
 impl Matcher for AndPattern {
-    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
-        if self.patterns().iter().all(|pattern| pattern.matches(cbor)) {
-            vec![vec![cbor.clone()]]
+    fn paths(&self, haystack: &CBOR) -> Vec<Path> {
+        if self.patterns().iter().all(|pattern| pattern.matches(haystack)) {
+            vec![vec![haystack.clone()]]
         } else {
             vec![]
         }
@@ -25,13 +25,13 @@ impl Matcher for AndPattern {
 
     fn paths_with_captures(
         &self,
-        cbor: &CBOR,
+        haystack: &CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         // For AND patterns, all patterns must match, and we merge captures
         let mut all_captures = std::collections::HashMap::new();
 
         for pattern in self.patterns() {
-            let (paths, captures) = pattern.paths_with_captures(cbor);
+            let (paths, captures) = pattern.paths_with_captures(haystack);
             if paths.is_empty() {
                 // If any pattern fails to match, AND fails
                 return (vec![], std::collections::HashMap::new());
@@ -47,7 +47,7 @@ impl Matcher for AndPattern {
         }
 
         // If all patterns matched, return the basic path and merged captures
-        (vec![vec![cbor.clone()]], all_captures)
+        (vec![vec![haystack.clone()]], all_captures)
     }
 
     /// Compile into byte-code (AND = all must match).

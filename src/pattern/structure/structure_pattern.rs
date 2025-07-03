@@ -10,11 +10,11 @@ pub enum StructurePattern {
 }
 
 impl Matcher for StructurePattern {
-    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
+    fn paths(&self, haystack: &CBOR) -> Vec<Path> {
         match self {
-            StructurePattern::Array(pattern) => pattern.paths(cbor),
-            StructurePattern::Map(pattern) => pattern.paths(cbor),
-            StructurePattern::Tagged(pattern) => pattern.paths(cbor),
+            StructurePattern::Array(pattern) => pattern.paths(haystack),
+            StructurePattern::Map(pattern) => pattern.paths(haystack),
+            StructurePattern::Tagged(pattern) => pattern.paths(haystack),
         }
     }
 
@@ -53,15 +53,15 @@ impl Matcher for StructurePattern {
 
     fn paths_with_captures(
         &self,
-        cbor: &CBOR,
+        haystack: &CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         match self {
             StructurePattern::Array(pattern) => {
-                pattern.paths_with_captures(cbor)
+                pattern.paths_with_captures(haystack)
             }
-            StructurePattern::Map(pattern) => pattern.paths_with_captures(cbor),
+            StructurePattern::Map(pattern) => pattern.paths_with_captures(haystack),
             StructurePattern::Tagged(pattern) => {
-                pattern.paths_with_captures(cbor)
+                pattern.paths_with_captures(haystack)
             }
         }
     }

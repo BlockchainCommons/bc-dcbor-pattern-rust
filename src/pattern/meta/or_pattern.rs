@@ -15,9 +15,9 @@ impl OrPattern {
 }
 
 impl Matcher for OrPattern {
-    fn paths(&self, cbor: &CBOR) -> Vec<Path> {
-        if self.patterns().iter().any(|pattern| pattern.matches(cbor)) {
-            vec![vec![cbor.clone()]]
+    fn paths(&self, haystack: &CBOR) -> Vec<Path> {
+        if self.patterns().iter().any(|pattern| pattern.matches(haystack)) {
+            vec![vec![haystack.clone()]]
         } else {
             vec![]
         }
@@ -25,14 +25,14 @@ impl Matcher for OrPattern {
 
     fn paths_with_captures(
         &self,
-        cbor: &CBOR,
+        haystack: &CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
         let mut all_paths = Vec::new();
         let mut all_captures = std::collections::HashMap::new();
 
         // Try each pattern in the OR group
         for pattern in self.patterns() {
-            let (paths, captures) = pattern.paths_with_captures(cbor);
+            let (paths, captures) = pattern.paths_with_captures(haystack);
             all_paths.extend(paths);
 
             // Merge captures
