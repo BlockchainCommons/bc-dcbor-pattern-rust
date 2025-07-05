@@ -103,7 +103,7 @@ Structure patterns match parts of dCBOR items.
         - Matches an array with between `n` and `m` elements, inclusive.
     - `[{n,}]`
         - Matches an array with at least `n` elements.
-    - `[patex]`
+    - `[patex, patex, ...]`
         - Matches an array where the elements match the specified pattern. The pattern can be a simple pattern, a sequence of patterns, or patterns with repeat quantifiers.
         - Examples:
             - `[*]` - Array containing exactly one element of any type
@@ -144,7 +144,7 @@ Precedence: Repeat has the highest precedence, followed by And, Not, Sequence, a
         - Matches if all specified patterns match.
 - Any
     - `*`
-        - A bare asterisk matches any value.
+        - A bare asterisk matches any single item.
 - Capture
     - `@name ( patex )`
         - Matches the specified pattern and captures the match for later use with the given name.

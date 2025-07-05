@@ -12,10 +12,17 @@ _forthcoming_
 
 ```toml
 [dependencies]
-dcbor-pattern = "0.1.0"
+dcbor-pattern = "0.2.0"
 ```
 
 ## Version History
+
+### **0.2.0** — 7/5/2025
+- Replace [*] and {*} syntax with array and map keywords
+- Change [*] semantics from 'any array' to 'array with exactly one element of any type'
+- Update pattern syntax documentation
+- Modify parsers and pattern matching logic for new syntax
+- Update all tests to use new syntax
 
 ### **0.1.0** — 7/3/2025
 - Initial release of dcbor-pattern crate with comprehensive pattern matching for dCBOR
