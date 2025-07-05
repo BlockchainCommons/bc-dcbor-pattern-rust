@@ -193,9 +193,9 @@ fn test_parse_empty_input() {
 /// Test integration with other pattern types
 #[test]
 fn test_integration_with_structure_patterns() -> Result<()> {
-    let pattern = Pattern::parse("[*] | {*}")?;
+    let pattern = Pattern::parse("[*] | map")?;
     assert!(matches!(pattern, Pattern::Meta(_)));
-    assert_eq!(pattern.to_string(), "[*] | {*}");
+    assert_eq!(pattern.to_string(), "[*] | map");
     Ok(())
 }
 

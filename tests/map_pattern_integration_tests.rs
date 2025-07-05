@@ -17,8 +17,8 @@ fn test_map_patterns_with_real_cbor() {
         r#"{0: "item0", 1: "item1", 2: "item2", 3: "item3", 4: "item4", 5: "item5", 6: "item6", 7: "item7", 8: "item8", 9: "item9"}"#,
     );
 
-    // Test {*} (any map)
-    let any_map = Pattern::parse("{*}").unwrap();
+    // Test map (any map)
+    let any_map = Pattern::parse("map").unwrap();
 
     // Should match empty map
     let paths = any_map.paths(&empty_map);
@@ -99,7 +99,7 @@ fn test_map_patterns_with_real_cbor() {
 
 #[test]
 fn test_map_pattern_display() {
-    assert_eq!(MapPattern::any().to_string(), "{*}");
+    assert_eq!(MapPattern::any().to_string(), "map");
     assert_eq!(MapPattern::with_length(0).to_string(), "{{0}}");
     assert_eq!(MapPattern::with_length(5).to_string(), "{{5}}");
     assert_eq!(MapPattern::with_length_range(2..=8).to_string(), "{{2,8}}");
@@ -108,10 +108,10 @@ fn test_map_pattern_display() {
 
 #[test]
 fn test_map_pattern_round_trip() {
-    let patterns = ["{*}", "{{0}}", "{{1}}", "{{5}}", "{{2,8}}", "{{3,}}"];
+    let patterns = ["map", "{{0}}", "{{1}}", "{{5}}", "{{2,8}}", "{{3,}}"];
 
     let expected_displays =
-        ["{*}", "{{0}}", "{{1}}", "{{5}}", "{{2,8}}", "{{3,}}"];
+        ["map", "{{0}}", "{{1}}", "{{5}}", "{{2,8}}", "{{3,}}"];
 
     for (i, pattern_str) in patterns.iter().enumerate() {
         let pattern = Pattern::parse(pattern_str).unwrap();

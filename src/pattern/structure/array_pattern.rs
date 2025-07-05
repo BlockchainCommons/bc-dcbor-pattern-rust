@@ -475,7 +475,9 @@ impl Matcher for ArrayPattern {
                         match pattern.as_ref() {
                             // Simple case: single pattern should match array
                             // with exactly one element
-                            Pattern::Value(_) | Pattern::Structure(_) => {
+                            Pattern::Value(_)
+                            | Pattern::Structure(_)
+                            | Pattern::Meta(MetaPattern::Any(_)) => {
                                 if arr.len() == 1 {
                                     if pattern.matches(&arr[0]) {
                                         vec![vec![haystack.clone()]]
@@ -509,7 +511,9 @@ impl Matcher for ArrayPattern {
                                 if has_repeat_patterns {
                                     // Use VM-based matching for complex
                                     // sequences
-                                    self.match_complex_sequence(haystack, pattern)
+                                    self.match_complex_sequence(
+                                        haystack, pattern,
+                                    )
                                 } else {
                                     // Simple sequence: match each pattern
                                     // against consecutive elements
@@ -829,7 +833,7 @@ impl ArrayPattern {
 impl std::fmt::Display for ArrayPattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ArrayPattern::Any => write!(f, "[*]"),
+            ArrayPattern::Any => write!(f, "array"),
             ArrayPattern::Elements(pattern) => {
                 let formatted_pattern =
                     Self::format_array_element_pattern(pattern);

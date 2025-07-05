@@ -129,7 +129,7 @@ fn test_search_capture_nested_structure() {
 
 #[test]
 fn test_search_capture_with_array_elements() {
-    let pattern = parse("search(@item([*]))");
+    let pattern = parse("search(@item(array))");
     let cbor_data = cbor(r#"[1, [2, 3], {"arrays": [4, 5, 6]}]"#);
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);

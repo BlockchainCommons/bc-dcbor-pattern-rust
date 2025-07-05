@@ -215,7 +215,7 @@ impl Matcher for MapPattern {
 impl std::fmt::Display for MapPattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            MapPattern::Any => write!(f, "{{*}}"),
+            MapPattern::Any => write!(f, "map"),
             MapPattern::Constraints(constraints) => {
                 write!(f, "{{")?;
                 for (i, (key_pattern, value_pattern)) in

@@ -140,7 +140,7 @@ fn test_map_capture_with_any_pattern() {
 
 #[test]
 fn test_map_capture_nested() {
-    let pattern = parse(r#"{"data": @inner([*])}"#);
+    let pattern = parse(r#"{"data": @inner(array)}"#);
     let cbor_data = cbor(r#"{"data": [42, 100]}"#);
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);

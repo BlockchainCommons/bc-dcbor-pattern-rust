@@ -9,7 +9,6 @@ use crate::{
 /// Parse a bracket map pattern: { ... }
 ///
 /// Supports the following syntax:
-/// - `{*}` - matches any map
 /// - `{{0}}` - matches map with exactly 0 key-value pairs (empty map)
 /// - `{{n}}` - matches map with exactly n key-value pairs
 /// - `{{n,m}}` - matches map with n to m key-value pairs
@@ -18,42 +17,18 @@ use crate::{
 ///   key-value constraints
 ///
 /// `{}` is not a valid map pattern and will return an error.
+/// Use `map` keyword for "any map" pattern.
 pub(crate) fn parse_bracket_map(
     lexer: &mut logos::Lexer<Token>,
 ) -> Result<Pattern> {
     // We expect the opening brace to already be consumed by the caller
 
     // We need to look ahead to distinguish between:
-    // 1. {*} - map wildcard
-    // 2. {interval} - length constraints (interval {n}, {n,m}, {n,})
-    // 3. {pattern:pattern} - key-value constraints
+    // 1. {interval} - length constraints (interval {n}, {n,m}, {n,})
+    // 2. {pattern:pattern} - key-value constraints
 
     let mut lookahead = lexer.clone();
     match lookahead.next() {
-        Some(Ok(Token::RepeatZeroOrMore)) => {
-            // Check if this is {*} or {*:...}
-            let mut lookahead2 = lookahead.clone();
-            match lookahead2.next() {
-                Some(Ok(Token::BraceClose)) => {
-                    // This is {*} - matches any map
-                    lexer.next(); // consume *
-                    lexer.next(); // consume }
-                    Ok(Pattern::Structure(StructurePattern::Map(
-                        MapPattern::any(),
-                    )))
-                }
-                Some(Ok(Token::Colon)) => {
-                    // This is {*:pattern} - key-value constraint with * as key
-                    parse_key_value_constraints(lexer)
-                }
-                Some(Ok(token)) => Err(Error::UnexpectedToken(
-                    Box::new(token),
-                    lookahead2.span(),
-                )),
-                Some(Err(e)) => Err(e),
-                None => Err(Error::ExpectedCloseBrace(lookahead2.span())),
-            }
-        }
         Some(Ok(Token::Range(quantifier_result))) => {
             // This is {interval} - map length constraint
             lexer.next(); // consume the Range token
@@ -140,15 +115,6 @@ fn parse_key_value_constraints(
 mod tests {
     use super::*;
     use crate::Interval;
-
-    #[test]
-    fn test_parse_bracket_map_any() {
-        let pattern = Pattern::parse("{*}").unwrap();
-        assert!(matches!(
-            pattern,
-            Pattern::Structure(StructurePattern::Map(MapPattern::Any))
-        ));
-    }
 
     #[test]
     fn test_parse_bracket_map_exact_count() {

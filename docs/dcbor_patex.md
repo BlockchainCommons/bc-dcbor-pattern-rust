@@ -4,19 +4,13 @@ This syntax is inspired by regular expressions but is specifically designed for 
 
 The pattern syntax is designed to be flexible and expressive. Patterns can be composed of *value patterns*, *structure patterns*, and combinators known as *meta-patterns*.
 
-Keywords like `tagged`, `number`, etc., are case-sensitive and use lowercase. Patterns can include specific values, ranges, or regexes to match against the corresponding parts of the dCBOR item.
-
-Arrays use bracket syntax `[...]`.
-
-Spaces may used to separate different parts of the pattern.
+Keywords like `bool`, `number`, etc., are case-sensitive. Patterns can include specific values, ranges, or regexes to match against the corresponding parts of the dCBOR item.
 
 Parentheses are used to group patterns or specify ranges. The syntax `(pattern)` is really just the repeat pattern with a repeat that matches the pattern exactly once.
 
-The result of successful parsing is a `Pattern` object, which can be used to match against `CBOR` values from the `dcbor` crate.
+White space is ignored between tokens, so you can use it to make patterns more readable. The syntax examples below include white space both to show where it can be used and to show where it *cannot* be used (i.e., between characters of a token like `*?`)
 
-White space is ignored between tokens, so you can use it to make patterns more readable. The syntax examples below includ white space both to show where it can be used and to show where it *cannot* be used (i.e., between characters of a token like `*?`)
-
-# Value Patterns
+## Value Patterns
 
 All value patterns match atomic CBOR values.
 
@@ -101,7 +95,7 @@ All value patterns match atomic CBOR values.
 
 Structure patterns match parts of dCBOR items.
 - Array
-    - `[*]`
+    - `array`
         - Matches any array.
     - `[{n}]`
         - Matches an array with exactly `n` elements.
@@ -112,13 +106,14 @@ Structure patterns match parts of dCBOR items.
     - `[patex]`
         - Matches an array where the elements match the specified pattern. The pattern can be a simple pattern, a sequence of patterns, or patterns with repeat quantifiers.
         - Examples:
+            - `[*]` - Array containing exactly one element of any type
             - `[42]` - Array containing exactly one element: the number 42
             - `["a", "b", "c"]` - Array containing exactly ["a", "b", "c"] in sequence
             - `[(*)*, 42, (*)*]` - Array containing 42 anywhere within it
             - `[42, (*)*]` - Array starting with 42, followed by any elements
             - `[(*)*, 42]` - Array ending with 42, preceded by any elements
 - Map
-    - `{*}`
+    - `map`
         - Matches any map.
     - `{{n}}`
         - Matches a map with exactly `n` entries.
@@ -180,11 +175,8 @@ Precedence: Repeat has the highest precedence, followed by And, Not, Sequence, a
 - Search
     - `search ( patex )`
       - Visits every node in the CBOR tree, matching the specified pattern against each node.
-- Sequence
-    - `patex, patex, patex...`
-        - Matches if the specified patterns match in sequence, with no other nodes in between.
 
-## Advanced Composite Patterns
+## Example Composite Patterns
 
 The following patterns show examples of combining structure patterns with meta patterns to create complex matching expressions:
 

@@ -50,6 +50,12 @@ pub enum Token {
     #[token("tagged")]
     Tagged,
 
+    #[token("array")]
+    Array,
+
+    #[token("map")]
+    Map,
+
     // Value Pattern Keywords
     #[token("bool")]
     Bool,

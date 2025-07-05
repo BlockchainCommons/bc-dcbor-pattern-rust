@@ -13,10 +13,10 @@ fn cbor(s: &str) -> CBOR { parse_dcbor_item(s).unwrap() }
 /// Helper function to parse pattern text into Pattern objects
 fn parse(s: &str) -> Pattern { Pattern::parse(s).unwrap() }
 
-/// Test that ArrayPattern::Any matches any array
+/// Test that `array` keyword matches any array
 #[test]
 fn test_array_pattern_any() {
-    let pattern = parse("[*]");
+    let pattern = parse("array");
 
     // Should match empty array
     let empty_array = cbor("[]");
@@ -35,6 +35,42 @@ fn test_array_pattern_any() {
         [1, 2, 3]
     "#}.trim();
     assert_actual_expected!(format_paths(&paths), expected);
+
+    // Should not match non-array
+    let not_array = cbor(r#""not an array""#);
+    assert!(!pattern.matches(&not_array));
+}
+
+/// Test that `[*]` matches arrays with exactly one element of any type
+#[test]
+fn test_array_pattern_single_any_element() {
+    let pattern = parse("[*]");
+
+    // Should match array with one element
+    let single_element_array = cbor("[42]");
+    let paths = pattern.paths(&single_element_array);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        [42]
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Should match array with one element of different type
+    let single_string_array = cbor(r#"["hello"]"#);
+    let paths = pattern.paths(&single_string_array);
+    #[rustfmt::skip]
+    let expected = indoc! {r#"
+        ["hello"]
+    "#}.trim();
+    assert_actual_expected!(format_paths(&paths), expected);
+
+    // Should NOT match empty array
+    let empty_array = cbor("[]");
+    assert!(!pattern.matches(&empty_array));
+
+    // Should NOT match array with multiple elements
+    let multi_element_array = cbor("[1, 2, 3]");
+    assert!(!pattern.matches(&multi_element_array));
 
     // Should not match non-array
     let not_array = cbor(r#""not an array""#);
@@ -98,10 +134,10 @@ fn test_array_pattern_with_elements() {
     assert!(!pattern.matches(&empty));
 }
 
-/// Test MapPattern::Any matches any map
+/// Test that `map` keyword matches any map
 #[test]
 fn test_map_pattern_any() {
-    let pattern = parse("{*}");
+    let pattern = parse("map");
 
     // Should match empty map
     let empty_map = cbor("{}");
@@ -181,7 +217,7 @@ fn test_structure_pattern_display() {
     );
 
     // Map patterns
-    assert_eq!(parse("{*}").to_string(), "{*}");
+    assert_eq!(parse("map").to_string(), "map");
     assert_eq!(parse("{{3}}").to_string(), "{{3}}");
     assert_eq!(
         format!("{}", MapPattern::with_length_range(2..=8)),

@@ -1,9 +1,9 @@
 use crate::{ArrayPattern, Error, Interval, Pattern, Result, parse::Token};
 
-/// Parse bracket-style array patterns: [pattern] or [*] or [{n}] etc.
+/// Parse bracket-style array patterns: [pattern] or [{n}] etc.
 ///
 /// Supports the following syntax:
-/// - `[*]` - matches any array (wildcard)
+/// - `[*]` - matches array with exactly one element of any type
 /// - `[{0}]` - matches empty array (no elements)
 /// - `[{n}]` - matches array with exactly n elements
 /// - `[{n,m}]` - matches array with n to m elements (inclusive)
@@ -12,6 +12,7 @@ use crate::{ArrayPattern, Error, Interval, Pattern, Result, parse::Token};
 ///   patterns in order
 ///
 /// `[]` is not a valid array pattern and will return an error.
+/// Use `array` keyword for "any array" pattern.
 pub(crate) fn parse_bracket_array(
     lexer: &mut logos::Lexer<Token>,
 ) -> Result<Pattern> {
@@ -20,22 +21,6 @@ pub(crate) fn parse_bracket_array(
     // Peek at the next token to determine what we're parsing
     let mut lookahead = lexer.clone();
     match lookahead.next() {
-        Some(Ok(Token::RepeatZeroOrMore)) => {
-            // This is [*] - wildcard array pattern
-            lexer.next(); // consume the * token
-
-            // Expect closing bracket
-            match lexer.next() {
-                Some(Ok(Token::BracketClose)) => Ok(Pattern::Structure(
-                    crate::pattern::StructurePattern::Array(ArrayPattern::any()),
-                )),
-                Some(Ok(token)) => {
-                    Err(Error::UnexpectedToken(Box::new(token), lexer.span()))
-                }
-                Some(Err(e)) => Err(e),
-                None => Err(Error::ExpectedCloseBracket(lexer.span())),
-            }
-        }
         Some(Ok(Token::Range(res))) => {
             // This is a quantifier syntax: [{n}], [{n,m}], etc.
             let quantifier = res?;
@@ -63,7 +48,7 @@ pub(crate) fn parse_bracket_array(
             )))
         }
         _ => {
-            // This is a pattern syntax: [pattern]
+            // This is a pattern syntax: [pattern] including [*]
             // Parse the inner pattern using array-specific parsing (commas for
             // sequences)
             let element_pattern = super::parse_array_or(lexer)?;
@@ -189,16 +174,30 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_parse_bracket_array_wildcard() {
+    fn test_parse_bracket_array_single_any_element() {
         let mut lexer = Token::lexer("[*]");
         lexer.next(); // consume the '['
         let pattern = parse_bracket_array(&mut lexer).unwrap();
-        assert_eq!(
-            pattern,
-            Pattern::Structure(crate::pattern::StructurePattern::Array(
-                ArrayPattern::any()
-            ))
-        );
+
+        // Should parse as array with elements pattern containing Any
+        if let Pattern::Structure(crate::pattern::StructurePattern::Array(
+            ArrayPattern::Elements(inner_pattern),
+        )) = pattern
+        {
+            // Verify the inner pattern is Any
+            if let Pattern::Meta(crate::pattern::MetaPattern::Any(_)) =
+                inner_pattern.as_ref()
+            {
+                // Test passes
+            } else {
+                panic!(
+                    "Expected inner pattern to be Any, got: {:?}",
+                    inner_pattern
+                );
+            }
+        } else {
+            panic!("Expected ArrayPattern::Elements, got: {:?}", pattern);
+        }
     }
 
     #[test]

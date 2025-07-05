@@ -121,6 +121,18 @@ pub(crate) fn parse_primary(
         // Structure patterns
         Token::Tagged => parse_tagged(lexer),
 
+        Token::Array => Ok(Pattern::Structure(
+            crate::pattern::StructurePattern::Array(
+                crate::ArrayPattern::any()
+            )
+        )),
+
+        Token::Map => Ok(Pattern::Structure(
+            crate::pattern::StructurePattern::Map(
+                crate::MapPattern::any()
+            )
+        )),
+
         // Bracket syntax for arrays
         Token::BracketOpen => {
             super::super::structure::parse_bracket_array(lexer)
