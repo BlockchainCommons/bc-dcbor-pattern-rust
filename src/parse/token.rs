@@ -317,7 +317,7 @@ fn parse_hex_regex(lex: &mut Lexer<Token>) -> Result<String> {
 /// Callback used by the `DigestQuoted` variant above.
 fn parse_digest_quoted(lex: &mut Lexer<Token>) -> Result<DigestPattern> {
     use bc_components::Digest;
-    use bc_ur::{URDecodable, UREncodable};
+    use bc_ur::URDecodable;
 
     let src = lex.remainder(); // everything after "digest'"
 

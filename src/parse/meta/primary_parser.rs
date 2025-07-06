@@ -1,13 +1,12 @@
 use super::super::{
     Token,
-    structure::parse_tagged,
     value::{
         parse_bool, parse_bool_false, parse_bool_true, parse_bytestring,
         parse_date, parse_digest, parse_known_value, parse_null, parse_number,
         parse_text,
     },
 };
-use crate::{Error, MapPattern, Pattern, Result};
+use crate::{parse::structure::{parse_bracket_array, parse_bracket_map, parse_tagged}, value::{parse_hex_regex_token, parse_hex_string_token}, Error, MapPattern, Pattern, Result};
 
 /// Parse a primary pattern - the most basic unit of pattern matching.
 ///
@@ -108,13 +107,11 @@ pub(crate) fn parse_primary(
 
         // Direct hex string literal
         Token::HexString(res) => {
-            use crate::parse::value::parse_hex_string_token;
             parse_hex_string_token(res)
         }
 
         // Direct hex regex literal
         Token::HexRegex(res) => {
-            use crate::parse::value::parse_hex_regex_token;
             parse_hex_regex_token(res)
         }
 
@@ -131,11 +128,11 @@ pub(crate) fn parse_primary(
 
         // Bracket syntax for arrays
         Token::BracketOpen => {
-            super::super::structure::parse_bracket_array(lexer)
+            parse_bracket_array(lexer)
         }
 
         // Brace syntax for maps
-        Token::BraceOpen => super::super::structure::parse_bracket_map(lexer),
+        Token::BraceOpen => parse_bracket_map(lexer),
 
         // Range tokens that represent map length constraints (e.g., {3}, {2,5})
         Token::Range(res) => {

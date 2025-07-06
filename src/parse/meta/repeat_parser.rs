@@ -4,7 +4,7 @@
 //! that can follow grouped patterns in parentheses.
 
 use super::super::Token;
-use crate::{Error, Pattern, Quantifier, Reluctance, Result};
+use crate::{Pattern, Quantifier, Reluctance, Result};
 
 /// Parse quantifier tokens that follow a grouped pattern.
 ///
@@ -131,22 +131,6 @@ pub(crate) fn parse_quantifier(
             }
         }
     }
-}
-
-/// Parse a grouped pattern with optional quantifier.
-///
-/// This function would be used when parsing "(pattern)" followed by
-/// quantifiers. Currently a placeholder until the full parsing infrastructure
-/// is implemented.
-pub(crate) fn parse_group(_lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
-    // TODO: Implement when OR parser and primary pattern parsing is ready
-    // This would:
-    // 1. Parse the inner pattern using parse_or() or similar
-    // 2. Expect a closing parenthesis
-    // 3. Parse any quantifiers using parse_quantifier()
-    todo!(
-        "Group parsing not yet implemented - waiting for full parse infrastructure"
-    )
 }
 
 #[cfg(test)]

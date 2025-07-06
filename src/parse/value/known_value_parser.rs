@@ -1,9 +1,7 @@
-use known_values::KnownValue;
-
-use crate::{Error, Pattern, Result, parse::Token};
+use crate::{Pattern, Result, parse::Token};
 
 pub(crate) fn parse_known_value(
-    lexer: &mut logos::Lexer<Token>,
+    _lexer: &mut logos::Lexer<Token>,
 ) -> Result<Pattern> {
     // For the new syntax, 'known' by itself matches any known value
     Ok(Pattern::any_known_value())
@@ -11,6 +9,7 @@ pub(crate) fn parse_known_value(
 
 #[cfg(test)]
 mod tests {
+    use known_values::KnownValue;
     use logos::Logos;
 
     use super::*;

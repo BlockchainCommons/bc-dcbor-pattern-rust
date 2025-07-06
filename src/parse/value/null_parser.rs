@@ -1,6 +1,6 @@
-use crate::{Error, Pattern, Result, parse::Token};
+use crate::{Pattern, Result, parse::Token};
 
-pub(crate) fn parse_null(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
+pub(crate) fn parse_null(_lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
     // For null, there's no parameterization like with bool(true) or number(42).
     // It's just null, which always matches the null value.
     Ok(Pattern::null())

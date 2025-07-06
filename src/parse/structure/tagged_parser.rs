@@ -30,7 +30,6 @@ pub(crate) fn parse_tagged(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
             match lexer.next() {
                 Some(Ok(Token::ParenClose)) => {
                     let pattern = match tag_pattern {
-                        TagSelector::Any => TaggedPattern::Any,
                         TagSelector::Value(tag_val) => {
                             let tag = Tag::new(tag_val, "");
                             TaggedPattern::with_tag(tag, content_pattern)
@@ -66,7 +65,6 @@ pub(crate) fn parse_tagged(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
 
 #[derive(Debug)]
 enum TagSelector {
-    Any,
     Value(u64),
     Name(String),
     Regex(regex::Regex),
@@ -201,8 +199,6 @@ fn skip_ws(src: &str, pos: &mut usize) {
 
 #[cfg(test)]
 mod tests {
-    use logos::Logos;
-
     use super::*;
 
     #[test]

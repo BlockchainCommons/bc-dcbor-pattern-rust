@@ -51,7 +51,7 @@ pub(crate) fn parse_bracket_array(
             // This is a pattern syntax: [pattern] including [*]
             // Parse the inner pattern using array-specific parsing (commas for
             // sequences)
-            let element_pattern = super::parse_array_or(lexer)?;
+            let element_pattern = parse_array_or(lexer)?;
             let pattern = ArrayPattern::with_elements(element_pattern);
 
             // Expect closing bracket

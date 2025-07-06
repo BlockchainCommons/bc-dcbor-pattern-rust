@@ -2,7 +2,7 @@ use crate::{
     Error, MapPattern, Pattern, Result, StructurePattern,
     parse::{
         Token,
-        meta::{parse_or, parse_primary},
+        meta::parse_or,
     },
 };
 
@@ -119,10 +119,9 @@ mod tests {
     #[test]
     fn test_parse_bracket_map_exact_count() {
         let pattern = Pattern::parse("{{3}}").unwrap();
-        let interval = Interval::new(3..=3);
         assert!(matches!(
             pattern,
-            Pattern::Structure(StructurePattern::Map(MapPattern::Length(i)))
+            Pattern::Structure(StructurePattern::Map(MapPattern::Length(_)))
         ));
     }
 

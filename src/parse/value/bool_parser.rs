@@ -1,6 +1,6 @@
-use crate::{Error, Pattern, Result, parse::Token};
+use crate::{Pattern, Result, parse::Token};
 
-pub(crate) fn parse_bool(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
+pub(crate) fn parse_bool(_lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
     // Just return the pattern for any boolean
     Ok(Pattern::any_bool())
 }

@@ -1,8 +1,6 @@
-use bc_components::Digest;
-
 use crate::{Pattern, Result, parse::Token};
 
-pub(crate) fn parse_digest(lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
+pub(crate) fn parse_digest(_lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
     // The new syntax only supports bare "digest" keyword for any digest
     Ok(Pattern::any_digest())
 }
