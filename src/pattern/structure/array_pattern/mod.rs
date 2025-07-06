@@ -11,6 +11,13 @@ use crate::{
     },
 };
 
+mod assigner;
+mod backtrack;
+mod helpers;
+
+use assigner::SequenceAssigner;
+use helpers::*;
+
 /// Pattern for matching CBOR array structures.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ArrayPattern {
@@ -163,7 +170,7 @@ impl ArrayPattern {
                 )) = pattern
                 {
                     // Check if the capture contains a repeat pattern
-                    if Self::extract_capture_with_repeat(pattern).is_some() {
+                    if extract_capture_with_repeat(pattern).is_some() {
                         // This is a capture pattern with a repeat (like @rest((*)*))
                         // We need to capture the sub-array of matched elements
                         let captured_elements: Vec<CBOR> = assignments
@@ -183,7 +190,7 @@ impl ArrayPattern {
                         // For capture patterns, we directly capture the sub-array with the capture name
                         let capture_name = capture_pattern.name().to_string();
                         let array_context_path =
-                            Self::build_simple_array_context_path(
+                            build_simple_array_context_path(
                                 array_cbor, &sub_array,
                             );
 
@@ -196,7 +203,7 @@ impl ArrayPattern {
                     }
                 }
                 // Check if this is a direct repeat pattern that might capture multiple elements
-                else if Self::is_repeat_pattern(pattern) {
+                else if is_repeat_pattern(pattern) {
                     if let Pattern::Meta(crate::pattern::MetaPattern::Repeat(
                         repeat_pattern,
                     )) = pattern
@@ -228,7 +235,7 @@ impl ArrayPattern {
                                 repeat_pattern.paths_with_captures(&sub_array);
 
                             // Transform captures to include array context
-                            Self::transform_captures_with_array_context(
+                            transform_captures_with_array_context(
                                 array_cbor,
                                 &sub_array,
                                 sub_captures,
@@ -257,7 +264,7 @@ impl ArrayPattern {
                         pattern.paths_with_captures(element);
 
                     // Transform captures to include array context
-                    Self::transform_captures_with_array_context(
+                    transform_captures_with_array_context(
                         array_cbor,
                         element,
                         element_captures,
@@ -337,7 +344,7 @@ impl Matcher for ArrayPattern {
                                 // Check if this sequence contains any repeat
                                 // patterns that require VM-based matching
                                 let has_repeat_patterns =
-                                    Self::has_repeat_patterns(patterns);
+                                    has_repeat_patterns_in_slice(patterns);
 
                                 if has_repeat_patterns {
                                     // Use VM-based matching for complex
@@ -639,505 +646,17 @@ impl Matcher for ArrayPattern {
     }
 }
 
-impl ArrayPattern {
-    // ...existing methods...
-
-    /// Helper functions for pattern type detection
-
-    /// Check if a pattern is a repeat pattern.
-    fn is_repeat_pattern(pattern: &Pattern) -> bool {
-        matches!(pattern, Pattern::Meta(MetaPattern::Repeat(_)))
-    }
-
-    /// Check if a pattern is a capture pattern containing a repeat pattern.
-    /// Returns the inner repeat pattern if found.
-    fn extract_capture_with_repeat(
-        pattern: &Pattern,
-    ) -> Option<&RepeatPattern> {
-        if let Pattern::Meta(MetaPattern::Capture(capture_pattern)) = pattern {
-            if let Pattern::Meta(MetaPattern::Repeat(repeat_pattern)) =
-                capture_pattern.pattern()
-            {
-                return Some(repeat_pattern);
-            }
-        }
-        None
-    }
-
-    /// Extract any repeat pattern from a pattern, whether direct or within a capture.
-    fn extract_repeat_pattern(pattern: &Pattern) -> Option<&RepeatPattern> {
-        match pattern {
-            Pattern::Meta(MetaPattern::Repeat(repeat_pattern)) => {
-                Some(repeat_pattern)
-            }
-            Pattern::Meta(MetaPattern::Capture(capture_pattern)) => {
-                if let Pattern::Meta(MetaPattern::Repeat(repeat_pattern)) =
-                    capture_pattern.pattern()
-                {
-                    Some(repeat_pattern)
-                } else {
-                    None
-                }
-            }
-            _ => None,
-        }
-    }
-
-    /// Check if a slice of patterns contains any repeat patterns (direct or in captures).
-    fn has_repeat_patterns(patterns: &[Pattern]) -> bool {
-        patterns
-            .iter()
-            .any(|p| Self::extract_repeat_pattern(p).is_some())
-    }
-
-    /// Format a pattern for display within array context.
-    /// This handles sequence patterns specially to use commas instead of >.
-    fn format_array_element_pattern(pattern: &Pattern) -> String {
-        match pattern {
-            Pattern::Meta(crate::pattern::MetaPattern::Sequence(
-                seq_pattern,
-            )) => {
-                // For sequence patterns within arrays, use commas instead of >
-                let patterns_str: Vec<String> = seq_pattern
-                    .patterns()
-                    .iter()
-                    .map(Self::format_array_element_pattern)
-                    .collect();
-                patterns_str.join(", ")
-            }
-            _ => pattern.to_string(),
-        }
-    }
-    /// Helper functions for repeat pattern quantifier logic
-
-    /// Calculate the bounds for repeat pattern matching based on quantifier and available elements.
-    fn calculate_repeat_bounds(
-        quantifier: &crate::Quantifier,
-        element_idx: usize,
-        arr_len: usize,
-    ) -> (usize, usize) {
-        let min_count = quantifier.min();
-        let remaining_elements = arr_len.saturating_sub(element_idx);
-        let max_count = quantifier
-            .max()
-            .unwrap_or(remaining_elements)
-            .min(remaining_elements);
-        (min_count, max_count)
-    }
-
-    /// Check if a repeat pattern can match a specific number of elements starting at element_idx.
-    fn can_repeat_match(
-        repeat_pattern: &RepeatPattern,
-        arr: &[CBOR],
-        element_idx: usize,
-        rep_count: usize,
-    ) -> bool {
-        if rep_count == 0 {
-            true // Zero repetitions always match
-        } else {
-            (0..rep_count).all(|i| {
-                let element = &arr[element_idx + i];
-                repeat_pattern.pattern().matches(element)
-            })
-        }
-    }
-}
-
 impl std::fmt::Display for ArrayPattern {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ArrayPattern::Any => write!(f, "array"),
             ArrayPattern::Elements(pattern) => {
-                let formatted_pattern =
-                    Self::format_array_element_pattern(pattern);
+                let formatted_pattern = format_array_element_pattern(pattern);
                 write!(f, "[{}]", formatted_pattern)
             }
             ArrayPattern::Length(interval) => {
                 write!(f, "[{}]", interval)
             }
-        }
-    }
-}
-
-impl ArrayPattern {
-    /// Helper functions for capture context path building
-
-    /// Build a simple array context path: [array_cbor, element]
-    fn build_simple_array_context_path(
-        array_cbor: &CBOR,
-        element: &CBOR,
-    ) -> Vec<CBOR> {
-        vec![array_cbor.clone(), element.clone()]
-    }
-
-    /// Build an extended array context path: [array_cbor, element] + captured_path (skip first element)
-    fn build_extended_array_context_path(
-        array_cbor: &CBOR,
-        element: &CBOR,
-        captured_path: &[CBOR],
-    ) -> Vec<CBOR> {
-        let mut array_path = vec![array_cbor.clone(), element.clone()];
-        if captured_path.len() > 1 {
-            array_path.extend(captured_path.iter().skip(1).cloned());
-        }
-        array_path
-    }
-
-    /// Transform nested captures to include array context, extending all_captures
-    fn transform_captures_with_array_context(
-        array_cbor: &CBOR,
-        element: &CBOR,
-        nested_captures: std::collections::HashMap<String, Vec<Vec<CBOR>>>,
-        all_captures: &mut std::collections::HashMap<String, Vec<Vec<CBOR>>>,
-    ) {
-        for (capture_name, captured_paths) in nested_captures {
-            let mut array_context_paths = Vec::new();
-            for captured_path in captured_paths {
-                let array_path = Self::build_extended_array_context_path(
-                    array_cbor,
-                    element,
-                    &captured_path,
-                );
-                array_context_paths.push(array_path);
-            }
-            all_captures
-                .entry(capture_name)
-                .or_insert_with(Vec::new)
-                .extend(array_context_paths);
-        }
-    }
-}
-
-/// Generic backtracking framework for unifying different types of backtracking state management.
-/// This trait abstracts the differences between boolean matching and assignment tracking.
-trait BacktrackState<T> {
-    /// Try to advance the state with a new assignment and return true if successful
-    fn try_advance(&mut self, pattern_idx: usize, element_idx: usize) -> bool;
-
-    /// Backtrack by removing the last state change
-    fn backtrack(&mut self);
-
-    /// Check if we've reached a successful final state
-    fn is_success(
-        &self,
-        pattern_idx: usize,
-        element_idx: usize,
-        patterns_len: usize,
-        elements_len: usize,
-    ) -> bool;
-
-    /// Get the final result
-    fn get_result(self) -> T;
-}
-
-/// Boolean backtracking state - just tracks success/failure
-struct BooleanBacktrackState;
-
-impl BacktrackState<bool> for BooleanBacktrackState {
-    fn try_advance(
-        &mut self,
-        _pattern_idx: usize,
-        _element_idx: usize,
-    ) -> bool {
-        true // Always allow advancement for boolean matching
-    }
-
-    fn backtrack(&mut self) {
-        // Nothing to backtrack for boolean state
-    }
-
-    fn is_success(
-        &self,
-        pattern_idx: usize,
-        element_idx: usize,
-        patterns_len: usize,
-        elements_len: usize,
-    ) -> bool {
-        pattern_idx >= patterns_len && element_idx >= elements_len
-    }
-
-    fn get_result(self) -> bool {
-        true // If we get here, we succeeded
-    }
-}
-
-/// Assignment tracking backtracking state - collects pattern-element pairs
-struct AssignmentBacktrackState {
-    assignments: Vec<(usize, usize)>,
-}
-
-impl AssignmentBacktrackState {
-    fn new() -> Self {
-        Self { assignments: Vec::new() }
-    }
-
-    fn len(&self) -> usize {
-        self.assignments.len()
-    }
-
-    fn truncate(&mut self, len: usize) {
-        self.assignments.truncate(len);
-    }
-}
-
-impl BacktrackState<Vec<(usize, usize)>> for AssignmentBacktrackState {
-    fn try_advance(&mut self, pattern_idx: usize, element_idx: usize) -> bool {
-        self.assignments.push((pattern_idx, element_idx));
-        true
-    }
-
-    fn backtrack(&mut self) {
-        self.assignments.pop();
-    }
-
-    fn is_success(
-        &self,
-        pattern_idx: usize,
-        element_idx: usize,
-        patterns_len: usize,
-        elements_len: usize,
-    ) -> bool {
-        pattern_idx >= patterns_len && element_idx >= elements_len
-    }
-
-    fn get_result(self) -> Vec<(usize, usize)> {
-        self.assignments
-    }
-}
-
-/// Generic backtracking algorithm that works with any BacktrackState
-struct GenericBacktracker<'a> {
-    patterns: &'a [Pattern],
-    arr: &'a [CBOR],
-}
-
-impl<'a> GenericBacktracker<'a> {
-    fn new(patterns: &'a [Pattern], arr: &'a [CBOR]) -> Self {
-        Self { patterns, arr }
-    }
-
-    /// Generic backtracking algorithm that works with any state type
-    fn backtrack<T, S: BacktrackState<T>>(
-        &self,
-        state: &mut S,
-        pattern_idx: usize,
-        element_idx: usize,
-    ) -> bool {
-        // Base case: if we've matched all patterns
-        if state.is_success(
-            pattern_idx,
-            element_idx,
-            self.patterns.len(),
-            self.arr.len(),
-        ) {
-            return true;
-        }
-
-        if pattern_idx >= self.patterns.len() {
-            return false; // No more patterns but still have elements
-        }
-
-        let current_pattern = &self.patterns[pattern_idx];
-
-        match current_pattern {
-            Pattern::Meta(MetaPattern::Repeat(repeat_pattern)) => self
-                .try_repeat_backtrack(
-                    repeat_pattern,
-                    state,
-                    pattern_idx,
-                    element_idx,
-                ),
-            Pattern::Meta(MetaPattern::Capture(_capture_pattern)) => {
-                // Check if the capture pattern contains a repeat pattern
-                if let Some(repeat_pattern) =
-                    ArrayPattern::extract_capture_with_repeat(current_pattern)
-                {
-                    // Handle this like a repeat pattern
-                    self.try_repeat_backtrack(
-                        repeat_pattern,
-                        state,
-                        pattern_idx,
-                        element_idx,
-                    )
-                } else {
-                    // Handle as a normal single-element capture
-                    if element_idx < self.arr.len() {
-                        let element = &self.arr[element_idx];
-                        let matches = current_pattern.matches(element);
-
-                        if matches
-                            && state.try_advance(pattern_idx, element_idx)
-                        {
-                            if self.backtrack(
-                                state,
-                                pattern_idx + 1,
-                                element_idx + 1,
-                            ) {
-                                return true;
-                            }
-                            // Backtracking is handled by the recursive call failing
-                            state.backtrack();
-                        }
-                    }
-                    false
-                }
-            }
-            _ => {
-                // Non-repeat pattern: must match exactly one element
-                if element_idx < self.arr.len() {
-                    let element = &self.arr[element_idx];
-                    let matches = current_pattern.matches(element);
-
-                    if matches && state.try_advance(pattern_idx, element_idx) {
-                        if self.backtrack(
-                            state,
-                            pattern_idx + 1,
-                            element_idx + 1,
-                        ) {
-                            return true;
-                        }
-                        // Backtracking is handled by the recursive call failing
-                        state.backtrack();
-                    }
-                }
-                false
-            }
-        }
-    }
-
-    /// Helper for repeat pattern backtracking with generic state
-    fn try_repeat_backtrack<T, S: BacktrackState<T>>(
-        &self,
-        repeat_pattern: &RepeatPattern,
-        state: &mut S,
-        pattern_idx: usize,
-        element_idx: usize,
-    ) -> bool {
-        let quantifier = repeat_pattern.quantifier();
-        let (min_count, max_count) = ArrayPattern::calculate_repeat_bounds(
-            quantifier,
-            element_idx,
-            self.arr.len(),
-        );
-
-        // Try different numbers of repetitions (greedy: start with max)
-        for rep_count in (min_count..=max_count).rev() {
-            if element_idx + rep_count <= self.arr.len() {
-                if ArrayPattern::can_repeat_match(
-                    repeat_pattern,
-                    self.arr,
-                    element_idx,
-                    rep_count,
-                ) {
-                    // Record state for all consumed elements
-                    for i in 0..rep_count {
-                        if !state.try_advance(pattern_idx, element_idx + i) {
-                            // If we can't advance, backtrack what we've added and try next rep_count
-                            for _ in 0..i {
-                                state.backtrack();
-                            }
-                            break;
-                        }
-                    }
-
-                    // Try to match the rest of the sequence recursively
-                    if self.backtrack(
-                        state,
-                        pattern_idx + 1,
-                        element_idx + rep_count,
-                    ) {
-                        return true;
-                    }
-
-                    // Backtrack: undo all the advances we made for this rep_count
-                    for _ in 0..rep_count {
-                        state.backtrack();
-                    }
-                }
-            }
-        }
-        false
-    }
-}
-
-/// Helper struct for handling element-to-pattern assignment logic.
-/// Encapsulates the complex logic for mapping array elements to sequence patterns
-/// that was previously duplicated between matching and capture collection.
-struct SequenceAssigner<'a> {
-    patterns: &'a [Pattern],
-    arr: &'a [CBOR],
-}
-
-impl<'a> SequenceAssigner<'a> {
-    /// Create a new SequenceAssigner for the given patterns and array elements.
-    fn new(patterns: &'a [Pattern], arr: &'a [CBOR]) -> Self {
-        Self { patterns, arr }
-    }
-
-    /// Check if the sequence can match against the array elements (boolean result).
-    fn can_match(&self) -> bool {
-        // Simple case: if no patterns, then empty array should match
-        if self.patterns.is_empty() {
-            return self.arr.is_empty();
-        }
-
-        // Check if we have any repeat patterns that require backtracking
-        let has_repeat_patterns =
-            ArrayPattern::has_repeat_patterns(self.patterns);
-
-        // Simple case: if pattern count equals element count AND no repeat
-        // patterns
-        if self.patterns.len() == self.arr.len() && !has_repeat_patterns {
-            // Try one-to-one matching
-            return self
-                .patterns
-                .iter()
-                .enumerate()
-                .all(|(i, pattern)| pattern.matches(&self.arr[i]));
-        }
-
-        // Complex case: use generic backtracking framework
-        let backtracker = GenericBacktracker::new(self.patterns, self.arr);
-        let mut state = BooleanBacktrackState;
-        backtracker.backtrack(&mut state, 0, 0)
-    }
-
-    /// Find the element-to-pattern assignments (returns assignment pairs).
-    fn find_assignments(&self) -> Option<Vec<(usize, usize)>> {
-        // Simple case: if no patterns, then empty array should match
-        if self.patterns.is_empty() {
-            return if self.arr.is_empty() {
-                Some(Vec::new())
-            } else {
-                None
-            };
-        }
-
-        // Check if we have any repeat patterns that require backtracking
-        let has_repeat_patterns =
-            ArrayPattern::has_repeat_patterns(self.patterns);
-
-        // Simple case: if pattern count equals element count AND no repeat patterns
-        if self.patterns.len() == self.arr.len() && !has_repeat_patterns {
-            let mut assignments = Vec::new();
-            for (pattern_idx, pattern) in self.patterns.iter().enumerate() {
-                let element = &self.arr[pattern_idx];
-                if pattern.matches(element) {
-                    assignments.push((pattern_idx, pattern_idx));
-                } else {
-                    return None; // Pattern doesn't match its corresponding element
-                }
-            }
-            return Some(assignments);
-        }
-
-        // Complex case: use generic backtracking framework
-        let backtracker = GenericBacktracker::new(self.patterns, self.arr);
-        let mut state = AssignmentBacktrackState::new();
-        if backtracker.backtrack(&mut state, 0, 0) {
-            Some(state.assignments)
-        } else {
-            None
         }
     }
 }
