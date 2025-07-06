@@ -1,4 +1,7 @@
-# Blockchain Commons Pattern Matcher for dCBOR
+# Blockchain```toml
+[dependencies]
+dcbor-pattern = "0.3.0"
+```mons Pattern Matcher for dCBOR
 
 <!--Guidelines: https://github.com/BlockchainCommons/secure-template/wiki -->
 
@@ -12,10 +15,17 @@ _forthcoming_
 
 ```toml
 [dependencies]
-dcbor-pattern = "0.2.0"
+dcbor-pattern = "0.3.0"
 ```
 
 ## Version History
+
+### **0.3.0** — 7/5/2025
+- Major refactoring of pattern matching architecture
+- Enhanced array pattern matching with partial capture support
+- Improved error handling with span tracking
+- Added new search integration capabilities
+- Refined parsing APIs and validation
 
 ### **0.2.0** — 7/5/2025
 - Replace [*] and {*} syntax with array and map keywords
