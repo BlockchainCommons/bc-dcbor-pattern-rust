@@ -10,8 +10,8 @@ The crate is ready for community review, with complete functionality and compreh
 
 `array_pattern.rs` has become quite the behemoth.
 
-Current linecount: 1115
-Current linecount: 1135
+Starting linecount: 1115
+Current linecount: 1114
 
 ### Refactoring Analysis for array_pattern.rs
 
