@@ -138,3 +138,35 @@ fn compile_without_captures(&self, code: &mut Vec<Instr>, literals: &mut Vec<Pat
 - This target offers the biggest potential line reduction (estimated 50-70 lines)
 - Focuses on the quantifier calculation and greedy backtracking logic that appears in multiple methods
 - Medium complexity but significant impact on code maintainability
+
+#### Refactoring Results - Duplicate Repeat Pattern Handling Logic (#1)
+
+**COMPLETED** - ✅
+
+**Target:** Extract duplicate quantifier calculation and greedy backtracking logic.
+
+**Changes made:**
+- Added 4 new helper functions:
+  - `calculate_repeat_bounds(quantifier, element_idx, arr_len) -> (usize, usize)`
+  - `can_repeat_match(repeat_pattern, arr, element_idx, rep_count) -> bool`
+  - `try_repeat_backtrack_match()` - For boolean sequence matching
+  - `try_repeat_backtrack_assignments()` - For assignment tracking
+- Replaced 4 instances of duplicated repeat pattern logic in:
+  - `backtrack_sequence_match()` - direct repeat patterns
+  - `backtrack_sequence_match()` - capture+repeat patterns
+  - `backtrack_sequence_assignments()` - direct repeat patterns
+  - `backtrack_sequence_assignments()` - capture+repeat patterns
+
+**Line count reduction:** 1135 → 1095 lines (**-40 lines**, 3.5% reduction)
+
+**Benefits:**
+- ✅ Eliminated ~80 lines of duplicate quantifier/backtracking logic
+- ✅ Centralized complex repeat pattern matching into reusable functions
+- ✅ Improved maintainability - changes to repeat logic only need to be made in one place
+- ✅ All tests pass - no functional changes
+- ✅ Significantly reduced code complexity in core matching methods
+
+**Next recommended target:** Capture Context Path Building (#5)
+- Lower complexity than backtracking framework (#3) or assignment logic (#4)
+- Clear duplication in path building for captures
+- Estimated 15-25 line reduction with high maintainability benefit

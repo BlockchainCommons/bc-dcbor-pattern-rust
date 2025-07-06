@@ -151,86 +151,27 @@ impl ArrayPattern {
         let current_pattern = &patterns[pattern_idx];
 
         match current_pattern {
-            Pattern::Meta(MetaPattern::Repeat(repeat_pattern)) => {
-                let quantifier = repeat_pattern.quantifier();
-                let min_count = quantifier.min();
-                // Fix the infinite loop: limit max_count to reasonable bounds
-                let remaining_elements = arr.len().saturating_sub(element_idx);
-                let max_count = quantifier
-                    .max()
-                    .unwrap_or(remaining_elements)
-                    .min(remaining_elements);
-
-                // Try different numbers of repetitions (greedy: start with max)
-                for rep_count in (min_count..=max_count).rev() {
-                    // Check bounds to prevent out-of-bounds access
-                    if element_idx + rep_count <= arr.len() {
-                        let can_match_reps = if rep_count == 0 {
-                            true // Zero repetitions always match for rep_count=0
-                        } else {
-                            (0..rep_count).all(|i| {
-                                let element = &arr[element_idx + i];
-                                repeat_pattern.pattern().matches(element)
-                            })
-                        };
-
-                        if can_match_reps {
-                            // Try to match the rest of the sequence
-                            if self.backtrack_sequence_match(
-                                patterns,
-                                arr,
-                                pattern_idx + 1,
-                                element_idx + rep_count,
-                            ) {
-                                return true;
-                            }
-                        }
-                    }
-                }
-                false
-            }
+            Pattern::Meta(MetaPattern::Repeat(repeat_pattern)) => self
+                .try_repeat_backtrack_match(
+                    repeat_pattern,
+                    patterns,
+                    arr,
+                    pattern_idx,
+                    element_idx,
+                ),
             Pattern::Meta(MetaPattern::Capture(_capture_pattern)) => {
                 // Check if the capture pattern contains a repeat pattern
                 if let Some(repeat_pattern) =
                     Self::extract_capture_with_repeat(current_pattern)
                 {
                     // Handle this like a repeat pattern
-                    let quantifier = repeat_pattern.quantifier();
-                    let min_count = quantifier.min();
-                    let remaining_elements =
-                        arr.len().saturating_sub(element_idx);
-                    let max_count = quantifier
-                        .max()
-                        .unwrap_or(remaining_elements)
-                        .min(remaining_elements);
-
-                    // Try different numbers of repetitions (greedy: start with max)
-                    for rep_count in (min_count..=max_count).rev() {
-                        // Check bounds to prevent out-of-bounds access
-                        if element_idx + rep_count <= arr.len() {
-                            let can_match_reps = if rep_count == 0 {
-                                true // Zero repetitions always match for rep_count=0
-                            } else {
-                                (0..rep_count).all(|i| {
-                                    let element = &arr[element_idx + i];
-                                    repeat_pattern.pattern().matches(element)
-                                })
-                            };
-
-                            if can_match_reps {
-                                // Try to match the rest of the sequence
-                                if self.backtrack_sequence_match(
-                                    patterns,
-                                    arr,
-                                    pattern_idx + 1,
-                                    element_idx + rep_count,
-                                ) {
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                    false
+                    self.try_repeat_backtrack_match(
+                        repeat_pattern,
+                        patterns,
+                        arr,
+                        pattern_idx,
+                        element_idx,
+                    )
                 } else {
                     // Handle as a normal single-element capture
                     if element_idx < arr.len() {
@@ -534,58 +475,14 @@ impl ArrayPattern {
         match current_pattern {
             Pattern::Meta(crate::pattern::MetaPattern::Repeat(
                 repeat_pattern,
-            )) => {
-                let quantifier = repeat_pattern.quantifier();
-                let min_count = quantifier.min();
-                let remaining_elements = arr.len().saturating_sub(element_idx);
-                let max_count = quantifier
-                    .max()
-                    .unwrap_or(remaining_elements)
-                    .min(remaining_elements);
-
-                // Try different numbers of repetitions (greedy: start with max)
-                for rep_count in (min_count..=max_count).rev() {
-                    if element_idx + rep_count <= arr.len() {
-                        let can_match_reps = if rep_count == 0 {
-                            true // Zero repetitions always match
-                        } else {
-                            (0..rep_count).all(|i| {
-                                repeat_pattern
-                                    .pattern()
-                                    .matches(&arr[element_idx + i])
-                            })
-                        };
-
-                        if can_match_reps {
-                            // Record assignments for non-capture repeat
-                            // patterns
-                            let old_len = assignments.len();
-
-                            // Add assignments for elements consumed by this
-                            // repeat
-                            for i in 0..rep_count {
-                                assignments
-                                    .push((pattern_idx, element_idx + i));
-                            }
-
-                            // Try to match the rest of the sequence
-                            if self.backtrack_sequence_assignments(
-                                patterns,
-                                arr,
-                                pattern_idx + 1,
-                                element_idx + rep_count,
-                                assignments,
-                            ) {
-                                return true;
-                            }
-
-                            // Backtrack: remove the assignments we added
-                            assignments.truncate(old_len);
-                        }
-                    }
-                }
-                false
-            }
+            )) => self.try_repeat_backtrack_assignments(
+                repeat_pattern,
+                patterns,
+                arr,
+                pattern_idx,
+                element_idx,
+                assignments,
+            ),
             Pattern::Meta(crate::pattern::MetaPattern::Capture(
                 capture_pattern,
             )) => {
@@ -594,55 +491,14 @@ impl ArrayPattern {
                     Self::extract_capture_with_repeat(current_pattern)
                 {
                     // Handle capture+repeat pattern (like @rest((*)*))
-                    let quantifier = repeat_pattern.quantifier();
-                    let min_count = quantifier.min();
-                    let remaining_elements =
-                        arr.len().saturating_sub(element_idx);
-                    let max_count = quantifier
-                        .max()
-                        .unwrap_or(remaining_elements)
-                        .min(remaining_elements);
-
-                    // Try different numbers of repetitions (greedy: start with max)
-                    for rep_count in (min_count..=max_count).rev() {
-                        if element_idx + rep_count <= arr.len() {
-                            let can_match_reps = if rep_count == 0 {
-                                true // Zero repetitions always match
-                            } else {
-                                (0..rep_count).all(|i| {
-                                    repeat_pattern
-                                        .pattern()
-                                        .matches(&arr[element_idx + i])
-                                })
-                            };
-
-                            if can_match_reps {
-                                // Record assignments for capture+repeat patterns
-                                let old_len = assignments.len();
-
-                                // Add assignments for elements consumed by this capture+repeat
-                                for i in 0..rep_count {
-                                    assignments
-                                        .push((pattern_idx, element_idx + i));
-                                }
-
-                                // Try to match the rest of the sequence
-                                if self.backtrack_sequence_assignments(
-                                    patterns,
-                                    arr,
-                                    pattern_idx + 1,
-                                    element_idx + rep_count,
-                                    assignments,
-                                ) {
-                                    return true;
-                                }
-
-                                // Backtrack: remove the assignments we added
-                                assignments.truncate(old_len);
-                            }
-                        }
-                    }
-                    false
+                    self.try_repeat_backtrack_assignments(
+                        repeat_pattern,
+                        patterns,
+                        arr,
+                        pattern_idx,
+                        element_idx,
+                        assignments,
+                    )
                 } else {
                     // Handle capture+non-repeat pattern (like @a(*))
                     if element_idx < arr.len()
@@ -1115,6 +971,129 @@ impl ArrayPattern {
             }
             _ => pattern.to_string(),
         }
+    }
+    /// Helper functions for repeat pattern quantifier logic
+
+    /// Calculate the bounds for repeat pattern matching based on quantifier and available elements.
+    fn calculate_repeat_bounds(
+        quantifier: &crate::Quantifier,
+        element_idx: usize,
+        arr_len: usize,
+    ) -> (usize, usize) {
+        let min_count = quantifier.min();
+        let remaining_elements = arr_len.saturating_sub(element_idx);
+        let max_count = quantifier
+            .max()
+            .unwrap_or(remaining_elements)
+            .min(remaining_elements);
+        (min_count, max_count)
+    }
+
+    /// Check if a repeat pattern can match a specific number of elements starting at element_idx.
+    fn can_repeat_match(
+        repeat_pattern: &RepeatPattern,
+        arr: &[CBOR],
+        element_idx: usize,
+        rep_count: usize,
+    ) -> bool {
+        if rep_count == 0 {
+            true // Zero repetitions always match
+        } else {
+            (0..rep_count).all(|i| {
+                let element = &arr[element_idx + i];
+                repeat_pattern.pattern().matches(element)
+            })
+        }
+    }
+
+    /// Execute greedy backtracking for repeat patterns in sequence matching.
+    /// Returns true if a valid match is found.
+    fn try_repeat_backtrack_match(
+        &self,
+        repeat_pattern: &RepeatPattern,
+        patterns: &[Pattern],
+        arr: &[CBOR],
+        pattern_idx: usize,
+        element_idx: usize,
+    ) -> bool {
+        let quantifier = repeat_pattern.quantifier();
+        let (min_count, max_count) =
+            Self::calculate_repeat_bounds(quantifier, element_idx, arr.len());
+
+        // Try different numbers of repetitions (greedy: start with max)
+        for rep_count in (min_count..=max_count).rev() {
+            // Check bounds to prevent out-of-bounds access
+            if element_idx + rep_count <= arr.len() {
+                if Self::can_repeat_match(
+                    repeat_pattern,
+                    arr,
+                    element_idx,
+                    rep_count,
+                ) {
+                    // Try to match the rest of the sequence
+                    if self.backtrack_sequence_match(
+                        patterns,
+                        arr,
+                        pattern_idx + 1,
+                        element_idx + rep_count,
+                    ) {
+                        return true;
+                    }
+                }
+            }
+        }
+        false
+    }
+
+    /// Execute greedy backtracking for repeat patterns in assignment tracking.
+    /// Returns true if valid assignments are found.
+    fn try_repeat_backtrack_assignments(
+        &self,
+        repeat_pattern: &RepeatPattern,
+        patterns: &[Pattern],
+        arr: &[CBOR],
+        pattern_idx: usize,
+        element_idx: usize,
+        assignments: &mut Vec<(usize, usize)>,
+    ) -> bool {
+        let quantifier = repeat_pattern.quantifier();
+        let (min_count, max_count) =
+            Self::calculate_repeat_bounds(quantifier, element_idx, arr.len());
+
+        // Try different numbers of repetitions (greedy: start with max)
+        for rep_count in (min_count..=max_count).rev() {
+            if element_idx + rep_count <= arr.len() {
+                if Self::can_repeat_match(
+                    repeat_pattern,
+                    arr,
+                    element_idx,
+                    rep_count,
+                ) {
+                    // Record assignments for repeat patterns
+                    let old_len = assignments.len();
+
+                    // Add assignments for elements consumed by this repeat
+                    for i in 0..rep_count {
+                        assignments.push((pattern_idx, element_idx + i));
+                    }
+
+                    // Try to match the rest of the sequence
+                    if self.backtrack_sequence_assignments(
+                        patterns,
+                        arr,
+                        pattern_idx + 1,
+                        element_idx + rep_count,
+                        assignments,
+                    ) {
+                        return true;
+                    }
+
+                    // Backtrack: remove the assignments we added
+                    assignments.truncate(old_len);
+                }
+            }
+        }
+        false
     }
 }
 
