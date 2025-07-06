@@ -67,13 +67,18 @@ impl ArrayPattern {
 
                 // For sequences with repeats, we need to check if the pattern
                 // can be satisfied by the array elements in order
-                if self.can_match_sequence_against_array(pattern, arr) {
+                let can_match =
+                    self.can_match_sequence_against_array(pattern, arr);
+                let result = if can_match {
                     vec![vec![cbor.clone()]]
                 } else {
                     vec![]
-                }
+                };
+                result
             }
-            _ => vec![], // Not an array
+            _ => {
+                vec![] // Not an array
+            }
         }
     }
 
@@ -96,18 +101,8 @@ impl ArrayPattern {
             }
             _ => {
                 // For non-sequence patterns, fall back to simple matching
-                // Create an array CBOR value by creating a string
-                // representation and parsing it
-                let elements_str: Vec<String> =
-                    arr.iter().map(|item| item.to_string()).collect();
-                let array_str = format!("[{}]", elements_str.join(", "));
-                if let Ok(array_cbor) =
-                    dcbor_parse::parse_dcbor_item(&array_str)
-                {
-                    pattern.matches(&array_cbor)
-                } else {
-                    false
-                }
+                let array_cbor = arr.to_cbor();
+                pattern.matches(&array_cbor)
             }
         }
     }
@@ -132,7 +127,8 @@ impl ArrayPattern {
         }
 
         // Try to match the sequence using a backtracking approach
-        self.backtrack_sequence_match(patterns, arr, 0, 0)
+        let result = self.backtrack_sequence_match(patterns, arr, 0, 0);
+        result
     }
 
     /// Backtracking algorithm to match sequence patterns against array
@@ -173,9 +169,8 @@ impl ArrayPattern {
                             true // Zero repetitions always match for rep_count=0
                         } else {
                             (0..rep_count).all(|i| {
-                                repeat_pattern
-                                    .pattern()
-                                    .matches(&arr[element_idx + i])
+                                let element = &arr[element_idx + i];
+                                repeat_pattern.pattern().matches(element)
                             })
                         };
 
@@ -194,17 +189,85 @@ impl ArrayPattern {
                 }
                 false
             }
+            Pattern::Meta(MetaPattern::Capture(_capture_pattern)) => {
+                // Check if the capture pattern contains a repeat pattern
+                if let Some(repeat_pattern) =
+                    Self::extract_capture_with_repeat(current_pattern)
+                {
+                    // Handle this like a repeat pattern
+                    let quantifier = repeat_pattern.quantifier();
+                    let min_count = quantifier.min();
+                    let remaining_elements =
+                        arr.len().saturating_sub(element_idx);
+                    let max_count = quantifier
+                        .max()
+                        .unwrap_or(remaining_elements)
+                        .min(remaining_elements);
+
+                    // Try different numbers of repetitions (greedy: start with max)
+                    for rep_count in (min_count..=max_count).rev() {
+                        // Check bounds to prevent out-of-bounds access
+                        if element_idx + rep_count <= arr.len() {
+                            let can_match_reps = if rep_count == 0 {
+                                true // Zero repetitions always match for rep_count=0
+                            } else {
+                                (0..rep_count).all(|i| {
+                                    let element = &arr[element_idx + i];
+                                    repeat_pattern.pattern().matches(element)
+                                })
+                            };
+
+                            if can_match_reps {
+                                // Try to match the rest of the sequence
+                                if self.backtrack_sequence_match(
+                                    patterns,
+                                    arr,
+                                    pattern_idx + 1,
+                                    element_idx + rep_count,
+                                ) {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                    false
+                } else {
+                    // Handle as a normal single-element capture
+                    if element_idx < arr.len() {
+                        let element = &arr[element_idx];
+                        let matches = current_pattern.matches(element);
+
+                        if matches {
+                            self.backtrack_sequence_match(
+                                patterns,
+                                arr,
+                                pattern_idx + 1,
+                                element_idx + 1,
+                            )
+                        } else {
+                            false
+                        }
+                    } else {
+                        false
+                    }
+                }
+            }
             _ => {
                 // Non-repeat pattern: must match exactly one element
-                if element_idx < arr.len()
-                    && current_pattern.matches(&arr[element_idx])
-                {
-                    self.backtrack_sequence_match(
-                        patterns,
-                        arr,
-                        pattern_idx + 1,
-                        element_idx + 1,
-                    )
+                if element_idx < arr.len() {
+                    let element = &arr[element_idx];
+                    let matches = current_pattern.matches(element);
+
+                    if matches {
+                        self.backtrack_sequence_match(
+                            patterns,
+                            arr,
+                            pattern_idx + 1,
+                            element_idx + 1,
+                        )
+                    } else {
+                        false
+                    }
                 } else {
                     false
                 }
@@ -246,34 +309,138 @@ impl ArrayPattern {
         {
             let mut all_captures = std::collections::HashMap::new();
 
-            // For each pattern in the sequence, collect captures from its
-            // assigned element
+            // Group assignments by pattern_idx to handle repeat patterns that
+            // capture multiple elements
+            let mut pattern_assignments: std::collections::HashMap<
+                usize,
+                Vec<usize>,
+            > = std::collections::HashMap::new();
+
             for (pattern_idx, element_idx) in assignments {
+                pattern_assignments
+                    .entry(pattern_idx)
+                    .or_default()
+                    .push(element_idx);
+            }
+
+            // Process each pattern and its assigned elements
+            for (pattern_idx, element_indices) in pattern_assignments {
                 let pattern = &seq_pattern.patterns()[pattern_idx];
-                let element = &arr[element_idx];
 
-                // Get captures from this pattern matching this element
-                let (_element_paths, element_captures) =
-                    pattern.paths_with_captures(element);
+                // Check if this is a capture pattern containing a repeat pattern
+                if let Pattern::Meta(crate::pattern::MetaPattern::Capture(
+                    capture_pattern,
+                )) = pattern
+                {
+                    // Check if the capture contains a repeat pattern
+                    if Self::extract_capture_with_repeat(pattern).is_some() {
+                        // This is a capture pattern with a repeat (like @rest((*)*))
+                        // We need to capture the sub-array of matched elements
+                        let captured_elements: Vec<CBOR> = element_indices
+                            .iter()
+                            .map(|&idx| arr[idx].clone())
+                            .collect();
 
-                // Transform captures to include array context
-                for (capture_name, captured_paths) in element_captures {
-                    let mut array_context_paths = Vec::new();
-                    for captured_path in captured_paths {
-                        // Create path: [array] + [element_at_index] +
-                        // rest_of_path
-                        let mut array_path =
-                            vec![array_cbor.clone(), element.clone()];
-                        if captured_path.len() > 1 {
-                            array_path
-                                .extend(captured_path.iter().skip(1).cloned());
-                        }
-                        array_context_paths.push(array_path);
+                        // Create a sub-array from the captured elements
+                        let sub_array = captured_elements.to_cbor();
+
+                        // For capture patterns, we directly capture the sub-array with the capture name
+                        let capture_name = capture_pattern.name().to_string();
+                        let array_context_path =
+                            vec![array_cbor.clone(), sub_array.clone()];
+
+                        all_captures
+                            .entry(capture_name.clone())
+                            .or_insert_with(Vec::new)
+                            .push(array_context_path);
+
+                        continue;
                     }
-                    all_captures
-                        .entry(capture_name)
-                        .or_insert_with(Vec::new)
-                        .extend(array_context_paths);
+                }
+                // Check if this is a direct repeat pattern that might capture multiple elements
+                else if Self::is_repeat_pattern(pattern) {
+                    if let Pattern::Meta(crate::pattern::MetaPattern::Repeat(
+                        repeat_pattern,
+                    )) = pattern
+                    {
+                        // For repeat patterns, check if they have captures
+                        let mut repeat_capture_names = Vec::new();
+                        repeat_pattern
+                            .collect_capture_names(&mut repeat_capture_names);
+
+                        if !repeat_capture_names.is_empty() {
+                            // This is a repeat pattern with captures (like @rest((*)*))
+                            // We need to capture the sub-array of matched elements
+                            let captured_elements: Vec<CBOR> = element_indices
+                                .iter()
+                                .map(|&idx| arr[idx].clone())
+                                .collect();
+
+                            // Create a sub-array from the captured elements
+                            let sub_array = captured_elements.to_cbor();
+
+                            // Get captures from the repeat pattern against the sub-array
+                            let (_sub_paths, sub_captures) =
+                                repeat_pattern.paths_with_captures(&sub_array);
+
+                            // Transform captures to include array context
+                            for (capture_name, captured_paths) in sub_captures {
+                                let mut array_context_paths = Vec::new();
+                                for captured_path in captured_paths {
+                                    // For sub-array captures, the path should be [array] + [sub_array]
+                                    let mut array_path = vec![
+                                        array_cbor.clone(),
+                                        sub_array.clone(),
+                                    ];
+                                    if captured_path.len() > 1 {
+                                        array_path.extend(
+                                            captured_path
+                                                .iter()
+                                                .skip(1)
+                                                .cloned(),
+                                        );
+                                    }
+                                    array_context_paths.push(array_path);
+                                }
+                                all_captures
+                                    .entry(capture_name)
+                                    .or_insert_with(Vec::new)
+                                    .extend(array_context_paths);
+                            }
+                            continue;
+                        }
+                    }
+                }
+
+                // For non-repeat patterns or repeat patterns without captures,
+                // process each assigned element individually
+                for element_idx in element_indices {
+                    let element = &arr[element_idx];
+
+                    // Get captures from this pattern matching this element
+                    let (_element_paths, element_captures) =
+                        pattern.paths_with_captures(element);
+
+                    // Transform captures to include array context
+                    for (capture_name, captured_paths) in element_captures {
+                        let mut array_context_paths = Vec::new();
+                        for captured_path in captured_paths {
+                            // Create path: [array] + [element_at_index] +
+                            // rest_of_path
+                            let mut array_path =
+                                vec![array_cbor.clone(), element.clone()];
+                            if captured_path.len() > 1 {
+                                array_path.extend(
+                                    captured_path.iter().skip(1).cloned(),
+                                );
+                            }
+                            array_context_paths.push(array_path);
+                        }
+                        all_captures
+                            .entry(capture_name)
+                            .or_insert_with(Vec::new)
+                            .extend(array_context_paths);
+                    }
                 }
             }
 
@@ -296,9 +463,7 @@ impl ArrayPattern {
         let patterns = seq_pattern.patterns();
 
         // Check if we have any repeat patterns that require backtracking
-        let has_repeat_patterns = patterns.iter().any(|p| {
-            matches!(p, Pattern::Meta(crate::pattern::MetaPattern::Repeat(_)))
-        });
+        let has_repeat_patterns = Self::has_repeat_patterns(patterns);
 
         // Simple case: if pattern count equals element count AND no repeat
         // patterns, try one-to-one matching
@@ -421,8 +586,90 @@ impl ArrayPattern {
                 }
                 false
             }
+            Pattern::Meta(crate::pattern::MetaPattern::Capture(
+                capture_pattern,
+            )) => {
+                // Handle capture patterns by checking their inner pattern
+                if let Some(repeat_pattern) =
+                    Self::extract_capture_with_repeat(current_pattern)
+                {
+                    // Handle capture+repeat pattern (like @rest((*)*))
+                    let quantifier = repeat_pattern.quantifier();
+                    let min_count = quantifier.min();
+                    let remaining_elements =
+                        arr.len().saturating_sub(element_idx);
+                    let max_count = quantifier
+                        .max()
+                        .unwrap_or(remaining_elements)
+                        .min(remaining_elements);
+
+                    // Try different numbers of repetitions (greedy: start with max)
+                    for rep_count in (min_count..=max_count).rev() {
+                        if element_idx + rep_count <= arr.len() {
+                            let can_match_reps = if rep_count == 0 {
+                                true // Zero repetitions always match
+                            } else {
+                                (0..rep_count).all(|i| {
+                                    repeat_pattern
+                                        .pattern()
+                                        .matches(&arr[element_idx + i])
+                                })
+                            };
+
+                            if can_match_reps {
+                                // Record assignments for capture+repeat patterns
+                                let old_len = assignments.len();
+
+                                // Add assignments for elements consumed by this capture+repeat
+                                for i in 0..rep_count {
+                                    assignments
+                                        .push((pattern_idx, element_idx + i));
+                                }
+
+                                // Try to match the rest of the sequence
+                                if self.backtrack_sequence_assignments(
+                                    patterns,
+                                    arr,
+                                    pattern_idx + 1,
+                                    element_idx + rep_count,
+                                    assignments,
+                                ) {
+                                    return true;
+                                }
+
+                                // Backtrack: remove the assignments we added
+                                assignments.truncate(old_len);
+                            }
+                        }
+                    }
+                    false
+                } else {
+                    // Handle capture+non-repeat pattern (like @a(*))
+                    if element_idx < arr.len()
+                        && capture_pattern.pattern().matches(&arr[element_idx])
+                    {
+                        assignments.push((pattern_idx, element_idx));
+
+                        if self.backtrack_sequence_assignments(
+                            patterns,
+                            arr,
+                            pattern_idx + 1,
+                            element_idx + 1,
+                            assignments,
+                        ) {
+                            true
+                        } else {
+                            // Backtrack: remove the assignment
+                            assignments.pop();
+                            false
+                        }
+                    } else {
+                        false
+                    }
+                }
+            }
             _ => {
-                // Non-repeat pattern: must match exactly one element
+                // Non-repeat, non-capture pattern: must match exactly one element
                 if element_idx < arr.len()
                     && current_pattern.matches(&arr[element_idx])
                 {
@@ -496,24 +743,17 @@ impl Matcher for ArrayPattern {
                                 let patterns = seq_pattern.patterns();
 
                                 // Check if this sequence contains any repeat
-                                // patterns that
-                                // require VM-based matching
+                                // patterns that require VM-based matching
                                 let has_repeat_patterns =
-                                    patterns.iter().any(|p| {
-                                        matches!(
-                                            p,
-                                            Pattern::Meta(MetaPattern::Repeat(
-                                                _
-                                            ))
-                                        )
-                                    });
+                                    Self::has_repeat_patterns(patterns);
 
                                 if has_repeat_patterns {
                                     // Use VM-based matching for complex
                                     // sequences
-                                    self.match_complex_sequence(
+                                    let result = self.match_complex_sequence(
                                         haystack, pattern,
-                                    )
+                                    );
+                                    result
                                 } else {
                                     // Simple sequence: match each pattern
                                     // against consecutive elements
@@ -809,6 +1049,54 @@ impl Matcher for ArrayPattern {
 
 impl ArrayPattern {
     // ...existing methods...
+
+    /// Helper functions for pattern type detection
+
+    /// Check if a pattern is a repeat pattern.
+    fn is_repeat_pattern(pattern: &Pattern) -> bool {
+        matches!(pattern, Pattern::Meta(MetaPattern::Repeat(_)))
+    }
+
+    /// Check if a pattern is a capture pattern containing a repeat pattern.
+    /// Returns the inner repeat pattern if found.
+    fn extract_capture_with_repeat(
+        pattern: &Pattern,
+    ) -> Option<&RepeatPattern> {
+        if let Pattern::Meta(MetaPattern::Capture(capture_pattern)) = pattern {
+            if let Pattern::Meta(MetaPattern::Repeat(repeat_pattern)) =
+                capture_pattern.pattern()
+            {
+                return Some(repeat_pattern);
+            }
+        }
+        None
+    }
+
+    /// Extract any repeat pattern from a pattern, whether direct or within a capture.
+    fn extract_repeat_pattern(pattern: &Pattern) -> Option<&RepeatPattern> {
+        match pattern {
+            Pattern::Meta(MetaPattern::Repeat(repeat_pattern)) => {
+                Some(repeat_pattern)
+            }
+            Pattern::Meta(MetaPattern::Capture(capture_pattern)) => {
+                if let Pattern::Meta(MetaPattern::Repeat(repeat_pattern)) =
+                    capture_pattern.pattern()
+                {
+                    Some(repeat_pattern)
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        }
+    }
+
+    /// Check if a slice of patterns contains any repeat patterns (direct or in captures).
+    fn has_repeat_patterns(patterns: &[Pattern]) -> bool {
+        patterns
+            .iter()
+            .any(|p| Self::extract_repeat_pattern(p).is_some())
+    }
 
     /// Format a pattern for display within array context.
     /// This handles sequence patterns specially to use commas instead of >.

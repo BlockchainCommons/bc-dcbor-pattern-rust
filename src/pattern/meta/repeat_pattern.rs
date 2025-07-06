@@ -71,9 +71,79 @@ impl Matcher for RepeatPattern {
         &self,
         haystack: &CBOR,
     ) -> (Vec<Path>, std::collections::HashMap<String, Vec<Path>>) {
-        // For now, repeat patterns use basic implementation without captures
-        // TODO: Implement full repeat capture support
-        (self.paths(haystack), std::collections::HashMap::new())
+        // Check if the inner pattern has any captures
+        let mut capture_names = Vec::new();
+        self.pattern.collect_capture_names(&mut capture_names);
+
+        if capture_names.is_empty() {
+            // No captures in the inner pattern, use basic implementation
+            return (self.paths(haystack), std::collections::HashMap::new());
+        }
+
+        // For patterns with captures, we need to handle different quantifier cases
+        match haystack.as_case() {
+            CBORCase::Array(arr) => {
+                // For array inputs, the repeat pattern should match against elements
+                let mut all_captures = std::collections::HashMap::new();
+                let mut valid_match = false;
+
+                // Check if this pattern can match the array length
+                if self.quantifier.contains(arr.len()) {
+                    valid_match = true;
+
+                    // If minimum is 0 and array is empty, we have an empty capture
+                    if arr.is_empty() && self.quantifier.contains(0) {
+                        // For empty arrays, captures should be empty but present
+                        for name in &capture_names {
+                            all_captures.insert(name.clone(), vec![]);
+                        }
+                    } else {
+                        // For non-empty arrays, collect captures from each element
+                        for element in arr {
+                            let (_element_paths, element_captures) =
+                                self.pattern.paths_with_captures(element);
+
+                            for (capture_name, captured_paths) in
+                                element_captures
+                            {
+                                all_captures
+                                    .entry(capture_name)
+                                    .or_insert_with(Vec::new)
+                                    .extend(captured_paths);
+                            }
+                        }
+                    }
+                }
+
+                if valid_match {
+                    (vec![vec![haystack.clone()]], all_captures)
+                } else {
+                    (vec![], std::collections::HashMap::new())
+                }
+            }
+            _ => {
+                // For non-array inputs, use the basic repeat logic
+                let inner_paths = self.pattern.paths(haystack);
+                let matches = !inner_paths.is_empty();
+
+                if matches && self.quantifier.contains(1) {
+                    // Inner pattern matches and quantifier allows 1 match
+                    let (_paths, captures) =
+                        self.pattern.paths_with_captures(haystack);
+                    (vec![vec![haystack.clone()]], captures)
+                } else if !matches && self.quantifier.contains(0) {
+                    // Inner pattern doesn't match but quantifier allows 0 matches
+                    let mut empty_captures = std::collections::HashMap::new();
+                    for name in &capture_names {
+                        empty_captures.insert(name.clone(), vec![]);
+                    }
+                    (vec![vec![haystack.clone()]], empty_captures)
+                } else {
+                    // No valid match
+                    (vec![], std::collections::HashMap::new())
+                }
+            }
+        }
     }
 
     fn compile(
