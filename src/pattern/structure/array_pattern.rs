@@ -288,7 +288,9 @@ impl ArrayPattern {
                         // For capture patterns, we directly capture the sub-array with the capture name
                         let capture_name = capture_pattern.name().to_string();
                         let array_context_path =
-                            vec![array_cbor.clone(), sub_array.clone()];
+                            Self::build_simple_array_context_path(
+                                array_cbor, &sub_array,
+                            );
 
                         all_captures
                             .entry(capture_name.clone())
@@ -325,29 +327,12 @@ impl ArrayPattern {
                                 repeat_pattern.paths_with_captures(&sub_array);
 
                             // Transform captures to include array context
-                            for (capture_name, captured_paths) in sub_captures {
-                                let mut array_context_paths = Vec::new();
-                                for captured_path in captured_paths {
-                                    // For sub-array captures, the path should be [array] + [sub_array]
-                                    let mut array_path = vec![
-                                        array_cbor.clone(),
-                                        sub_array.clone(),
-                                    ];
-                                    if captured_path.len() > 1 {
-                                        array_path.extend(
-                                            captured_path
-                                                .iter()
-                                                .skip(1)
-                                                .cloned(),
-                                        );
-                                    }
-                                    array_context_paths.push(array_path);
-                                }
-                                all_captures
-                                    .entry(capture_name)
-                                    .or_insert_with(Vec::new)
-                                    .extend(array_context_paths);
-                            }
+                            Self::transform_captures_with_array_context(
+                                array_cbor,
+                                &sub_array,
+                                sub_captures,
+                                &mut all_captures,
+                            );
                             continue;
                         }
                     }
@@ -363,25 +348,12 @@ impl ArrayPattern {
                         pattern.paths_with_captures(element);
 
                     // Transform captures to include array context
-                    for (capture_name, captured_paths) in element_captures {
-                        let mut array_context_paths = Vec::new();
-                        for captured_path in captured_paths {
-                            // Create path: [array] + [element_at_index] +
-                            // rest_of_path
-                            let mut array_path =
-                                vec![array_cbor.clone(), element.clone()];
-                            if captured_path.len() > 1 {
-                                array_path.extend(
-                                    captured_path.iter().skip(1).cloned(),
-                                );
-                            }
-                            array_context_paths.push(array_path);
-                        }
-                        all_captures
-                            .entry(capture_name)
-                            .or_insert_with(Vec::new)
-                            .extend(array_context_paths);
-                    }
+                    Self::transform_captures_with_array_context(
+                        array_cbor,
+                        element,
+                        element_captures,
+                        &mut all_captures,
+                    );
                 }
             }
 
@@ -1109,6 +1081,55 @@ impl std::fmt::Display for ArrayPattern {
             ArrayPattern::Length(interval) => {
                 write!(f, "[{}]", interval)
             }
+        }
+    }
+}
+
+impl ArrayPattern {
+    /// Helper functions for capture context path building
+
+    /// Build a simple array context path: [array_cbor, element]
+    fn build_simple_array_context_path(
+        array_cbor: &CBOR,
+        element: &CBOR,
+    ) -> Vec<CBOR> {
+        vec![array_cbor.clone(), element.clone()]
+    }
+
+    /// Build an extended array context path: [array_cbor, element] + captured_path (skip first element)
+    fn build_extended_array_context_path(
+        array_cbor: &CBOR,
+        element: &CBOR,
+        captured_path: &[CBOR],
+    ) -> Vec<CBOR> {
+        let mut array_path = vec![array_cbor.clone(), element.clone()];
+        if captured_path.len() > 1 {
+            array_path.extend(captured_path.iter().skip(1).cloned());
+        }
+        array_path
+    }
+
+    /// Transform nested captures to include array context, extending all_captures
+    fn transform_captures_with_array_context(
+        array_cbor: &CBOR,
+        element: &CBOR,
+        nested_captures: std::collections::HashMap<String, Vec<Vec<CBOR>>>,
+        all_captures: &mut std::collections::HashMap<String, Vec<Vec<CBOR>>>,
+    ) {
+        for (capture_name, captured_paths) in nested_captures {
+            let mut array_context_paths = Vec::new();
+            for captured_path in captured_paths {
+                let array_path = Self::build_extended_array_context_path(
+                    array_cbor,
+                    element,
+                    &captured_path,
+                );
+                array_context_paths.push(array_path);
+            }
+            all_captures
+                .entry(capture_name)
+                .or_insert_with(Vec::new)
+                .extend(array_context_paths);
         }
     }
 }

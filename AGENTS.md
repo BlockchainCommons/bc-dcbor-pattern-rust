@@ -170,3 +170,36 @@ fn compile_without_captures(&self, code: &mut Vec<Instr>, literals: &mut Vec<Pat
 - Lower complexity than backtracking framework (#3) or assignment logic (#4)
 - Clear duplication in path building for captures
 - Estimated 15-25 line reduction with high maintainability benefit
+
+#### Refactoring Results - Capture Context Path Building (#5)
+
+**COMPLETED** - ✅
+
+**Target:** Extract duplicate capture context path building logic for array patterns.
+
+**Changes made:**
+- Added 3 new helper functions:
+  - `build_simple_array_context_path(array_cbor, element) -> Vec<CBOR>` - builds `[array, element]` paths
+  - `build_extended_array_context_path(array_cbor, element, captured_path) -> Vec<CBOR>` - builds `[array, element] + rest_of_path`
+  - `transform_captures_with_array_context()` - transforms nested captures to include array context
+- Replaced 3 instances of duplicated context path building logic:
+  - Direct capture patterns (line ~290): simplified to use `build_simple_array_context_path`
+  - Repeat pattern captures (line ~330): replaced ~20 lines with `transform_captures_with_array_context` call
+  - Element captures (line ~370): replaced ~18 lines with `transform_captures_with_array_context` call
+
+**Line count change:** 1114 → 1135 lines (**+21 lines**, but eliminated ~28 lines of duplicate code)
+- Added 49 lines for new helper functions
+- Eliminated ~28 lines of duplicated context path building logic
+- Net code increase due to comprehensive helper functions, but major maintainability improvement
+
+**Benefits:**
+- ✅ Eliminated all duplicated array context path building logic
+- ✅ Centralized complex path transformation into reusable functions
+- ✅ Improved code clarity - path building operations are now self-documenting
+- ✅ All tests pass - no functional changes
+- ✅ Future changes to path building logic only need to be made in helper functions
+
+**Next recommended target:** Element-to-Pattern Assignment Logic (#4)
+- Medium complexity but high impact on maintainability
+- Clear duplication between matching and capture collection logic
+- Estimated 20-30 line reduction with significant complexity reduction
