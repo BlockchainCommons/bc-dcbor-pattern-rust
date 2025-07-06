@@ -2,11 +2,8 @@ use std::collections::HashMap;
 
 use dcbor::prelude::*;
 
-use crate::pattern::{Pattern, vm::Instr};
+use crate::{pattern::{vm::Instr, Pattern}, Path};
 
-/// A sequence of `CBOR` that match a pattern, starting from the root of the
-/// dCBOR item.
-pub type Path = Vec<CBOR>;
 
 #[doc(hidden)]
 pub trait Matcher: std::fmt::Debug + std::fmt::Display + Clone {
