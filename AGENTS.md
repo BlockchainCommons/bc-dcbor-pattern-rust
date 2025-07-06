@@ -6,6 +6,4 @@ This crate provides pattern matching and text syntax parsing for Deterministic C
 
 The crate is ready for community review, with complete functionality and comprehensive test coverage.
 
-## Development Plan
-
-TBD
+## Agent Notes
