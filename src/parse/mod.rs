@@ -6,8 +6,8 @@ pub mod value;
 // pub use meta::*;
 // pub use structure::*;
 pub use token::*;
-// pub use value::*;
 
+// pub use value::*;
 use crate::{Error, Pattern, Result};
 
 impl Pattern {

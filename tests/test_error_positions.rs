@@ -30,7 +30,7 @@ mod test_error_positions {
                     }
 
                     // The FOO token starts at position 14 in "tagged(12345,
-                    // FOO)"                                
+                    // FOO)"
                     // 0123456789012345
                     let expected_start = 14;
 
@@ -213,7 +213,7 @@ mod test_error_positions {
                     }
 
                     // The FOO token starts at position 10 in "{text: *, FOO:
-                    // number}"                             
+                    // number}"
                     // 01234567890123456789012
                     let expected_start = 10;
 
@@ -262,7 +262,7 @@ mod test_error_positions {
                     }
 
                     // The FOO token starts at position 16 in "{bool: bstr, *:
-                    // FOO}"                                
+                    // FOO}"
                     // 0123456789012345678901
                     let expected_start = 16;
 

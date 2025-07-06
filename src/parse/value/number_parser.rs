@@ -1,6 +1,8 @@
 use crate::{Pattern, Result, parse::Token};
 
-pub(crate) fn parse_number(_lexer: &mut logos::Lexer<Token>) -> Result<Pattern> {
+pub(crate) fn parse_number(
+    _lexer: &mut logos::Lexer<Token>,
+) -> Result<Pattern> {
     // For the keyword "number", just return any number pattern
     Ok(Pattern::any_number())
 }

@@ -1,9 +1,6 @@
 use crate::{
     Error, MapPattern, Pattern, Result, StructurePattern,
-    parse::{
-        Token,
-        meta::parse_or,
-    },
+    parse::{Token, meta::parse_or},
 };
 
 /// Parse a bracket map pattern: { ... }

@@ -6,7 +6,11 @@ use super::super::{
         parse_text,
     },
 };
-use crate::{parse::structure::{parse_bracket_array, parse_bracket_map, parse_tagged}, value::{parse_hex_regex_token, parse_hex_string_token}, Error, MapPattern, Pattern, Result};
+use crate::{
+    Error, MapPattern, Pattern, Result,
+    parse::structure::{parse_bracket_array, parse_bracket_map, parse_tagged},
+    value::{parse_hex_regex_token, parse_hex_string_token},
+};
 
 /// Parse a primary pattern - the most basic unit of pattern matching.
 ///
@@ -106,14 +110,10 @@ pub(crate) fn parse_primary(
         }
 
         // Direct hex string literal
-        Token::HexString(res) => {
-            parse_hex_string_token(res)
-        }
+        Token::HexString(res) => parse_hex_string_token(res),
 
         // Direct hex regex literal
-        Token::HexRegex(res) => {
-            parse_hex_regex_token(res)
-        }
+        Token::HexRegex(res) => parse_hex_regex_token(res),
 
         // Structure patterns
         Token::Tagged => parse_tagged(lexer),
@@ -127,9 +127,7 @@ pub(crate) fn parse_primary(
         )),
 
         // Bracket syntax for arrays
-        Token::BracketOpen => {
-            parse_bracket_array(lexer)
-        }
+        Token::BracketOpen => parse_bracket_array(lexer),
 
         // Brace syntax for maps
         Token::BraceOpen => parse_bracket_map(lexer),
