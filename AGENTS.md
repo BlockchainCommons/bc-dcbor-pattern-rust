@@ -10,9 +10,6 @@ The crate is ready for community review, with complete functionality and compreh
 
 `array_pattern.rs` has become quite the behemoth.
 
-Starting linecount: 1115
-Current linecount: 1114
-
 ### Refactoring Analysis for array_pattern.rs
 
 The following redundancies and refactoring opportunities have been identified:
@@ -197,9 +194,47 @@ fn compile_without_captures(&self, code: &mut Vec<Instr>, literals: &mut Vec<Pat
 - ✅ Centralized complex path transformation into reusable functions
 - ✅ Improved code clarity - path building operations are now self-documenting
 - ✅ All tests pass - no functional changes
-- ✅ Future changes to path building logic only need to be made in helper functions
+- ✅ Significant reduction in code complexity for matching and capture collection
 
 **Next recommended target:** Element-to-Pattern Assignment Logic (#4)
 - Medium complexity but high impact on maintainability
 - Clear duplication between matching and capture collection logic
 - Estimated 20-30 line reduction with significant complexity reduction
+
+#### Refactoring Results - Element-to-Pattern Assignment Logic (#4)
+
+**COMPLETED** - ✅
+
+**Target:** Extract complex element-to-pattern assignment logic that was duplicated between matching and capture collection.
+
+**Changes made:**
+- Added new `SequenceAssigner` struct with comprehensive functionality:
+  - `can_match() -> bool` - handles boolean sequence matching with full backtracking support
+  - `find_assignments() -> Option<Vec<(usize, usize)>>` - finds element-to-pattern assignments
+  - `backtrack_match()` and `backtrack_assignments()` - unified backtracking algorithms
+  - `try_repeat_match()` and `try_repeat_assignments()` - repeat pattern handling
+- Replaced 5 instances of duplicated assignment logic:
+  - `match_sequence_patterns_against_array()` - simplified to use `SequenceAssigner::can_match()`
+  - `find_sequence_element_assignments()` - simplified to use `SequenceAssigner::find_assignments()`
+  - Removed `backtrack_sequence_match()` - logic moved to `SequenceAssigner::backtrack_match()`
+  - Removed `backtrack_sequence_assignments()` - logic moved to `SequenceAssigner::backtrack_assignments()`
+  - Removed `find_sequence_assignments_with_backtracking()` - replaced by `SequenceAssigner`
+  - Removed unused `try_repeat_backtrack_match()` and `try_repeat_backtrack_assignments()` methods
+
+**Line count reduction:** 1135 → 1078 lines (**-57 lines**, 5.0% reduction)
+- Added 245 lines for comprehensive `SequenceAssigner` struct
+- Eliminated ~302 lines of duplicated backtracking and assignment logic
+- Net reduction of 57 lines with massive maintainability improvement
+
+**Benefits:**
+- ✅ Eliminated all duplicated element-to-pattern assignment logic
+- ✅ Centralized complex backtracking algorithms into a dedicated, reusable struct
+- ✅ Unified boolean matching and assignment tracking with shared core logic
+- ✅ Improved code organization - assignment logic is now self-contained and well-documented
+- ✅ All tests pass - no functional changes
+- ✅ Significant reduction in code complexity for matching and capture collection
+
+**Next recommended target:** Backtracking State Management (#3)
+- Highest complexity but biggest payoff potential
+- Generic backtracking framework could further unify remaining logic
+- Estimated 30-50 line reduction with major architectural improvement
