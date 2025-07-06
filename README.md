@@ -1,7 +1,4 @@
-# Blockchain```toml
-[dependencies]
-dcbor-pattern = "0.3.0"
-```mons Pattern Matcher for dCBOR
+# Blockchain Commons Pattern Matcher for dCBOR
 
 <!--Guidelines: https://github.com/BlockchainCommons/secure-template/wiki -->
 
