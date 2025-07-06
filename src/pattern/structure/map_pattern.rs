@@ -21,9 +21,7 @@ pub enum MapPattern {
 
 impl MapPattern {
     /// Creates a new `MapPattern` that matches any map.
-    pub fn any() -> Self {
-        MapPattern::Any
-    }
+    pub fn any() -> Self { MapPattern::Any }
 
     /// Creates a new `MapPattern` that matches maps with multiple key-value
     /// constraints that must all be satisfied.
@@ -142,7 +140,10 @@ impl Matcher for MapPattern {
         match self {
             MapPattern::Any => {
                 // Matches any map, no captures
-                (vec![vec![haystack.clone()]], std::collections::HashMap::new())
+                (
+                    vec![vec![haystack.clone()]],
+                    std::collections::HashMap::new(),
+                )
             }
             MapPattern::Constraints(constraints) => {
                 // Match if all key-value constraints are satisfied

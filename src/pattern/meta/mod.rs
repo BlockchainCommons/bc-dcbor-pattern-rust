@@ -10,13 +10,12 @@ mod sequence_pattern;
 pub use and_pattern::*;
 pub use any_pattern::*;
 pub use capture_pattern::*;
+use dcbor::prelude::*;
 pub use not_pattern::*;
 pub use or_pattern::*;
 pub use repeat_pattern::*;
 pub use search_pattern::*;
 pub use sequence_pattern::*;
-
-use dcbor::prelude::*;
 
 use crate::pattern::{Matcher, Path, Pattern, vm::Instr};
 
@@ -124,10 +123,18 @@ impl Matcher for MetaPattern {
             MetaPattern::And(pattern) => pattern.paths_with_captures(haystack),
             MetaPattern::Or(pattern) => pattern.paths_with_captures(haystack),
             MetaPattern::Not(pattern) => pattern.paths_with_captures(haystack),
-            MetaPattern::Repeat(pattern) => pattern.paths_with_captures(haystack),
-            MetaPattern::Capture(pattern) => pattern.paths_with_captures(haystack),
-            MetaPattern::Search(pattern) => pattern.paths_with_captures(haystack),
-            MetaPattern::Sequence(pattern) => pattern.paths_with_captures(haystack),
+            MetaPattern::Repeat(pattern) => {
+                pattern.paths_with_captures(haystack)
+            }
+            MetaPattern::Capture(pattern) => {
+                pattern.paths_with_captures(haystack)
+            }
+            MetaPattern::Search(pattern) => {
+                pattern.paths_with_captures(haystack)
+            }
+            MetaPattern::Sequence(pattern) => {
+                pattern.paths_with_captures(haystack)
+            }
         }
     }
 }

@@ -1,5 +1,5 @@
-use dcbor_pattern::{Pattern, Result};
 use dcbor::prelude::*;
+use dcbor_pattern::{Pattern, Result};
 
 /// Test the OR parser with various patterns
 #[test]

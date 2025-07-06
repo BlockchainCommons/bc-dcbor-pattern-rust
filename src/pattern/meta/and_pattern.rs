@@ -16,7 +16,11 @@ impl AndPattern {
 
 impl Matcher for AndPattern {
     fn paths(&self, haystack: &CBOR) -> Vec<Path> {
-        if self.patterns().iter().all(|pattern| pattern.matches(haystack)) {
+        if self
+            .patterns()
+            .iter()
+            .all(|pattern| pattern.matches(haystack))
+        {
             vec![vec![haystack.clone()]]
         } else {
             vec![]

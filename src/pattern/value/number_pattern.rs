@@ -95,9 +95,7 @@ impl Eq for NumberPattern {}
 
 impl NumberPattern {
     /// Creates a new `NumberPattern` that matches any number.
-    pub fn any() -> Self {
-        NumberPattern::Any
-    }
+    pub fn any() -> Self { NumberPattern::Any }
 
     /// Creates a new `NumberPattern` that matches the exact number.
     pub fn value<T>(value: T) -> Self
@@ -155,19 +153,13 @@ impl NumberPattern {
     }
 
     /// Creates a new `NumberPattern` that matches NaN values.
-    pub fn nan() -> Self {
-        NumberPattern::NaN
-    }
+    pub fn nan() -> Self { NumberPattern::NaN }
 
     /// Creates a new `NumberPattern` that matches positive infinity.
-    pub fn infinity() -> Self {
-        NumberPattern::Infinity
-    }
+    pub fn infinity() -> Self { NumberPattern::Infinity }
 
     /// Creates a new `NumberPattern` that matches negative infinity.
-    pub fn neg_infinity() -> Self {
-        NumberPattern::NegInfinity
-    }
+    pub fn neg_infinity() -> Self { NumberPattern::NegInfinity }
 }
 
 impl Matcher for NumberPattern {

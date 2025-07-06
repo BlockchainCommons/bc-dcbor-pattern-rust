@@ -20,9 +20,10 @@ impl PartialEq for ByteStringPattern {
             (ByteStringPattern::Value(a), ByteStringPattern::Value(b)) => {
                 a == b
             }
-            (ByteStringPattern::BinaryRegex(a), ByteStringPattern::BinaryRegex(b)) => {
-                a.as_str() == b.as_str()
-            }
+            (
+                ByteStringPattern::BinaryRegex(a),
+                ByteStringPattern::BinaryRegex(b),
+            ) => a.as_str() == b.as_str(),
             _ => false,
         }
     }
@@ -67,11 +68,12 @@ impl ByteStringPattern {
 
 impl Matcher for ByteStringPattern {
     fn paths(&self, haystack: &CBOR) -> Vec<Path> {
-        let is_hit = haystack.as_byte_string().is_some_and(|bytes| match self {
-            ByteStringPattern::Any => true,
-            ByteStringPattern::Value(want) => bytes == want,
-            ByteStringPattern::BinaryRegex(regex) => regex.is_match(bytes),
-        });
+        let is_hit =
+            haystack.as_byte_string().is_some_and(|bytes| match self {
+                ByteStringPattern::Any => true,
+                ByteStringPattern::Value(want) => bytes == want,
+                ByteStringPattern::BinaryRegex(regex) => regex.is_match(bytes),
+            });
 
         if is_hit {
             vec![vec![haystack.clone()]]

@@ -122,11 +122,12 @@ mod tests {
     fn test_simple_array_patterns_still_work() {
         // Ensure simple patterns still work after our changes
         let test_patterns = [
-            ("[*]", "[]", false),        // [*] now means single element, not any array
-            ("[*]", "[1]", true),        // [*] matches single element arrays
-            ("[*]", "[1,2,3]", false),   // [*] doesn't match multi-element arrays
-            ("array", "[]", true),       // array keyword matches any array
-            ("array", "[1,2,3]", true),  // array keyword matches any array
+            ("[*]", "[]", false), /* [*] now means single element, not any
+                                   * array */
+            ("[*]", "[1]", true), // [*] matches single element arrays
+            ("[*]", "[1,2,3]", false), // [*] doesn't match multi-element arrays
+            ("array", "[]", true), // array keyword matches any array
+            ("array", "[1,2,3]", true), // array keyword matches any array
             ("[{3}]", "[1,2,3]", true),
             ("[{3}]", "[1,2]", false),
             ("[number]", "[42]", true),

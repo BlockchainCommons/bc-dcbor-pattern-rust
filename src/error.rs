@@ -93,8 +93,9 @@ pub enum Error {
 pub type Result<T> = std::result::Result<T, Error>;
 
 impl Error {
-    /// Adjusts the span of an error by adding the given offset to both start and end positions.
-    /// Returns a new error with adjusted span, or the original error if it has no span.
+    /// Adjusts the span of an error by adding the given offset to both start
+    /// and end positions. Returns a new error with adjusted span, or the
+    /// original error if it has no span.
     pub fn adjust_span(self, offset: usize) -> Self {
         match self {
             Error::UnrecognizedToken(span) => {

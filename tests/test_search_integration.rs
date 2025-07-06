@@ -1,9 +1,7 @@
 use dcbor_pattern::*;
 
 /// Helper function to parse pattern text into Pattern objects
-fn parse(s: &str) -> Pattern {
-    Pattern::parse(s).unwrap()
-}
+fn parse(s: &str) -> Pattern { Pattern::parse(s).unwrap() }
 
 #[test]
 fn test_search_with_partial_array_capture() {
@@ -37,6 +35,6 @@ fn test_search_with_partial_array_capture() {
     // Should have captures for @a and @rest
     assert!(!captures2.is_empty(), "Should have captures for [1]");
     assert!(captures2.contains_key("a"), "Should have capture @a");
-    // @rest should capture empty array, so it might or might not be in the captures map
-    // depending on implementation
+    // @rest should capture empty array, so it might or might not be in the
+    // captures map depending on implementation
 }

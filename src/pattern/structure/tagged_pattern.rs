@@ -50,9 +50,7 @@ impl Eq for TaggedPattern {}
 
 impl TaggedPattern {
     /// Creates a new `TaggedPattern` that matches any tagged value.
-    pub fn any() -> Self {
-        TaggedPattern::Any
-    }
+    pub fn any() -> Self { TaggedPattern::Any }
 
     /// Creates a new `TaggedPattern` that matches tagged values with specific
     /// tag AND content that matches the pattern.
@@ -174,7 +172,10 @@ impl Matcher for TaggedPattern {
         match self {
             TaggedPattern::Any => {
                 // Matches any tagged value, no captures
-                (vec![vec![haystack.clone()]], std::collections::HashMap::new())
+                (
+                    vec![vec![haystack.clone()]],
+                    std::collections::HashMap::new(),
+                )
             }
             TaggedPattern::Tag { tag: expected_tag, pattern } => {
                 if *tag_value == *expected_tag {

@@ -1,13 +1,16 @@
+use dcbor::prelude::*;
+
 use super::helpers::{
     calculate_repeat_bounds, can_repeat_match, extract_capture_with_repeat,
 };
 use crate::pattern::{Matcher, MetaPattern, Pattern, meta::RepeatPattern};
-use dcbor::prelude::*;
 
-/// Generic backtracking framework for unifying different types of backtracking state management.
-/// This trait abstracts the differences between boolean matching and assignment tracking.
+/// Generic backtracking framework for unifying different types of backtracking
+/// state management. This trait abstracts the differences between boolean
+/// matching and assignment tracking.
 pub trait BacktrackState<T> {
-    /// Try to advance the state with a new assignment and return true if successful
+    /// Try to advance the state with a new assignment and return true if
+    /// successful
     fn try_advance(&mut self, pattern_idx: usize, element_idx: usize) -> bool;
 
     /// Backtrack by removing the last state change
@@ -64,19 +67,13 @@ pub struct AssignmentBacktrackState {
 }
 
 impl AssignmentBacktrackState {
-    pub fn new() -> Self {
-        Self { assignments: Vec::new() }
-    }
+    pub fn new() -> Self { Self { assignments: Vec::new() } }
 
     #[allow(dead_code)]
-    pub fn len(&self) -> usize {
-        self.assignments.len()
-    }
+    pub fn len(&self) -> usize { self.assignments.len() }
 
     #[allow(dead_code)]
-    pub fn truncate(&mut self, len: usize) {
-        self.assignments.truncate(len);
-    }
+    pub fn truncate(&mut self, len: usize) { self.assignments.truncate(len); }
 }
 
 impl BacktrackState<Vec<(usize, usize)>> for AssignmentBacktrackState {
@@ -85,9 +82,7 @@ impl BacktrackState<Vec<(usize, usize)>> for AssignmentBacktrackState {
         true
     }
 
-    fn backtrack(&mut self) {
-        self.assignments.pop();
-    }
+    fn backtrack(&mut self) { self.assignments.pop(); }
 
     fn is_success(
         &self,
@@ -99,9 +94,7 @@ impl BacktrackState<Vec<(usize, usize)>> for AssignmentBacktrackState {
         pattern_idx >= patterns_len && element_idx >= elements_len
     }
 
-    fn get_result(self) -> Vec<(usize, usize)> {
-        self.assignments
-    }
+    fn get_result(self) -> Vec<(usize, usize)> { self.assignments }
 }
 
 /// Generic backtracking algorithm that works with any BacktrackState
@@ -174,7 +167,8 @@ impl<'a> GenericBacktracker<'a> {
                             ) {
                                 return true;
                             }
-                            // Backtracking is handled by the recursive call failing
+                            // Backtracking is handled by the recursive call
+                            // failing
                             state.backtrack();
                         }
                     }
@@ -228,7 +222,8 @@ impl<'a> GenericBacktracker<'a> {
                     // Record state for all consumed elements
                     for i in 0..rep_count {
                         if !state.try_advance(pattern_idx, element_idx + i) {
-                            // If we can't advance, backtrack what we've added and try next rep_count
+                            // If we can't advance, backtrack what we've added
+                            // and try next rep_count
                             for _ in 0..i {
                                 state.backtrack();
                             }
@@ -245,7 +240,8 @@ impl<'a> GenericBacktracker<'a> {
                         return true;
                     }
 
-                    // Backtrack: undo all the advances we made for this rep_count
+                    // Backtrack: undo all the advances we made for this
+                    // rep_count
                     for _ in 0..rep_count {
                         state.backtrack();
                     }

@@ -3,11 +3,11 @@ mod map_pattern;
 mod tagged_pattern;
 
 pub use array_pattern::ArrayPattern;
+use dcbor::prelude::*;
 pub use map_pattern::*;
 pub use tagged_pattern::*;
 
 use crate::pattern::{Matcher, Path, Pattern, vm::Instr};
-use dcbor::prelude::*;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum StructurePattern {
@@ -66,7 +66,9 @@ impl Matcher for StructurePattern {
             StructurePattern::Array(pattern) => {
                 pattern.paths_with_captures(haystack)
             }
-            StructurePattern::Map(pattern) => pattern.paths_with_captures(haystack),
+            StructurePattern::Map(pattern) => {
+                pattern.paths_with_captures(haystack)
+            }
             StructurePattern::Tagged(pattern) => {
                 pattern.paths_with_captures(haystack)
             }

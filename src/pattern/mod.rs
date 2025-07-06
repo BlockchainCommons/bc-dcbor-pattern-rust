@@ -4,15 +4,14 @@ mod structure;
 mod value;
 mod vm;
 
+use dcbor::prelude::*;
 pub use matcher::*;
 pub use meta::*;
 pub use structure::*;
 pub use value::*;
 pub use vm::*;
 
-
-use dcbor::prelude::*;
-use crate::{Result, Error};
+use crate::{Error, Result};
 
 pub type Path = Vec<CBOR>;
 
@@ -364,7 +363,6 @@ impl Pattern {
     }
 }
 
-
 impl Pattern {
     /// Creates a pattern that matches any tagged value.
     pub fn any_tagged() -> Self {
@@ -392,7 +390,9 @@ impl Pattern {
     /// a regex for the tag name.
     pub fn tagged_regex(regex: regex::Regex, pattern: Pattern) -> Self {
         Pattern::Structure(crate::pattern::structure::StructurePattern::Tagged(
-            crate::pattern::structure::TaggedPattern::with_regex(regex, pattern),
+            crate::pattern::structure::TaggedPattern::with_regex(
+                regex, pattern,
+            ),
         ))
     }
 }
@@ -461,9 +461,7 @@ impl Pattern {
 impl TryFrom<&str> for Pattern {
     type Error = Error;
 
-    fn try_from(value: &str) -> Result<Self> {
-        Self::parse(value)
-    }
+    fn try_from(value: &str) -> Result<Self> { Self::parse(value) }
 }
 
 impl Matcher for Pattern {

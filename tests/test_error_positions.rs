@@ -6,7 +6,8 @@ mod test_error_positions {
     fn test_tagged_error_position() {
         println!("Testing error position reporting for tagged patterns...\n");
 
-        // This should fail and report the correct position of FOO (at position 14)
+        // This should fail and report the correct position of FOO (at position
+        // 14)
         let pattern_str = "tagged(12345, FOO)";
         match Pattern::parse(pattern_str) {
             Ok(_) => panic!("Expected parse to fail for: {}", pattern_str),
@@ -28,8 +29,9 @@ mod test_error_positions {
                         );
                     }
 
-                    // The FOO token starts at position 14 in "tagged(12345, FOO)"
-                    //                                     0123456789012345
+                    // The FOO token starts at position 14 in "tagged(12345,
+                    // FOO)"                                
+                    // 0123456789012345
                     let expected_start = 14;
 
                     assert_eq!(
@@ -37,11 +39,13 @@ mod test_error_positions {
                         "Expected error to start at position {} (F in FOO), but got {}",
                         expected_start, span.start
                     );
-                    // Note: The end position is currently only single character due to lexer limitation
+                    // Note: The end position is currently only single character
+                    // due to lexer limitation
                     // This is a separate issue from the main problem we fixed
                     // assert_eq!(span.end, expected_end,
-                    //     "Expected error to end at position {} (after FOO), but got {}",
-                    //     expected_end, span.end);
+                    //     "Expected error to end at position {} (after FOO),
+                    // but got {}",     expected_end,
+                    // span.end);
 
                     println!("✓ Error starting position is correct!");
                 } else {
@@ -75,10 +79,12 @@ mod test_error_positions {
                         "Expected error to start at position {} (B in BAR), but got {}",
                         expected_start, span.start
                     );
-                    // Note: The end position is currently only single character due to lexer limitation
+                    // Note: The end position is currently only single character
+                    // due to lexer limitation
                     // assert_eq!(span.end, expected_end,
-                    //     "Expected error to end at position {} (after BAR), but got {}",
-                    //     expected_end, span.end);
+                    //     "Expected error to end at position {} (after BAR),
+                    // but got {}",     expected_end,
+                    // span.end);
 
                     println!("✓ Error starting position is correct!");
                 } else {
@@ -184,7 +190,8 @@ mod test_error_positions {
             "Testing error position reporting for second constraint key errors...\n"
         );
 
-        // This should fail and report the correct position of FOO in the second constraint
+        // This should fail and report the correct position of FOO in the second
+        // constraint
         let pattern_str = "{text: *, FOO: number}";
         match Pattern::parse(pattern_str) {
             Ok(_) => panic!("Expected parse to fail for: {}", pattern_str),
@@ -205,8 +212,9 @@ mod test_error_positions {
                         );
                     }
 
-                    // The FOO token starts at position 10 in "{text: *, FOO: number}"
-                    //                                     01234567890123456789012
+                    // The FOO token starts at position 10 in "{text: *, FOO:
+                    // number}"                             
+                    // 01234567890123456789012
                     let expected_start = 10;
 
                     assert_eq!(
@@ -231,7 +239,8 @@ mod test_error_positions {
             "Testing error position reporting for second constraint value errors...\n"
         );
 
-        // This should fail and report the correct position of FOO in the second constraint value
+        // This should fail and report the correct position of FOO in the second
+        // constraint value
         let pattern_str = "{bool: bstr, *: FOO}";
         match Pattern::parse(pattern_str) {
             Ok(_) => panic!("Expected parse to fail for: {}", pattern_str),
@@ -252,8 +261,9 @@ mod test_error_positions {
                         );
                     }
 
-                    // The FOO token starts at position 16 in "{bool: bstr, *: FOO}"
-                    //                                     0123456789012345678901
+                    // The FOO token starts at position 16 in "{bool: bstr, *:
+                    // FOO}"                                
+                    // 0123456789012345678901
                     let expected_start = 16;
 
                     assert_eq!(

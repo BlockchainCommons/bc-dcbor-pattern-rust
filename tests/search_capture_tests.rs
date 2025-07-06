@@ -1,11 +1,11 @@
 mod common;
 
+use dcbor::prelude::*;
 use dcbor_parse::parse_dcbor_item;
 use dcbor_pattern::{
     Matcher, Pattern, format_paths, format_paths_with_captures,
 };
 use indoc::indoc;
-use dcbor::prelude::*;
 
 /// Helper function to parse CBOR diagnostic notation into CBOR objects
 fn cbor(s: &str) -> CBOR { parse_dcbor_item(s).unwrap() }

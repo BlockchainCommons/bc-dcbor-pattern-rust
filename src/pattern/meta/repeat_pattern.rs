@@ -29,14 +29,10 @@ impl RepeatPattern {
     }
 
     /// Returns the sub-pattern of this repeat pattern.
-    pub fn pattern(&self) -> &Pattern {
-        &self.pattern
-    }
+    pub fn pattern(&self) -> &Pattern { &self.pattern }
 
     /// Returns the quantifier of this repeat pattern.
-    pub fn quantifier(&self) -> &Quantifier {
-        &self.quantifier
-    }
+    pub fn quantifier(&self) -> &Quantifier { &self.quantifier }
 }
 
 impl Matcher for RepeatPattern {
@@ -80,10 +76,12 @@ impl Matcher for RepeatPattern {
             return (self.paths(haystack), std::collections::HashMap::new());
         }
 
-        // For patterns with captures, we need to handle different quantifier cases
+        // For patterns with captures, we need to handle different quantifier
+        // cases
         match haystack.as_case() {
             CBORCase::Array(arr) => {
-                // For array inputs, the repeat pattern should match against elements
+                // For array inputs, the repeat pattern should match against
+                // elements
                 let mut all_captures = std::collections::HashMap::new();
                 let mut valid_match = false;
 
@@ -91,14 +89,17 @@ impl Matcher for RepeatPattern {
                 if self.quantifier.contains(arr.len()) {
                     valid_match = true;
 
-                    // If minimum is 0 and array is empty, we have an empty capture
+                    // If minimum is 0 and array is empty, we have an empty
+                    // capture
                     if arr.is_empty() && self.quantifier.contains(0) {
-                        // For empty arrays, captures should be empty but present
+                        // For empty arrays, captures should be empty but
+                        // present
                         for name in &capture_names {
                             all_captures.insert(name.clone(), vec![]);
                         }
                     } else {
-                        // For non-empty arrays, collect captures from each element
+                        // For non-empty arrays, collect captures from each
+                        // element
                         for element in arr {
                             let (_element_paths, element_captures) =
                                 self.pattern.paths_with_captures(element);
@@ -132,7 +133,8 @@ impl Matcher for RepeatPattern {
                         self.pattern.paths_with_captures(haystack);
                     (vec![vec![haystack.clone()]], captures)
                 } else if !matches && self.quantifier.contains(0) {
-                    // Inner pattern doesn't match but quantifier allows 0 matches
+                    // Inner pattern doesn't match but quantifier allows 0
+                    // matches
                     let mut empty_captures = std::collections::HashMap::new();
                     for name in &capture_names {
                         empty_captures.insert(name.clone(), vec![]);

@@ -35,7 +35,10 @@ impl Matcher for NotPattern {
             self.pattern().paths_with_captures(haystack);
         if inner_paths.is_empty() {
             // Inner pattern doesn't match, so NOT matches
-            (vec![vec![haystack.clone()]], std::collections::HashMap::new())
+            (
+                vec![vec![haystack.clone()]],
+                std::collections::HashMap::new(),
+            )
         } else {
             // Inner pattern matches, so NOT doesn't match
             (vec![], std::collections::HashMap::new())

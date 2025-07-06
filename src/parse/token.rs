@@ -538,8 +538,9 @@ fn parse_brace_open(lex: &mut Lexer<Token>) -> Token {
     // Skip whitespace
     while let Some(ch) = chars.next() {
         if !matches!(ch, ' ' | '\t' | '\n' | '\r' | '\u{0c}') {
-            // If the first non-whitespace character is a digit, we need to look ahead further
-            // to determine if this is really a range pattern or a map key-value constraint
+            // If the first non-whitespace character is a digit, we need to look
+            // ahead further to determine if this is really a range
+            // pattern or a map key-value constraint
             if ch.is_ascii_digit() {
                 // Look ahead to see if this looks like a range pattern
                 if looks_like_range_pattern(&remainder[pos..]) {
@@ -556,7 +557,8 @@ fn parse_brace_open(lex: &mut Lexer<Token>) -> Token {
     Token::BraceOpen
 }
 
-/// Helper function to determine if the content after `{` looks like a range pattern
+/// Helper function to determine if the content after `{` looks like a range
+/// pattern
 fn looks_like_range_pattern(content: &str) -> bool {
     let mut chars = content.chars();
     let mut has_digit = false;
@@ -582,8 +584,9 @@ fn looks_like_range_pattern(content: &str) -> bool {
         if ch.is_ascii_digit() {
             continue;
         } else {
-            // After digits, we should see whitespace, comma, or closing brace for a range
-            // If we see a colon, it's definitely a map key-value constraint
+            // After digits, we should see whitespace, comma, or closing brace
+            // for a range If we see a colon, it's definitely a map
+            // key-value constraint
             if ch == ':' {
                 return false;
             }
@@ -602,7 +605,8 @@ fn looks_like_range_pattern(content: &str) -> bool {
                     }
                 }
             }
-            // First non-digit, non-whitespace char should be comma or closing brace
+            // First non-digit, non-whitespace char should be comma or closing
+            // brace
             return ch == ',' || ch == '}';
         }
     }

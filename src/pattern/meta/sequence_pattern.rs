@@ -99,7 +99,8 @@ impl Matcher for SequencePattern {
     fn is_complex(&self) -> bool {
         // A sequence is complex if it contains multiple patterns or
         // if any of its patterns are complex
-        self.patterns().len() > 1 || self.patterns().iter().any(|p| p.is_complex())
+        self.patterns().len() > 1
+            || self.patterns().iter().any(|p| p.is_complex())
     }
 
     fn paths_with_captures(

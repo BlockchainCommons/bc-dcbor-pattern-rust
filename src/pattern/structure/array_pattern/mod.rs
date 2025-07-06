@@ -31,9 +31,7 @@ pub enum ArrayPattern {
 
 impl ArrayPattern {
     /// Creates a new `ArrayPattern` that matches any array.
-    pub fn any() -> Self {
-        ArrayPattern::Any
-    }
+    pub fn any() -> Self { ArrayPattern::Any }
 
     /// Creates a new `ArrayPattern` that matches arrays with elements
     /// that match the given pattern.
@@ -164,15 +162,17 @@ impl ArrayPattern {
             for (pattern_idx, pattern) in
                 seq_pattern.patterns().iter().enumerate()
             {
-                // Check if this is a capture pattern containing a repeat pattern
+                // Check if this is a capture pattern containing a repeat
+                // pattern
                 if let Pattern::Meta(crate::pattern::MetaPattern::Capture(
                     capture_pattern,
                 )) = pattern
                 {
                     // Check if the capture contains a repeat pattern
                     if extract_capture_with_repeat(pattern).is_some() {
-                        // This is a capture pattern with a repeat (like @rest((*)*))
-                        // We need to capture the sub-array of matched elements
+                        // This is a capture pattern with a repeat (like
+                        // @rest((*)*)) We need to
+                        // capture the sub-array of matched elements
                         let captured_elements: Vec<CBOR> = assignments
                             .iter()
                             .filter_map(|&(p_idx, e_idx)| {
@@ -187,7 +187,8 @@ impl ArrayPattern {
                         // Create a sub-array from the captured elements
                         let sub_array = captured_elements.to_cbor();
 
-                        // For capture patterns, we directly capture the sub-array with the capture name
+                        // For capture patterns, we directly capture the
+                        // sub-array with the capture name
                         let capture_name = capture_pattern.name().to_string();
                         let array_context_path =
                             build_simple_array_context_path(
@@ -202,7 +203,8 @@ impl ArrayPattern {
                         continue;
                     }
                 }
-                // Check if this is a direct repeat pattern that might capture multiple elements
+                // Check if this is a direct repeat pattern that might capture
+                // multiple elements
                 else if is_repeat_pattern(pattern) {
                     if let Pattern::Meta(crate::pattern::MetaPattern::Repeat(
                         repeat_pattern,
@@ -214,8 +216,10 @@ impl ArrayPattern {
                             .collect_capture_names(&mut repeat_capture_names);
 
                         if !repeat_capture_names.is_empty() {
-                            // This is a repeat pattern with captures (like @rest((*)*))
-                            // We need to capture the sub-array of matched elements
+                            // This is a repeat pattern with captures (like
+                            // @rest((*)*))
+                            // We need to capture the sub-array of matched
+                            // elements
                             let captured_elements: Vec<CBOR> = assignments
                                 .iter()
                                 .filter_map(|&(p_idx, e_idx)| {
@@ -230,7 +234,8 @@ impl ArrayPattern {
                             // Create a sub-array from the captured elements
                             let sub_array = captured_elements.to_cbor();
 
-                            // Get captures from the repeat pattern against the sub-array
+                            // Get captures from the repeat pattern against the
+                            // sub-array
                             let (_sub_paths, sub_captures) =
                                 repeat_pattern.paths_with_captures(&sub_array);
 

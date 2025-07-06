@@ -26,9 +26,7 @@ impl PartialEq for KnownValuePattern {
             (KnownValuePattern::Value(a), KnownValuePattern::Value(b)) => {
                 a == b
             }
-            (KnownValuePattern::Name(a), KnownValuePattern::Name(b)) => {
-                a == b
-            }
+            (KnownValuePattern::Name(a), KnownValuePattern::Name(b)) => a == b,
             (KnownValuePattern::Regex(a), KnownValuePattern::Regex(b)) => {
                 a.as_str() == b.as_str()
             }

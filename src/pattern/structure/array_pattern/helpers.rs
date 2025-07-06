@@ -1,5 +1,6 @@
 use dcbor::prelude::*;
-use crate::pattern::{MetaPattern, Pattern, Matcher, meta::RepeatPattern};
+
+use crate::pattern::{Matcher, MetaPattern, Pattern, meta::RepeatPattern};
 
 /// Helper functions for pattern type detection
 
@@ -23,7 +24,8 @@ pub fn extract_capture_with_repeat(
     None
 }
 
-/// Extract any repeat pattern from a pattern, whether direct or within a capture.
+/// Extract any repeat pattern from a pattern, whether direct or within a
+/// capture.
 pub fn extract_repeat_pattern(pattern: &Pattern) -> Option<&RepeatPattern> {
     match pattern {
         Pattern::Meta(MetaPattern::Repeat(repeat_pattern)) => {
@@ -42,20 +44,17 @@ pub fn extract_repeat_pattern(pattern: &Pattern) -> Option<&RepeatPattern> {
     }
 }
 
-/// Check if a slice of patterns contains any repeat patterns (direct or in captures).
+/// Check if a slice of patterns contains any repeat patterns (direct or in
+/// captures).
 pub fn has_repeat_patterns_in_slice(patterns: &[Pattern]) -> bool {
-    patterns
-        .iter()
-        .any(|p| extract_repeat_pattern(p).is_some())
+    patterns.iter().any(|p| extract_repeat_pattern(p).is_some())
 }
 
 /// Format a pattern for display within array context.
 /// This handles sequence patterns specially to use commas instead of >.
 pub fn format_array_element_pattern(pattern: &Pattern) -> String {
     match pattern {
-        Pattern::Meta(crate::pattern::MetaPattern::Sequence(
-            seq_pattern,
-        )) => {
+        Pattern::Meta(crate::pattern::MetaPattern::Sequence(seq_pattern)) => {
             // For sequence patterns within arrays, use commas instead of >
             let patterns_str: Vec<String> = seq_pattern
                 .patterns()
@@ -70,7 +69,8 @@ pub fn format_array_element_pattern(pattern: &Pattern) -> String {
 
 /// Helper functions for repeat pattern quantifier logic
 
-/// Calculate the bounds for repeat pattern matching based on quantifier and available elements.
+/// Calculate the bounds for repeat pattern matching based on quantifier and
+/// available elements.
 pub fn calculate_repeat_bounds(
     quantifier: &crate::Quantifier,
     element_idx: usize,
@@ -85,7 +85,8 @@ pub fn calculate_repeat_bounds(
     (min_count, max_count)
 }
 
-/// Check if a repeat pattern can match a specific number of elements starting at element_idx.
+/// Check if a repeat pattern can match a specific number of elements starting
+/// at element_idx.
 pub fn can_repeat_match(
     repeat_pattern: &RepeatPattern,
     arr: &[CBOR],
@@ -112,7 +113,8 @@ pub fn build_simple_array_context_path(
     vec![array_cbor.clone(), element.clone()]
 }
 
-/// Build an extended array context path: [array_cbor, element] + captured_path (skip first element)
+/// Build an extended array context path: [array_cbor, element] + captured_path
+/// (skip first element)
 pub fn build_extended_array_context_path(
     array_cbor: &CBOR,
     element: &CBOR,

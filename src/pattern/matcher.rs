@@ -2,8 +2,10 @@ use std::collections::HashMap;
 
 use dcbor::prelude::*;
 
-use crate::{pattern::{vm::Instr, Pattern}, Path};
-
+use crate::{
+    Path,
+    pattern::{Pattern, vm::Instr},
+};
 
 #[doc(hidden)]
 pub trait Matcher: std::fmt::Debug + std::fmt::Display + Clone {
@@ -23,7 +25,9 @@ pub trait Matcher: std::fmt::Debug + std::fmt::Display + Clone {
         self.paths_with_captures(haystack).0
     }
 
-    fn matches(&self, haystack: &CBOR) -> bool { !self.paths(haystack).is_empty() }
+    fn matches(&self, haystack: &CBOR) -> bool {
+        !self.paths(haystack).is_empty()
+    }
 
     fn compile(
         &self,

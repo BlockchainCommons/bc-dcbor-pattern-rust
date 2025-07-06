@@ -81,14 +81,10 @@ impl std::hash::Hash for DatePattern {
 
 impl DatePattern {
     /// Creates a new `DatePattern` that matches any date.
-    pub fn any() -> Self {
-        DatePattern::Any
-    }
+    pub fn any() -> Self { DatePattern::Any }
 
     /// Creates a new `DatePattern` that matches a specific date.
-    pub fn value(date: Date) -> Self {
-        DatePattern::Value(date)
-    }
+    pub fn value(date: Date) -> Self { DatePattern::Value(date) }
 
     /// Creates a new `DatePattern` that matches dates within a range
     /// (inclusive).
@@ -98,15 +94,11 @@ impl DatePattern {
 
     /// Creates a new `DatePattern` that matches dates that are on or after the
     /// specified date.
-    pub fn earliest(date: Date) -> Self {
-        DatePattern::Earliest(date)
-    }
+    pub fn earliest(date: Date) -> Self { DatePattern::Earliest(date) }
 
     /// Creates a new `DatePattern` that matches dates that are on or before the
     /// specified date.
-    pub fn latest(date: Date) -> Self {
-        DatePattern::Latest(date)
-    }
+    pub fn latest(date: Date) -> Self { DatePattern::Latest(date) }
 
     /// Creates a new `DatePattern` that matches a date by its ISO-8601 string
     /// representation.
@@ -116,9 +108,7 @@ impl DatePattern {
 
     /// Creates a new `DatePattern` that matches dates whose ISO-8601 string
     /// representation matches the given regex pattern.
-    pub fn regex(regex: regex::Regex) -> Self {
-        DatePattern::Regex(regex)
-    }
+    pub fn regex(regex: regex::Regex) -> Self { DatePattern::Regex(regex) }
 }
 
 impl Matcher for DatePattern {

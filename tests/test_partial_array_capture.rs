@@ -5,14 +5,10 @@ use dcbor_parse::parse_dcbor_item;
 use dcbor_pattern::{Matcher, Pattern, format_paths_with_captures};
 
 /// Helper function to parse CBOR diagnostic notation into CBOR objects
-fn cbor(s: &str) -> CBOR {
-    parse_dcbor_item(s).unwrap()
-}
+fn cbor(s: &str) -> CBOR { parse_dcbor_item(s).unwrap() }
 
 /// Helper function to parse pattern text into Pattern objects
-fn parse(s: &str) -> Pattern {
-    Pattern::parse(s).unwrap()
-}
+fn parse(s: &str) -> Pattern { Pattern::parse(s).unwrap() }
 
 #[test]
 fn test_debug_array_pattern_directly() {

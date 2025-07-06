@@ -41,8 +41,9 @@
 
 #![allow(dead_code)]
 
-use crate::Path;
 use dcbor::prelude::*;
+
+use crate::Path;
 
 /// A builder that provides formatting options for each path element.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -121,10 +122,7 @@ impl AsRef<FormatPathsOpts> for FormatPathsOpts {
 }
 
 /// Format a single CBOR element according to the specified format.
-fn format_cbor_element(
-    cbor: &CBOR,
-    format: PathElementFormat,
-) -> String {
+fn format_cbor_element(cbor: &CBOR, format: PathElementFormat) -> String {
     match format {
         PathElementFormat::DiagnosticSummary(max_length) => {
             let diagnostic = cbor.summary();

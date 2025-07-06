@@ -10,6 +10,7 @@ mod text_pattern;
 pub use bool_pattern::*;
 pub use bytestring_pattern::*;
 pub use date_pattern::*;
+use dcbor::prelude::*;
 pub use digest_pattern::*;
 pub use known_value_pattern::*;
 pub use null_pattern::*;
@@ -17,7 +18,6 @@ pub use number_pattern::*;
 pub use text_pattern::*;
 
 use crate::pattern::{Matcher, Path, Pattern, vm::Instr};
-use dcbor::prelude::*;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ValuePattern {
