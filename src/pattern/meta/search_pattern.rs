@@ -80,13 +80,29 @@ impl SearchPattern {
         if !pattern_paths.is_empty() {
             results.push(path.clone());
 
-            // For search patterns, the captured paths should be based on the
-            // current search location, not the inner pattern's
-            // paths
-            for (name, _capture_paths) in captures {
-                // The capture should be the path to the location where the
-                // match occurred
-                all_captures.entry(name).or_default().push(path.clone());
+            // Handle captures based on the pattern type:
+            // - For array element captures like [@a(*), @b(*), @c(*)], preserve the original paths
+            //   so that @a points to element 1, @b to element 2, etc.
+            // - For complex/nested patterns, captures point to the search location where
+            //   the pattern was found, which provides the context for the match.
+            for (name, capture_paths) in captures {
+                if capture_paths.len() > 1 ||
+                   (capture_paths.len() == 1 && capture_paths[0].len() > path.len()) {
+                    // This appears to be an array pattern with element-level captures
+                    // or a nested pattern where we want to preserve the original paths
+                    for capture_path in capture_paths {
+                        // Transform the capture path to include the search context
+                        let mut transformed_path = path.clone();
+                        // Add the relative path from the matched location to the captured value
+                        if capture_path.len() > 1 {
+                            transformed_path.extend_from_slice(&capture_path[1..]);
+                        }
+                        all_captures.entry(name.clone()).or_default().push(transformed_path);
+                    }
+                } else {
+                    // For simple captures or when unclear, use the search location
+                    all_captures.entry(name).or_default().push(path.clone());
+                }
             }
         }
 
