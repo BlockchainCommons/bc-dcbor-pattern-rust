@@ -532,11 +532,11 @@ fn parse_brace_open(lex: &mut Lexer<Token>) -> Token {
     let remainder = lex.remainder();
 
     // Skip whitespace and see if we have a digit pattern
-    let mut chars = remainder.chars();
+    let chars = remainder.chars();
     let mut pos = 0;
 
     // Skip whitespace
-    while let Some(ch) = chars.next() {
+    for ch in chars {
         if !matches!(ch, ' ' | '\t' | '\n' | '\r' | '\u{0c}') {
             // If the first non-whitespace character is a digit, we need to look
             // ahead further to determine if this is really a range
@@ -564,7 +564,7 @@ fn looks_like_range_pattern(content: &str) -> bool {
     let mut has_digit = false;
 
     // Skip whitespace
-    while let Some(ch) = chars.next() {
+    for ch in chars.by_ref() {
         if matches!(ch, ' ' | '\t' | '\n' | '\r' | '\u{0c}') {
             continue;
         } else if ch.is_ascii_digit() {
@@ -593,15 +593,11 @@ fn looks_like_range_pattern(content: &str) -> bool {
             // Skip whitespace
             if matches!(ch, ' ' | '\t' | '\n' | '\r' | '\u{0c}') {
                 // Continue to look for comma or closing brace
-                while let Some(next_ch) = chars.next() {
+                for next_ch in chars.by_ref() {
                     if matches!(next_ch, ' ' | '\t' | '\n' | '\r' | '\u{0c}') {
                         continue;
-                    } else if next_ch == ',' || next_ch == '}' {
-                        return true;
-                    } else if next_ch == ':' {
-                        return false;
                     } else {
-                        return false;
+                        return next_ch == ',' || next_ch == '}';
                     }
                 }
             }

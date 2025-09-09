@@ -74,12 +74,12 @@ impl ArrayPattern {
                 // can be satisfied by the array elements in order
                 let can_match =
                     self.can_match_sequence_against_array(pattern, arr);
-                let result = if can_match {
+
+                if can_match {
                     vec![vec![cbor.clone()]]
                 } else {
                     vec![]
-                };
-                result
+                }
             }
             _ => {
                 vec![] // Not an array
@@ -354,10 +354,10 @@ impl Matcher for ArrayPattern {
                                 if has_repeat_patterns {
                                     // Use VM-based matching for complex
                                     // sequences
-                                    let result = self.match_complex_sequence(
+
+                                    self.match_complex_sequence(
                                         haystack, pattern,
-                                    );
-                                    result
+                                    )
                                 } else {
                                     // Simple sequence: match each pattern
                                     // against consecutive elements

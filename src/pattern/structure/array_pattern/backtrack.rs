@@ -212,39 +212,39 @@ impl<'a> GenericBacktracker<'a> {
 
         // Try different numbers of repetitions (greedy: start with max)
         for rep_count in (min_count..=max_count).rev() {
-            if element_idx + rep_count <= self.arr.len() {
-                if can_repeat_match(
+            if element_idx + rep_count <= self.arr.len()
+                && can_repeat_match(
                     repeat_pattern,
                     self.arr,
                     element_idx,
                     rep_count,
-                ) {
-                    // Record state for all consumed elements
-                    for i in 0..rep_count {
-                        if !state.try_advance(pattern_idx, element_idx + i) {
-                            // If we can't advance, backtrack what we've added
-                            // and try next rep_count
-                            for _ in 0..i {
-                                state.backtrack();
-                            }
-                            break;
+                )
+            {
+                // Record state for all consumed elements
+                for i in 0..rep_count {
+                    if !state.try_advance(pattern_idx, element_idx + i) {
+                        // If we can't advance, backtrack what we've added
+                        // and try next rep_count
+                        for _ in 0..i {
+                            state.backtrack();
                         }
+                        break;
                     }
+                }
 
-                    // Try to match the rest of the sequence recursively
-                    if self.backtrack(
-                        state,
-                        pattern_idx + 1,
-                        element_idx + rep_count,
-                    ) {
-                        return true;
-                    }
+                // Try to match the rest of the sequence recursively
+                if self.backtrack(
+                    state,
+                    pattern_idx + 1,
+                    element_idx + rep_count,
+                ) {
+                    return true;
+                }
 
-                    // Backtrack: undo all the advances we made for this
-                    // rep_count
-                    for _ in 0..rep_count {
-                        state.backtrack();
-                    }
+                // Backtrack: undo all the advances we made for this
+                // rep_count
+                for _ in 0..rep_count {
+                    state.backtrack();
                 }
             }
         }

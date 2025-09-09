@@ -2,7 +2,7 @@ use dcbor::prelude::*;
 
 use crate::pattern::{Matcher, MetaPattern, Pattern, meta::RepeatPattern};
 
-/// Helper functions for pattern type detection
+// Helper functions for pattern type detection
 
 /// Check if a pattern is a repeat pattern.
 pub fn is_repeat_pattern(pattern: &Pattern) -> bool {
@@ -67,7 +67,7 @@ pub fn format_array_element_pattern(pattern: &Pattern) -> String {
     }
 }
 
-/// Helper functions for repeat pattern quantifier logic
+// Helper functions for repeat pattern quantifier logic
 
 /// Calculate the bounds for repeat pattern matching based on quantifier and
 /// available elements.
@@ -103,7 +103,7 @@ pub fn can_repeat_match(
     }
 }
 
-/// Helper functions for capture context path building
+// Helper functions for capture context path building
 
 /// Build a simple array context path: [array_cbor, element]
 pub fn build_simple_array_context_path(
@@ -146,7 +146,7 @@ pub fn transform_captures_with_array_context(
         }
         all_captures
             .entry(capture_name)
-            .or_insert_with(Vec::new)
+            .or_default()
             .extend(array_context_paths);
     }
 }
