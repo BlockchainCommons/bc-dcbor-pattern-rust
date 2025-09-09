@@ -19,21 +19,17 @@ fn test_debug_array_pattern_directly() {
     println!("Testing pattern: {:?}", pattern);
 
     // Test paths() method
-    if let dcbor_pattern::Pattern::Structure(structure_pattern) = &pattern {
-        if let dcbor_pattern::StructurePattern::Array(array_pattern) =
-            structure_pattern
-        {
-            let paths = array_pattern.paths(&cbor_data);
-            println!("Direct ArrayPattern::paths result: {:?}", paths);
+    if let dcbor_pattern::Pattern::Structure(dcbor_pattern::StructurePattern::Array(array_pattern)) = &pattern {
+        let paths = array_pattern.paths(&cbor_data);
+        println!("Direct ArrayPattern::paths result: {:?}", paths);
 
-            let (paths_with_caps, captures) =
-                array_pattern.paths_with_captures(&cbor_data);
-            println!(
-                "Direct ArrayPattern::paths_with_captures result: {:?}",
-                paths_with_caps
-            );
-            println!("Direct ArrayPattern captures: {:?}", captures);
-        }
+        let (paths_with_caps, captures) =
+            array_pattern.paths_with_captures(&cbor_data);
+        println!(
+            "Direct ArrayPattern::paths_with_captures result: {:?}",
+            paths_with_caps
+        );
+        println!("Direct ArrayPattern captures: {:?}", captures);
     }
 
     // Test the full pattern
