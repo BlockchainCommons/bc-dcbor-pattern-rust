@@ -12,10 +12,17 @@ _forthcoming_
 
 ```toml
 [dependencies]
-dcbor-pattern = "0.3.0"
+dcbor-pattern = "0.4.0"
 ```
 
 ## Version History
+
+### **0.4.0** — 9/16/2025
+- Align to dependencies.
+- Code cleanup and style improvements.
+- Optimize iterator usage patterns.
+- Simplify conditional logic.
+- Remove unnecessary anyhow feature.
 
 ### **0.3.0** — 7/5/2025
 - Major refactoring of pattern matching architecture
