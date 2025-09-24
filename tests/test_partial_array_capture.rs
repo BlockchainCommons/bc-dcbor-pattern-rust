@@ -19,7 +19,10 @@ fn test_debug_array_pattern_directly() {
     println!("Testing pattern: {:?}", pattern);
 
     // Test paths() method
-    if let dcbor_pattern::Pattern::Structure(dcbor_pattern::StructurePattern::Array(array_pattern)) = &pattern {
+    if let dcbor_pattern::Pattern::Structure(
+        dcbor_pattern::StructurePattern::Array(array_pattern),
+    ) = &pattern
+    {
         let paths = array_pattern.paths(&cbor_data);
         println!("Direct ArrayPattern::paths result: {:?}", paths);
 
