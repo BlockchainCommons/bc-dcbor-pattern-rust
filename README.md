@@ -12,10 +12,15 @@ _forthcoming_
 
 ```toml
 [dependencies]
-dcbor-pattern = "0.6.0"
+dcbor-pattern = "0.7.0"
 ```
 
 ## Version History
+
+### **0.7.0** — 11/12/2025
+- Update dependencies.
+- Modernize code to use let-chains.
+- Replace modulo operation with `is_multiple_of` method.
 
 ### **0.6.0** — 11/3/2025
 - Align to dependencies.

@@ -80,33 +80,33 @@ impl DigestPattern {
 impl Matcher for DigestPattern {
     fn paths(&self, haystack: &CBOR) -> Vec<Path> {
         // Check if the CBOR value is a tagged digest (tag 40001)
-        if let CBORCase::Tagged(tag, content) = haystack.as_case() {
-            if tag.value() == tags::TAG_DIGEST {
-                // Try to extract the digest from the tagged content
-                match CBOR::try_into_byte_string(content.clone()) {
-                    Ok(digest_bytes) => {
-                        if digest_bytes.len() == Digest::DIGEST_SIZE {
-                            let is_hit = match self {
-                                DigestPattern::Any => true,
-                                DigestPattern::Digest(pattern_digest) => {
-                                    digest_bytes == pattern_digest.data()
-                                }
-                                DigestPattern::Prefix(prefix) => {
-                                    digest_bytes.starts_with(prefix)
-                                }
-                                DigestPattern::BinaryRegex(regex) => {
-                                    regex.is_match(&digest_bytes)
-                                }
-                            };
-
-                            if is_hit {
-                                return vec![vec![haystack.clone()]];
+        if let CBORCase::Tagged(tag, content) = haystack.as_case()
+            && tag.value() == tags::TAG_DIGEST
+        {
+            // Try to extract the digest from the tagged content
+            match CBOR::try_into_byte_string(content.clone()) {
+                Ok(digest_bytes) => {
+                    if digest_bytes.len() == Digest::DIGEST_SIZE {
+                        let is_hit = match self {
+                            DigestPattern::Any => true,
+                            DigestPattern::Digest(pattern_digest) => {
+                                digest_bytes == pattern_digest.data()
                             }
+                            DigestPattern::Prefix(prefix) => {
+                                digest_bytes.starts_with(prefix)
+                            }
+                            DigestPattern::BinaryRegex(regex) => {
+                                regex.is_match(&digest_bytes)
+                            }
+                        };
+
+                        if is_hit {
+                            return vec![vec![haystack.clone()]];
                         }
                     }
-                    Err(_) => {
-                        // Not a byte string, no match
-                    }
+                }
+                Err(_) => {
+                    // Not a byte string, no match
                 }
             }
         }

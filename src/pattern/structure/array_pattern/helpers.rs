@@ -14,12 +14,11 @@ pub fn is_repeat_pattern(pattern: &Pattern) -> bool {
 pub fn extract_capture_with_repeat(
     pattern: &Pattern,
 ) -> Option<&RepeatPattern> {
-    if let Pattern::Meta(MetaPattern::Capture(capture_pattern)) = pattern {
-        if let Pattern::Meta(MetaPattern::Repeat(repeat_pattern)) =
+    if let Pattern::Meta(MetaPattern::Capture(capture_pattern)) = pattern
+        && let Pattern::Meta(MetaPattern::Repeat(repeat_pattern)) =
             capture_pattern.pattern()
-        {
-            return Some(repeat_pattern);
-        }
+    {
+        return Some(repeat_pattern);
     }
     None
 }

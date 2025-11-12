@@ -362,7 +362,7 @@ fn parse_digest_quoted(lex: &mut Lexer<Token>) -> Result<DigestPattern> {
 
             // Try to parse as hex
             if content.chars().all(|c| c.is_ascii_hexdigit()) {
-                if content.len() % 2 == 0 {
+                if content.len().is_multiple_of(2) {
                     match hex::decode(content) {
                         Ok(bytes) => {
                             if bytes.len() <= Digest::DIGEST_SIZE {

@@ -376,13 +376,12 @@ fn run_thread(
                         // Apply capture mappings - map captured paths to thread
                         // state
                         for (name, capture_idx) in capture_map {
-                            if *capture_idx < new_thread.captures.len() {
-                                if let Some(capture_paths) = captures.get(name)
-                                {
-                                    for capture_path in capture_paths {
-                                        new_thread.captures[*capture_idx]
-                                            .push(capture_path.clone());
-                                    }
+                            if *capture_idx < new_thread.captures.len()
+                                && let Some(capture_paths) = captures.get(name)
+                            {
+                                for capture_path in capture_paths {
+                                    new_thread.captures[*capture_idx]
+                                        .push(capture_path.clone());
                                 }
                             }
                         }

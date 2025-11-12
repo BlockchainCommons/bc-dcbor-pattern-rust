@@ -205,49 +205,48 @@ impl ArrayPattern {
                 }
                 // Check if this is a direct repeat pattern that might capture
                 // multiple elements
-                else if is_repeat_pattern(pattern) {
-                    if let Pattern::Meta(crate::pattern::MetaPattern::Repeat(
+                else if is_repeat_pattern(pattern)
+                    && let Pattern::Meta(crate::pattern::MetaPattern::Repeat(
                         repeat_pattern,
                     )) = pattern
-                    {
-                        // For repeat patterns, check if they have captures
-                        let mut repeat_capture_names = Vec::new();
-                        repeat_pattern
-                            .collect_capture_names(&mut repeat_capture_names);
+                {
+                    // For repeat patterns, check if they have captures
+                    let mut repeat_capture_names = Vec::new();
+                    repeat_pattern
+                        .collect_capture_names(&mut repeat_capture_names);
 
-                        if !repeat_capture_names.is_empty() {
-                            // This is a repeat pattern with captures (like
-                            // @rest((*)*))
-                            // We need to capture the sub-array of matched
-                            // elements
-                            let captured_elements: Vec<CBOR> = assignments
-                                .iter()
-                                .filter_map(|&(p_idx, e_idx)| {
-                                    if p_idx == pattern_idx {
-                                        Some(arr[e_idx].clone())
-                                    } else {
-                                        None
-                                    }
-                                })
-                                .collect();
+                    if !repeat_capture_names.is_empty() {
+                        // This is a repeat pattern with captures (like
+                        // @rest((*)*))
+                        // We need to capture the sub-array of matched
+                        // elements
+                        let captured_elements: Vec<CBOR> = assignments
+                            .iter()
+                            .filter_map(|&(p_idx, e_idx)| {
+                                if p_idx == pattern_idx {
+                                    Some(arr[e_idx].clone())
+                                } else {
+                                    None
+                                }
+                            })
+                            .collect();
 
-                            // Create a sub-array from the captured elements
-                            let sub_array = captured_elements.to_cbor();
+                        // Create a sub-array from the captured elements
+                        let sub_array = captured_elements.to_cbor();
 
-                            // Get captures from the repeat pattern against the
-                            // sub-array
-                            let (_sub_paths, sub_captures) =
-                                repeat_pattern.paths_with_captures(&sub_array);
+                        // Get captures from the repeat pattern against the
+                        // sub-array
+                        let (_sub_paths, sub_captures) =
+                            repeat_pattern.paths_with_captures(&sub_array);
 
-                            // Transform captures to include array context
-                            transform_captures_with_array_context(
-                                array_cbor,
-                                &sub_array,
-                                sub_captures,
-                                &mut all_captures,
-                            );
-                            continue;
-                        }
+                        // Transform captures to include array context
+                        transform_captures_with_array_context(
+                            array_cbor,
+                            &sub_array,
+                            sub_captures,
+                            &mut all_captures,
+                        );
+                        continue;
                     }
                 }
 

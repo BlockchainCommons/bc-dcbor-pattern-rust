@@ -1,6 +1,6 @@
 [package]
 name = "dcbor-pattern"
-version = "0.6.0"
+version = "0.7.0"
 edition = "2024"
 description = "Pattern matcher for dCBOR"
 authors = ["Blockchain Commons"]
@@ -18,12 +18,12 @@ keywords = [
 categories = ["data-structures", "encoding"] # https://crates.io/category_slugs
 
 [dependencies]
-bc-components = "^0.27.0"
-bc-tags = "^0.8.0"
-bc-ur = "^0.15.0"
-dcbor = { version = "^0.23.2", features = ["multithreaded"] }
-dcbor-parse = "^0.6.0"
-known-values = "^0.10.0"
+bc-components = "^0.28.0"
+bc-tags = "^0.9.0"
+bc-ur = "^0.16.0"
+dcbor = { version = "^0.23.3", features = ["multithreaded"] }
+dcbor-parse = "^0.7.0"
+known-values = "^0.11.0"
 
 regex = "^1.11.1"
 hex = "^0.4.3"
@@ -33,5 +33,5 @@ logos = "0.15.0"
 [dev-dependencies]
 hex-literal = "^0.4.1"
 indoc = "^2.0.0"
-bc-rand = "^0.4.1"
+bc-rand = "^0.4.2"
 anyhow = "^1.0.0"
