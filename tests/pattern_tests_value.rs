@@ -523,7 +523,7 @@ fn test_date_pattern_specific() {
     bc_components::register_tags();
 
     let date = Date::from_ymd(2023, 12, 25);
-    let pattern = Pattern::date(date.clone());
+    let pattern = Pattern::date(date);
 
     // Should match the specific date
     let date_cbor = date.to_cbor();
@@ -550,7 +550,7 @@ fn test_date_pattern_range() {
 
     let start_date = Date::from_ymd(2023, 12, 20);
     let end_date = Date::from_ymd(2023, 12, 30);
-    let pattern = Pattern::date_range(start_date.clone()..=end_date.clone());
+    let pattern = Pattern::date_range(start_date..=end_date);
 
     // Should match date within range
     let middle_date = Date::from_ymd(2023, 12, 25);
@@ -596,7 +596,7 @@ fn test_date_pattern_earliest() {
     bc_components::register_tags();
 
     let earliest_date = Date::from_ymd(2023, 12, 20);
-    let pattern = Pattern::date_earliest(earliest_date.clone());
+    let pattern = Pattern::date_earliest(earliest_date);
 
     // Should match date equal to earliest
     let earliest_date_cbor = earliest_date.to_cbor();
@@ -628,7 +628,7 @@ fn test_date_pattern_latest() {
     bc_components::register_tags();
 
     let latest_date = Date::from_ymd(2023, 12, 30);
-    let pattern = Pattern::date_latest(latest_date.clone());
+    let pattern = Pattern::date_latest(latest_date);
 
     // Should match date equal to latest
     let latest_date_cbor = latest_date.to_cbor();
@@ -734,7 +734,7 @@ fn test_date_pattern_with_time() {
     assert_actual_expected!(format_paths(&paths), expected);
 
     // Test specific time matching
-    let specific_pattern = Pattern::date(datetime.clone());
+    let specific_pattern = Pattern::date(datetime);
     let paths = specific_pattern.paths(&datetime_cbor);
     #[rustfmt::skip]
     let expected = indoc! {r#"
@@ -758,25 +758,22 @@ fn test_date_pattern_display() {
     assert_eq!(parse("date").to_string(), "date");
 
     let date = Date::from_ymd(2023, 12, 25);
-    assert_eq!(
-        Pattern::date(date.clone()).to_string(),
-        format!("date'{}'", date)
-    );
+    assert_eq!(Pattern::date(date).to_string(), format!("date'{}'", date));
 
     let start_date = Date::from_ymd(2023, 12, 20);
     let end_date = Date::from_ymd(2023, 12, 30);
     assert_eq!(
-        Pattern::date_range(start_date.clone()..=end_date.clone()).to_string(),
+        Pattern::date_range(start_date..=end_date).to_string(),
         format!("date'{}...{}'", start_date, end_date)
     );
 
     assert_eq!(
-        Pattern::date_earliest(date.clone()).to_string(),
+        Pattern::date_earliest(date).to_string(),
         format!("date'{}...'", date)
     );
 
     assert_eq!(
-        Pattern::date_latest(date.clone()).to_string(),
+        Pattern::date_latest(date).to_string(),
         format!("date'...{}'", date)
     );
 

@@ -212,10 +212,10 @@ mod tests {
     #[test]
     fn test_date_pattern_value() {
         let date = Date::from_ymd(2023, 12, 25);
-        let cbor = CBOR::from(date.clone());
+        let cbor = CBOR::from(date);
 
         // Test matching date
-        let pattern = DatePattern::value(date.clone());
+        let pattern = DatePattern::value(date);
         let paths = pattern.paths(&cbor);
         assert_eq!(paths.len(), 1);
         assert_eq!(paths[0], vec![cbor.clone()]);
@@ -233,11 +233,11 @@ mod tests {
         let date2 = Date::from_ymd(2023, 12, 25);
         let date3 = Date::from_ymd(2023, 12, 30);
 
-        let test_date = date2.clone();
+        let test_date = date2;
         let cbor = CBOR::from(test_date);
 
         // Test date within range
-        let pattern = DatePattern::range(date1.clone()..=date3.clone());
+        let pattern = DatePattern::range(date1..=date3);
         let paths = pattern.paths(&cbor);
         assert_eq!(paths.len(), 1);
 
@@ -288,7 +288,7 @@ mod tests {
     #[test]
     fn test_date_pattern_iso8601() {
         let date = Date::from_ymd(2023, 12, 25);
-        let cbor = CBOR::from(date.clone());
+        let cbor = CBOR::from(date);
         let iso_string = date.to_string();
 
         // Test matching ISO string
@@ -326,23 +326,23 @@ mod tests {
 
         let date = Date::from_ymd(2023, 12, 25);
         assert_eq!(
-            DatePattern::value(date.clone()).to_string(),
+            DatePattern::value(date).to_string(),
             format!("date'{}'", date)
         );
 
         let date1 = Date::from_ymd(2023, 12, 20);
         let date2 = Date::from_ymd(2023, 12, 30);
         assert_eq!(
-            DatePattern::range(date1.clone()..=date2.clone()).to_string(),
+            DatePattern::range(date1..=date2).to_string(),
             format!("date'{}...{}'", date1, date2)
         );
 
         assert_eq!(
-            DatePattern::earliest(date.clone()).to_string(),
+            DatePattern::earliest(date).to_string(),
             format!("date'{}...'", date)
         );
         assert_eq!(
-            DatePattern::latest(date.clone()).to_string(),
+            DatePattern::latest(date).to_string(),
             format!("date'...{}'", date)
         );
 

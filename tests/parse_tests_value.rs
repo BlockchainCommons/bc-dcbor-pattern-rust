@@ -87,7 +87,7 @@ fn parse_date_value() {
     let date_cbor = cbor("2023-12-25");
     let expected_date = Date::try_from(date_cbor).unwrap();
 
-    assert_eq!(p, Pattern::date(expected_date.clone()));
+    assert_eq!(p, Pattern::date(expected_date));
     // The display format may be different than input due to date normalization
     assert!(p.to_string().starts_with("date'"));
 }
@@ -164,9 +164,9 @@ fn parse_date_patterns_round_trip() {
 
     let patterns = vec![
         Pattern::any_date(),
-        Pattern::date(date1.clone()),
-        Pattern::date_range(date1..=date2.clone()),
-        Pattern::date_earliest(date2.clone()),
+        Pattern::date(date1),
+        Pattern::date_range(date1..=date2),
+        Pattern::date_earliest(date2),
         Pattern::date_latest(date2),
     ];
 

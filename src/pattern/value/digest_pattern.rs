@@ -154,17 +154,17 @@ mod tests {
 
     fn test_digest() -> Digest {
         let data: &[u8] = b"test data";
-        data.digest().into_owned()
+        data.digest()
     }
 
-    fn create_digest_cbor(digest: &Digest) -> CBOR { digest.to_cbor() }
+    fn create_digest_cbor(digest: Digest) -> CBOR { digest.to_cbor() }
 
     #[test]
     fn test_digest_pattern_display() {
         bc_components::register_tags();
 
         let digest = test_digest();
-        let pattern = DigestPattern::digest(digest.clone());
+        let pattern = DigestPattern::digest(digest);
         assert_eq!(
             format!("{}", pattern),
             format!("digest'{}'", digest.ur_string())
@@ -185,8 +185,8 @@ mod tests {
     #[test]
     fn test_digest_pattern_exact_match() {
         let digest = test_digest();
-        let digest_cbor = create_digest_cbor(&digest);
-        let pattern = DigestPattern::digest(digest.clone());
+        let digest_cbor = create_digest_cbor(digest);
+        let pattern = DigestPattern::digest(digest);
 
         assert!(pattern.matches(&digest_cbor));
         assert_eq!(
@@ -196,8 +196,8 @@ mod tests {
 
         // Test with different digest
         let other_data: &[u8] = b"other data";
-        let other_digest = other_data.digest().into_owned();
-        let other_digest_cbor = create_digest_cbor(&other_digest);
+        let other_digest = other_data.digest();
+        let other_digest_cbor = create_digest_cbor(other_digest);
         assert!(!pattern.matches(&other_digest_cbor));
         assert!(pattern.paths(&other_digest_cbor).is_empty());
     }
@@ -205,7 +205,7 @@ mod tests {
     #[test]
     fn test_digest_pattern_prefix_match() {
         let digest = test_digest();
-        let digest_cbor = create_digest_cbor(&digest);
+        let digest_cbor = create_digest_cbor(digest);
 
         // Test prefix matching - use first 4 bytes of the digest
         let prefix = digest.data()[..4].to_vec();
@@ -219,8 +219,8 @@ mod tests {
 
         // Test with digest that doesn't match the prefix
         let other_data: &[u8] = b"completely different data";
-        let other_digest = other_data.digest().into_owned();
-        let other_digest_cbor = create_digest_cbor(&other_digest);
+        let other_digest = other_data.digest();
+        let other_digest_cbor = create_digest_cbor(other_digest);
 
         // Only match if the other digest happens to have the same prefix
         // (unlikely)
@@ -234,7 +234,7 @@ mod tests {
     #[test]
     fn test_digest_pattern_regex_match() {
         let digest = test_digest();
-        let digest_cbor = create_digest_cbor(&digest);
+        let digest_cbor = create_digest_cbor(digest);
 
         // Create a regex that matches any binary data (any sequence of bytes)
         let match_all_regex = regex::bytes::Regex::new(r".*").unwrap();

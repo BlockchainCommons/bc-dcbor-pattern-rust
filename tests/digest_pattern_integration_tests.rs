@@ -45,7 +45,7 @@ fn test_digest_pattern_parsing_ur_string() {
     let ur_string = digest.ur_string();
     let src = format!("digest'{}'", ur_string);
     let p = Pattern::parse(&src).unwrap();
-    assert_eq!(p, Pattern::digest(digest.clone()));
+    assert_eq!(p, Pattern::digest(digest));
     assert_eq!(p.to_string(), src);
 }
 
