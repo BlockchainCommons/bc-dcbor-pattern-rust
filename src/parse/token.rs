@@ -836,7 +836,7 @@ mod tests {
         // Test empty hex string
         let mut lexer = Token::lexer("h''");
         if let Some(Ok(Token::HexString(Ok(bytes)))) = lexer.next() {
-            assert_eq!(bytes, vec![]);
+            assert_eq!(bytes, Vec::<u8>::new());
         } else {
             panic!("Failed to parse empty hex string");
         }
