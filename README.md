@@ -12,10 +12,14 @@ _forthcoming_
 
 ```toml
 [dependencies]
-dcbor-pattern = "0.10.0"
+dcbor-pattern = "0.11.0"
 ```
 
 ## Version History
+
+### **0.11.0** — 1/11/2026
+- Align to dependencies
+- Fix type inference in test
 
 ### **0.10.0** — 12/19/2025
 - Align to dependencies.
