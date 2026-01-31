@@ -44,6 +44,7 @@ fn test_structure_convenience_methods() {
     // Test array pattern paths
     let array_paths = array_pattern.paths(&array_cbor);
     assert!(!array_paths.is_empty());
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_array = indoc! {r#"
         [1, 2, 3]
@@ -53,6 +54,7 @@ fn test_structure_convenience_methods() {
     // Test map pattern paths
     let map_paths = map_pattern.paths(&map_cbor);
     assert!(!map_paths.is_empty());
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_map = indoc! {r#"
         {"key": "value"}
@@ -62,6 +64,7 @@ fn test_structure_convenience_methods() {
     // Test tagged pattern paths
     let tagged_paths = tagged_pattern.paths(&tagged_cbor);
     assert!(!tagged_paths.is_empty());
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_tagged = indoc! {r#"
         42("content")

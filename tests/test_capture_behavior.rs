@@ -24,6 +24,7 @@ mod test_capture_behavior {
             pattern.paths_with_captures(&cbor_data_single);
 
         // Based on existing test array_capture_tests.rs, this should match
+        // expected-text-output-rubric:
         #[rustfmt::skip]
         let expected_single = indoc! {r#"
             @item
@@ -109,6 +110,7 @@ mod test_capture_behavior {
                 if !paths.is_empty() {
                     println!("Search pattern found {} paths", paths.len());
 
+                    // expected-text-output-rubric:
                     #[rustfmt::skip]
                     let expected = indoc! {r#"
                         @item
@@ -400,6 +402,7 @@ mod test_capture_behavior {
         }
 
         // Test the formatted output
+        // expected-text-output-rubric:
         #[rustfmt::skip]
         let expected = indoc! {r#"
             @item
@@ -467,6 +470,7 @@ mod test_capture_behavior {
         );
 
         // Test the formatted output
+        // expected-text-output-rubric:
         #[rustfmt::skip]
         let expected = indoc! {r#"
             @item

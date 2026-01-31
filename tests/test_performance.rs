@@ -34,6 +34,7 @@ fn test_deeply_nested_performance() {
     let paths = pattern.paths(&data);
     let paths_time = paths_start.elapsed();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         100({"a": {"b": {"c": {"d": [42]}}}})
@@ -85,6 +86,7 @@ fn test_complex_repeat_pattern_performance() {
     let paths = pattern.paths(&data);
     let paths_time = paths_start.elapsed();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         [{"id": 1}, {"id": 2}, 42, "test", true, {"name": "Alice"}, {"name": "Bob"}]
@@ -145,6 +147,7 @@ fn test_large_array_with_search_performance() {
     let paths = pattern.paths(&large_data);
     let paths_time = paths_start.elapsed();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, {"a": 1}, {"b": 2}, {"c": 3}, {"d": 4}, {"e": 5}, [1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12], "needle", {"final": true}]
@@ -205,6 +208,7 @@ fn test_complex_or_pattern_performance() {
     let paths = pattern.paths(&data);
     let paths_time = paths_start.elapsed();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         [42, "test", true]
@@ -309,6 +313,7 @@ fn test_edge_case_performance() {
     let paths = pattern.paths(&large_array);
     let paths_time = paths_start.elapsed();
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, true, false, null, "more", "strings", "here"]

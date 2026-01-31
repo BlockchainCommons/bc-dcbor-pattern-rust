@@ -20,6 +20,7 @@ fn test_search_capture_basic() {
 
     // Test regular paths first
     let paths = pattern.paths(&cbor_data);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_paths = indoc! {r#"
         [1, [2, 42], 3]
@@ -30,6 +31,7 @@ fn test_search_capture_basic() {
 
     // Test with captures using the proper rubric
     let (capture_paths, captures) = pattern.paths_with_captures(&cbor_data);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_with_captures = indoc! {r#"
         @found
@@ -68,6 +70,7 @@ fn test_search_capture_multiple_matches() {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_with_captures = indoc! {r#"
         @target
@@ -105,6 +108,7 @@ fn test_search_capture_nested_structure() {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_with_captures = indoc! {r#"
         @deep
@@ -134,6 +138,7 @@ fn test_search_capture_with_array_elements() {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_with_captures = indoc! {r#"
         @item
@@ -200,6 +205,7 @@ fn test_search_capture_complex_pattern() {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_with_captures = indoc! {r#"
         @found

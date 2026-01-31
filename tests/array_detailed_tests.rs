@@ -20,6 +20,7 @@ fn test_array_pattern_paths_with_captures() {
     let (inner_paths, inner_captures) =
         inner_pattern.paths_with_captures(&cbor_data);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_inner = indoc! {r#"
         @item
@@ -42,6 +43,7 @@ fn test_array_pattern_paths_with_captures() {
     let (element_paths, element_captures) =
         element_pattern.paths_with_captures(&element);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_element = indoc! {r#"
         @item
@@ -60,6 +62,7 @@ fn test_array_pattern_paths_with_captures() {
     // Test what happens when we call paths() on the inner pattern with the
     // array
     let pattern_paths = inner_pattern.paths(&cbor_data);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_paths_only = indoc! {r#"
         [42]
@@ -78,6 +81,7 @@ fn test_array_element_traversal() {
             let pattern = Pattern::parse("@item(42)").unwrap();
             let (paths, captures) = pattern.paths_with_captures(element);
 
+            // expected-text-output-rubric:
             #[rustfmt::skip]
             let expected = indoc! {r#"
                 @item
@@ -105,6 +109,7 @@ fn test_array_pattern_with_multiple_elements() {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         @item
@@ -134,6 +139,7 @@ fn test_array_pattern_nested_structure() {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         @inner_item
@@ -167,6 +173,7 @@ fn test_array_pattern_specific_value_matching() {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         @specific
@@ -191,6 +198,7 @@ fn test_array_pattern_no_match() {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
 
@@ -212,6 +220,7 @@ fn test_array_pattern_mixed_types() {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         @any_item

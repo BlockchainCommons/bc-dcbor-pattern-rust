@@ -34,6 +34,7 @@ mod test_comprehensive_variadic_sequences {
             "No captures expected for basic quantifier"
         );
 
+        // expected-text-output-rubric:
         #[rustfmt::skip]
         let expected_empty = indoc! {r#"
             []
@@ -55,6 +56,7 @@ mod test_comprehensive_variadic_sequences {
             "[(*)*] should match single element array"
         );
 
+        // expected-text-output-rubric:
         #[rustfmt::skip]
         let expected_single = indoc! {r#"
             [42]
@@ -76,6 +78,7 @@ mod test_comprehensive_variadic_sequences {
             "[(*)*] should match multiple element array"
         );
 
+        // expected-text-output-rubric:
         #[rustfmt::skip]
         let expected_multiple = indoc! {r#"
             [1, 2, 3]
@@ -113,6 +116,7 @@ mod test_comprehensive_variadic_sequences {
             "[(*)+] should match single element array"
         );
 
+        // expected-text-output-rubric:
         #[rustfmt::skip]
         let expected_single = indoc! {r#"
             [42]
@@ -134,6 +138,7 @@ mod test_comprehensive_variadic_sequences {
             "[(*)+] should match multiple element array"
         );
 
+        // expected-text-output-rubric:
         #[rustfmt::skip]
         let expected_multiple = indoc! {r#"
             [1, 2, 3]
@@ -163,6 +168,7 @@ mod test_comprehensive_variadic_sequences {
         let (paths, captures) = pattern.paths_with_captures(&empty_array);
         assert!(!paths.is_empty(), "[(*)?] should match empty array");
 
+        // expected-text-output-rubric:
         #[rustfmt::skip]
         let expected_empty = indoc! {r#"
             []
@@ -184,6 +190,7 @@ mod test_comprehensive_variadic_sequences {
             "[(*)?] should match single element array"
         );
 
+        // expected-text-output-rubric:
         #[rustfmt::skip]
         let expected_single = indoc! {r#"
             [42]
@@ -227,6 +234,7 @@ mod test_comprehensive_variadic_sequences {
         let (paths, captures) = pattern.paths_with_captures(&single_element);
         assert!(!paths.is_empty(), "[(*)] should match single element array");
 
+        // expected-text-output-rubric:
         #[rustfmt::skip]
         let expected_single = indoc! {r#"
             [42]
@@ -445,6 +453,7 @@ mod test_comprehensive_variadic_sequences {
         let (paths, _) = pattern.paths_with_captures(&three_elements);
         assert!(!paths.is_empty(), "[(*){{3}}] should match 3-element array");
 
+        // expected-text-output-rubric:
         #[rustfmt::skip]
         let expected_three = indoc! {r#"
             [1, 2, 3]

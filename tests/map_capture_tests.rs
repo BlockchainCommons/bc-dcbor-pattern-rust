@@ -20,6 +20,7 @@ fn test_map_capture_key_value() {
 
     // Test regular paths first
     let paths = pattern.paths(&cbor_data);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_paths = indoc! {r#"
         {"name": "Alice"}
@@ -28,6 +29,7 @@ fn test_map_capture_key_value() {
 
     // Test with captures using the proper rubric
     let (capture_paths, captures) = pattern.paths_with_captures(&cbor_data);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_with_captures = indoc! {r#"
         @key
@@ -57,6 +59,7 @@ fn test_map_capture_multiple_entries() {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_with_captures = indoc! {r#"
         @age_key
@@ -90,6 +93,7 @@ fn test_map_capture_value_only() {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_with_captures = indoc! {r#"
         @status
@@ -114,6 +118,7 @@ fn test_map_capture_with_any_pattern() {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_with_captures = indoc! {r#"
         @any_key
@@ -141,6 +146,7 @@ fn test_map_capture_nested() {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_with_captures = indoc! {r#"
         @inner

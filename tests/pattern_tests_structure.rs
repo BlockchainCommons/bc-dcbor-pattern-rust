@@ -21,6 +21,7 @@ fn test_array_pattern_any() {
     // Should match empty array
     let empty_array = cbor("[]");
     let paths = pattern.paths(&empty_array);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         []
@@ -30,6 +31,7 @@ fn test_array_pattern_any() {
     // Should match non-empty array
     let array = cbor("[1, 2, 3]");
     let paths = pattern.paths(&array);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         [1, 2, 3]
@@ -49,6 +51,7 @@ fn test_array_pattern_single_any_element() {
     // Should match array with one element
     let single_element_array = cbor("[42]");
     let paths = pattern.paths(&single_element_array);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         [42]
@@ -58,6 +61,7 @@ fn test_array_pattern_single_any_element() {
     // Should match array with one element of different type
     let single_string_array = cbor(r#"["hello"]"#);
     let paths = pattern.paths(&single_string_array);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         ["hello"]
@@ -85,6 +89,7 @@ fn test_array_pattern_with_length() {
     // Should match array with length 2
     let array = cbor("[1, 2]");
     let paths = pattern.paths(&array);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         [1, 2]
@@ -111,6 +116,7 @@ fn test_array_pattern_with_elements() {
     // Should match array with exactly one element: 42
     let single_element = cbor("[42]");
     let paths = pattern.paths(&single_element);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         [42]
@@ -142,6 +148,7 @@ fn test_map_pattern_any() {
     // Should match empty map
     let empty_map = cbor("{}");
     let paths = pattern.paths(&empty_map);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         {}
@@ -151,6 +158,7 @@ fn test_map_pattern_any() {
     // Should match non-empty map
     let cbor_map = cbor(r#"{"key": "value"}"#);
     let paths = pattern.paths(&cbor_map);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         {"key": "value"}
@@ -170,6 +178,7 @@ fn test_tagged_pattern_any() {
     // Should match any tagged value
     let tagged = cbor(r#"1234("content")"#);
     let paths = pattern.paths(&tagged);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         1234("content")
@@ -190,6 +199,7 @@ fn test_tagged_pattern_with_tag_and_any() {
     // Should match tagged value with correct tag
     let tagged = cbor(r#"1234("content")"#);
     let paths = pattern.paths(&tagged);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         1234("content")

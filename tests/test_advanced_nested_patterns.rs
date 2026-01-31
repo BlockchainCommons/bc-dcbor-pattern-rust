@@ -19,6 +19,7 @@ fn test_simple_nested_tagged_array() {
     );
 
     let paths = pattern.paths(&match_case);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         100(["target"])
@@ -58,6 +59,7 @@ fn test_complex_nested_tagged_array_with_repeat() {
         "Should match tagged array with just target"
     );
     let paths1 = pattern.paths(&case1);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected1 = indoc! {r#"
         100(["target"])
@@ -71,6 +73,7 @@ fn test_complex_nested_tagged_array_with_repeat() {
         "Should match tagged array with prefix"
     );
     let paths2 = pattern.paths(&case2);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected2 = indoc! {r#"
         100([1, "target"])
@@ -84,6 +87,7 @@ fn test_complex_nested_tagged_array_with_repeat() {
         "Should match tagged array with suffix"
     );
     let paths3 = pattern.paths(&case3);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected3 = indoc! {r#"
         100(["target", 2])
@@ -97,6 +101,7 @@ fn test_complex_nested_tagged_array_with_repeat() {
         "Should match tagged array with prefix and suffix"
     );
     let paths4 = pattern.paths(&case4);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected4 = indoc! {r#"
         100([1, "target", 2])
@@ -127,6 +132,7 @@ fn test_map_with_array_constraints() {
         "Should match map with array of exactly 3 elements"
     );
     let paths1 = pattern.paths(&case1);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected1 = indoc! {r#"
         {"users": [1, 2, 3]}
@@ -140,6 +146,7 @@ fn test_map_with_array_constraints() {
         "Should match map with array of 4 elements"
     );
     let paths2 = pattern.paths(&case2);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected2 = indoc! {r#"
         {"users": [1, 2, 3, 4]}
@@ -182,6 +189,7 @@ fn test_array_starting_with_maps() {
         "Should match array with just the required map"
     );
     let paths1 = pattern.paths(&case1);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected1 = indoc! {r#"
         [{"id": 42}]
@@ -195,6 +203,7 @@ fn test_array_starting_with_maps() {
         "Should match array with required map and extra elements"
     );
     let paths2 = pattern.paths(&case2);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected2 = indoc! {r#"
         [{"id": 42}, "extra"]
@@ -208,6 +217,7 @@ fn test_array_starting_with_maps() {
         "Should match array with required map and multiple extra elements"
     );
     let paths3 = pattern.paths(&case3);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected3 = indoc! {r#"
         [{"id": 42}, 123, true]
@@ -248,6 +258,7 @@ fn test_deeply_nested_structures() {
         "Should match deeply nested structure"
     );
     let paths1 = pattern.paths(&case1);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected1 = indoc! {r#"
         200({"data": [{"value": 42}]})
@@ -282,6 +293,7 @@ fn test_deeply_nested_structures_with_multiple_maps() {
         "Should match empty array (zero maps)"
     );
     let paths0 = pattern.paths(&case0);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected0 = indoc! {r#"
         200({"data": []})
@@ -292,6 +304,7 @@ fn test_deeply_nested_structures_with_multiple_maps() {
     let case1 = parse_dcbor_item(r#"200({"data": [{"value": 42}]})"#).unwrap();
     assert!(pattern.matches(&case1), "Should match single map");
     let paths1 = pattern.paths(&case1);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected1 = indoc! {r#"
         200({"data": [{"value": 42}]})
@@ -304,6 +317,7 @@ fn test_deeply_nested_structures_with_multiple_maps() {
             .unwrap();
     assert!(pattern.matches(&case2), "Should match multiple maps");
     let paths2 = pattern.paths(&case2);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected2 = indoc! {r#"
         200({"data": [{"value": 1}, {"value": 2}]})
@@ -335,6 +349,7 @@ fn test_multiple_levels_of_nesting_with_any() {
         "Should match tagged array starting with any map"
     );
     let paths1 = pattern.paths(&case1);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected1 = indoc! {r#"
         300([{"key": "value"}])
@@ -348,6 +363,7 @@ fn test_multiple_levels_of_nesting_with_any() {
         "Should match tagged array with number key map and extras"
     );
     let paths2 = pattern.paths(&case2);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected2 = indoc! {r#"
         300([{42: true}, "extra", 123])
@@ -378,6 +394,7 @@ fn test_extreme_nesting_depth() {
         "Should match deeply nested structure"
     );
     let paths = pattern.paths(&deep_structure);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         400({"level1": {"level2": {"level3": [42]}}})
@@ -415,6 +432,7 @@ fn test_complex_combined_patterns() {
         "Should match minimum required structure"
     );
     let paths1 = pattern.paths(&case1);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected1 = indoc! {r#"
         500([{"type": "user"}, {"id": 123}])
@@ -431,6 +449,7 @@ fn test_complex_combined_patterns() {
         "Should match with optional name map"
     );
     let paths2 = pattern.paths(&case2);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected2 = indoc! {r#"
         500([{"type": "user"}, {"id": 123}, {"name": "John"}])
@@ -444,6 +463,7 @@ fn test_complex_combined_patterns() {
         "Should match with optional email map"
     );
     let paths3 = pattern.paths(&case3);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected3 = indoc! {r#"
         500([{"type": "user"}, {"id": 123}, {"email": "john@example.com"}])
@@ -457,6 +477,7 @@ fn test_complex_combined_patterns() {
         "Should match with multiple optional maps"
     );
     let paths4 = pattern.paths(&case4);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected4 = indoc! {r#"
         500([{"type": "user"}, {"id": 123}, {"name": "John"}, {"email": "john@example.com"}])

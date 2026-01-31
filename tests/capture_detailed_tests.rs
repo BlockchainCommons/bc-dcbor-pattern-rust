@@ -20,6 +20,7 @@ fn test_simple_pattern_without_capture() -> Result<()> {
     let cbor_data = cbor("42");
 
     let paths = pattern.paths(&cbor_data);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         42
@@ -36,6 +37,7 @@ fn test_simple_pattern_with_capture() -> Result<()> {
 
     // Test normal paths
     let paths = pattern.paths(&cbor_data);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_paths = indoc! {r#"
         42
@@ -44,6 +46,7 @@ fn test_simple_pattern_with_capture() -> Result<()> {
 
     // Test paths with captures using the proper rubric
     let (vm_paths, captures) = pattern.paths_with_captures(&cbor_data);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         @num
@@ -85,6 +88,7 @@ fn test_vm_compilation_and_execution() -> Result<()> {
     let (vm_paths, vm_captures) = dcbor_pattern::run(&program, &cbor_data);
 
     // Verify VM execution results using the proper rubric
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         @num
@@ -110,6 +114,7 @@ fn test_capture_with_array_pattern() -> Result<()> {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         @arr
@@ -135,6 +140,7 @@ fn test_capture_with_nested_pattern() -> Result<()> {
 
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         @inner

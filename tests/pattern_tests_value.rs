@@ -18,6 +18,7 @@ fn test_bool_pattern_any() {
     // Should match true
     let true_cbor = cbor("true");
     let paths = pattern.paths(&true_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         true
@@ -27,6 +28,7 @@ fn test_bool_pattern_any() {
     // Should match false
     let false_cbor = cbor("false");
     let paths = pattern.paths(&false_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         false
@@ -49,6 +51,7 @@ fn test_bool_pattern_specific() {
 
     // true pattern tests
     let paths = true_pattern.paths(&true_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         true
@@ -61,6 +64,7 @@ fn test_bool_pattern_specific() {
     // false pattern tests
     assert!(!false_pattern.matches(&true_cbor));
     let paths = false_pattern.paths(&false_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         false
@@ -84,6 +88,7 @@ fn test_text_pattern_any() {
     // Should match any text
     let hello_cbor = cbor(r#""Hello""#);
     let paths = pattern.paths(&hello_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         "Hello"
@@ -92,6 +97,7 @@ fn test_text_pattern_any() {
 
     let empty_cbor = cbor(r#""""#);
     let paths = pattern.paths(&empty_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         ""
@@ -114,6 +120,7 @@ fn test_text_pattern_specific() {
 
     // hello pattern tests
     let paths = hello_pattern.paths(&hello_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         "Hello"
@@ -126,6 +133,7 @@ fn test_text_pattern_specific() {
     // world pattern tests
     assert!(!world_pattern.matches(&hello_cbor));
     let paths = world_pattern.paths(&world_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         "World"
@@ -147,6 +155,7 @@ fn test_text_pattern_regex() {
 
     // Should match pure digits
     let paths = digits_pattern.paths(&digits_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         "12345"
@@ -176,6 +185,7 @@ fn test_number_pattern_any() {
     // Should match integers
     let int_cbor = cbor("42");
     let paths = pattern.paths(&int_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         42
@@ -185,6 +195,7 @@ fn test_number_pattern_any() {
     // Should match floats
     let float_cbor = cbor("3.2222");
     let paths = pattern.paths(&float_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         3.2222
@@ -194,6 +205,7 @@ fn test_number_pattern_any() {
     // Should match negative numbers
     let neg_cbor = cbor("-5");
     let paths = pattern.paths(&neg_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         -5
@@ -217,6 +229,7 @@ fn test_number_pattern_specific() {
 
     // int pattern tests
     let paths = int_pattern.paths(&int_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         42
@@ -230,6 +243,7 @@ fn test_number_pattern_specific() {
     // float pattern tests
     assert!(!float_pattern.matches(&int_cbor));
     let paths = float_pattern.paths(&float_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         3.2222
@@ -252,6 +266,7 @@ fn test_number_pattern_range() {
 
     // Should match numbers in range
     let paths = range_pattern.paths(&in_range_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         15
@@ -259,6 +274,7 @@ fn test_number_pattern_range() {
     assert_actual_expected!(format_paths(&paths), expected);
 
     let paths = range_pattern.paths(&boundary_low_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         10
@@ -266,6 +282,7 @@ fn test_number_pattern_range() {
     assert_actual_expected!(format_paths(&paths), expected);
 
     let paths = range_pattern.paths(&boundary_high_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         20
@@ -292,6 +309,7 @@ fn test_number_pattern_comparisons() {
     // Greater than tests
     assert!(!gt_pattern.matches(&equal_cbor));
     let paths = gt_pattern.paths(&greater_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         15
@@ -301,6 +319,7 @@ fn test_number_pattern_comparisons() {
 
     // Greater than or equal tests
     let paths = gte_pattern.paths(&equal_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         10
@@ -313,6 +332,7 @@ fn test_number_pattern_comparisons() {
     assert!(!lt_pattern.matches(&equal_cbor));
     assert!(!lt_pattern.matches(&greater_cbor));
     let paths = lt_pattern.paths(&lesser_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         5
@@ -335,6 +355,7 @@ fn test_number_pattern_nan() {
 
     // Should match NaN
     let paths = nan_pattern.paths(&nan_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         NaN
@@ -366,6 +387,7 @@ fn test_byte_string_pattern_any() {
     // Should match any byte string
     let cbor_bytes = cbor("h'01020304'");
     let paths = pattern.paths(&cbor_bytes);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         h'01020304'
@@ -374,6 +396,7 @@ fn test_byte_string_pattern_any() {
 
     let empty_cbor = cbor("h''");
     let paths = pattern.paths(&empty_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         h''
@@ -396,6 +419,7 @@ fn test_byte_string_pattern_specific() {
 
     // exact pattern tests
     let paths = exact_pattern.paths(&cbor_bytes);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         h'01020304'
@@ -408,6 +432,7 @@ fn test_byte_string_pattern_specific() {
     // different pattern tests
     assert!(!different_pattern.matches(&cbor_bytes));
     let paths = different_pattern.paths(&different_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         h'0506'
@@ -430,6 +455,7 @@ fn test_byte_string_pattern_regex() {
 
     // Should match byte strings with digits
     let paths = digits_pattern.paths(&digits_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         h'3132333435'
@@ -450,6 +476,7 @@ fn test_byte_string_pattern_binary_data() {
     let binary_cbor = cbor("h'00010203fffefd'");
 
     let paths = pattern.paths(&binary_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         h'00010203fffefd'
@@ -458,6 +485,7 @@ fn test_byte_string_pattern_binary_data() {
 
     let exact_pattern = parse("h'00010203fffefd'");
     let paths = exact_pattern.paths(&binary_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         h'00010203fffefd'
@@ -472,6 +500,7 @@ fn test_byte_string_pattern_binary_data() {
     let starts_with_zero_pattern =
         Pattern::byte_string_regex(starts_with_zero_regex);
     let paths = starts_with_zero_pattern.paths(&binary_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         h'00010203fffefd'
@@ -504,6 +533,7 @@ fn test_date_pattern_any() {
     let date = Date::from_ymd(2023, 12, 25);
     let date_cbor = date.to_cbor();
     let paths = pattern.paths(&date_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         2023-12-25
@@ -528,6 +558,7 @@ fn test_date_pattern_specific() {
     // Should match the specific date
     let date_cbor = date.to_cbor();
     let paths = pattern.paths(&date_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         2023-12-25
@@ -556,6 +587,7 @@ fn test_date_pattern_range() {
     let middle_date = Date::from_ymd(2023, 12, 25);
     let middle_date_cbor = middle_date.to_cbor();
     let paths = pattern.paths(&middle_date_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         2023-12-25
@@ -565,6 +597,7 @@ fn test_date_pattern_range() {
     // Should match date at start of range
     let start_date_cbor = start_date.to_cbor();
     let paths = pattern.paths(&start_date_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         2023-12-20
@@ -574,6 +607,7 @@ fn test_date_pattern_range() {
     // Should match date at end of range
     let end_date_cbor = end_date.to_cbor();
     let paths = pattern.paths(&end_date_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         2023-12-30
@@ -601,6 +635,7 @@ fn test_date_pattern_earliest() {
     // Should match date equal to earliest
     let earliest_date_cbor = earliest_date.to_cbor();
     let paths = pattern.paths(&earliest_date_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         2023-12-20
@@ -611,6 +646,7 @@ fn test_date_pattern_earliest() {
     let later_date = Date::from_ymd(2023, 12, 25);
     let later_date_cbor = later_date.to_cbor();
     let paths = pattern.paths(&later_date_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         2023-12-25
@@ -633,6 +669,7 @@ fn test_date_pattern_latest() {
     // Should match date equal to latest
     let latest_date_cbor = latest_date.to_cbor();
     let paths = pattern.paths(&latest_date_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         2023-12-30
@@ -643,6 +680,7 @@ fn test_date_pattern_latest() {
     let earlier_date = Date::from_ymd(2023, 12, 25);
     let earlier_date_cbor = earlier_date.to_cbor();
     let paths = pattern.paths(&earlier_date_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         2023-12-25
@@ -665,6 +703,7 @@ fn test_date_pattern_iso8601() {
     // Should match date with matching ISO string
     let date_cbor = date.to_cbor();
     let paths = pattern.paths(&date_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         2023-12-25
@@ -689,6 +728,7 @@ fn test_date_pattern_regex() {
     let date_2023 = Date::from_ymd(2023, 12, 25);
     let date_2023_cbor = date_2023.to_cbor();
     let paths = pattern.paths(&date_2023_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         2023-12-25
@@ -706,6 +746,7 @@ fn test_date_pattern_regex() {
 
     // Should match December date
     let paths = december_pattern.paths(&date_2023_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         2023-12-25
@@ -727,6 +768,7 @@ fn test_date_pattern_with_time() {
 
     let datetime_cbor = datetime.to_cbor();
     let paths = pattern.paths(&datetime_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         2023-12-25
@@ -736,6 +778,7 @@ fn test_date_pattern_with_time() {
     // Test specific time matching
     let specific_pattern = Pattern::date(datetime);
     let paths = specific_pattern.paths(&datetime_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         2023-12-25
@@ -746,6 +789,7 @@ fn test_date_pattern_with_time() {
     let datetime_with_millis = Date::from_timestamp(1703462400.123);
     let datetime_with_millis_cbor = datetime_with_millis.to_cbor();
     let paths = pattern.paths(&datetime_with_millis_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         2023-12-25
@@ -793,6 +837,7 @@ fn test_null_pattern() {
     // Should match null
     let null_cbor = cbor("null");
     let paths = pattern.paths(&null_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         null
@@ -828,6 +873,7 @@ fn test_known_value_pattern_any() {
     // Test with known values represented as tagged values with tag 40000
     let known_value_cbor = cbor("'1'"); // This represents known_values::IS_A as 40000(1)
     let paths = pattern.paths(&known_value_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         40000(1)
@@ -837,6 +883,7 @@ fn test_known_value_pattern_any() {
     // Test with another known value
     let date_value_cbor = cbor("'16'"); // This represents known_values::DATE as 40000(16)
     let paths = pattern.paths(&date_value_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         40000(16)
@@ -846,6 +893,7 @@ fn test_known_value_pattern_any() {
     // Test with custom known value
     let custom_value_cbor = cbor("'12345'");
     let paths = pattern.paths(&custom_value_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         40000(12345)
@@ -878,6 +926,7 @@ fn test_known_value_pattern_specific() {
 
     // is_a pattern tests
     let paths = is_a_pattern.paths(&is_a_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         40000(1)
@@ -892,6 +941,7 @@ fn test_known_value_pattern_specific() {
     // date pattern tests
     assert!(!date_pattern.matches(&is_a_cbor));
     let paths = date_pattern.paths(&date_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         40000(16)
@@ -919,6 +969,7 @@ fn test_known_value_pattern_named() {
 
     // is_a pattern tests
     let paths = is_a_pattern.paths(&is_a_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         40000(1)
@@ -933,6 +984,7 @@ fn test_known_value_pattern_named() {
     // date pattern tests
     assert!(!date_pattern.matches(&is_a_cbor));
     let paths = date_pattern.paths(&date_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         40000(16)
@@ -974,6 +1026,7 @@ fn test_known_value_pattern_regex() {
 
     // is pattern tests (should match IS_A which starts with "is")
     let paths = is_pattern.paths(&is_a_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         40000(1)
@@ -989,6 +1042,7 @@ fn test_known_value_pattern_regex() {
     // te pattern tests (should match DATE and NOTE which end with "te")
     assert!(!te_pattern.matches(&is_a_cbor));
     let paths = te_pattern.paths(&date_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         40000(16)
@@ -996,6 +1050,7 @@ fn test_known_value_pattern_regex() {
     assert_actual_expected!(format_paths(&paths), expected);
 
     let paths = te_pattern.paths(&note_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         40000(4)
@@ -1039,6 +1094,7 @@ fn test_map_int_keys() {
     let map_pattern = Pattern::parse(r#"{1: text}"#).unwrap();
     let cbor = parse_dcbor_item(r#"{1: "first", 2: "second"}"#).unwrap();
     let paths = map_pattern.paths(&cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         {1: "first", 2: "second"}
@@ -1051,6 +1107,7 @@ fn test_map_negative_keys() {
     let map_pattern = Pattern::parse(r#"{-1: text}"#).unwrap();
     let cbor = parse_dcbor_item(r#"{-1: "first", 2: "second"}"#).unwrap();
     let paths = map_pattern.paths(&cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         {2: "second", -1: "first"}
@@ -1063,6 +1120,7 @@ fn test_map_float_keys() {
     let map_pattern = Pattern::parse(r#"{3.2222: text}"#).unwrap();
     let cbor = parse_dcbor_item(r#"{3.2222: "first", 2: "second"}"#).unwrap();
     let paths = map_pattern.paths(&cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         {2: "second", 3.2222: "first"}
@@ -1075,6 +1133,7 @@ fn test_map_bool_keys() {
     let map_pattern = Pattern::parse(r#"{true: text}"#).unwrap();
     let cbor = parse_dcbor_item(r#"{true: "first", false: "second"}"#).unwrap();
     let paths = map_pattern.paths(&cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         {false: "second", true: "first"}
@@ -1090,6 +1149,7 @@ fn test_map_bstr_keys() {
     )
     .unwrap();
     let paths = map_pattern.paths(&cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         {h'68656c6c6f': "first", h'776f726c64': "second"}
@@ -1104,6 +1164,7 @@ fn test_map_known_value_keys() {
     let cbor =
         parse_dcbor_item(r#"{'100': "first", '200': "second"}"#).unwrap();
     let paths = map_pattern.paths(&cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         {40000(100): "first", 40000(200): "second"}
@@ -1116,6 +1177,7 @@ fn test_map_complex_keys() {
     let map_pattern = Pattern::parse(r#"{"a"|"b": text}"#).unwrap();
     let cbor = parse_dcbor_item(r#"{"z": "first", "b": "second"}"#).unwrap();
     let paths = map_pattern.paths(&cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         {"b": "second", "z": "first"}
@@ -1129,6 +1191,7 @@ fn test_array_complex_elements() {
     let pattern = Pattern::parse(r#"["a"|"b"]"#).unwrap();
     let cbor = parse_dcbor_item(r#"["b"]"#).unwrap();
     let paths = pattern.paths(&cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         ["b"]
@@ -1140,6 +1203,7 @@ fn test_array_complex_elements() {
     let sequence_pattern = Pattern::parse(r#"[(1|2), "hello"]"#).unwrap();
     let cbor = parse_dcbor_item(r#"[2, "hello"]"#).unwrap();
     let paths = sequence_pattern.paths(&cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         [2, "hello"]
@@ -1150,6 +1214,7 @@ fn test_array_complex_elements() {
     let complex_pattern = Pattern::parse(r#"["hello", "a"|"b"]"#).unwrap();
     let cbor = parse_dcbor_item(r#"["hello", "b"]"#).unwrap();
     let paths = complex_pattern.paths(&cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         ["hello", "b"]

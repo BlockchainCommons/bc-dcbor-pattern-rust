@@ -23,6 +23,7 @@ mod deduplication_tests {
             &captures,
             FormatPathsOpts::default(),
         );
+        // expected-text-output-rubric:
         #[rustfmt::skip]
         let expected = indoc! {r#"
             @item
@@ -51,6 +52,7 @@ mod deduplication_tests {
             &nested_captures,
             FormatPathsOpts::default(),
         );
+        // expected-text-output-rubric:
         #[rustfmt::skip]
         let expected = indoc! {r#"
             @inner_item
@@ -83,6 +85,7 @@ mod deduplication_tests {
             &captures,
             FormatPathsOpts::default(),
         );
+        // expected-text-output-rubric:
         #[rustfmt::skip]
         let expected = indoc! {r#"
             @specific

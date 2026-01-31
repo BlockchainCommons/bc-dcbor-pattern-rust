@@ -15,6 +15,7 @@ fn test_capture_basic_number() -> Result<()> {
     let (paths, captures) = pattern.paths_with_captures(&cbor);
 
     // Validate formatted output with captures
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_output = indoc! {r#"
         @num
@@ -42,6 +43,7 @@ fn test_capture_basic_text() -> Result<()> {
     let (paths, captures) = pattern.paths_with_captures(&cbor);
 
     // Validate formatted output with captures
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_output = indoc! {r#"
         @greeting
@@ -91,6 +93,7 @@ fn test_multiple_captures_or() -> Result<()> {
     let cbor1 = parse_dcbor_item("42").unwrap();
     let (paths1, captures1) = pattern.paths_with_captures(&cbor1);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_output1 = indoc! {r#"
         @first
@@ -110,6 +113,7 @@ fn test_multiple_captures_or() -> Result<()> {
     let cbor2 = parse_dcbor_item(r#""hello""#).unwrap();
     let (paths2, captures2) = pattern.paths_with_captures(&cbor2);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_output2 = indoc! {r#"
         @second
@@ -138,6 +142,7 @@ fn test_nested_captures() -> Result<()> {
 
     // Should have both captures pointing to the same value, sorted
     // alphabetically
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_output = indoc! {r#"
         @inner
@@ -167,6 +172,7 @@ fn test_capture_in_array() -> Result<()> {
     let (paths, captures) = pattern.paths_with_captures(&cbor);
 
     // Validate the structured output
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_output = indoc! {r#"
         @item
@@ -195,6 +201,7 @@ fn test_capture_in_array_sequence() -> Result<()> {
     let (paths, captures) = pattern.paths_with_captures(&cbor);
 
     // Should capture both elements, sorted alphabetically
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_output = indoc! {r#"
         @first
@@ -226,6 +233,7 @@ fn test_capture_in_map() -> Result<()> {
     let (paths, captures) = pattern.paths_with_captures(&cbor);
 
     // Validate formatted output with captures
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_output = indoc! {r#"
         @key
@@ -257,6 +265,7 @@ fn test_capture_with_search() -> Result<()> {
     let (paths, captures) = pattern.paths_with_captures(&cbor);
 
     // Validate formatted output with captures
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_output = indoc! {r#"
         @found
@@ -288,6 +297,7 @@ fn test_capture_with_tagged() -> Result<()> {
     let (paths, captures) = pattern.paths_with_captures(&cbor);
 
     // Validate formatted output with captures
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_output = indoc! {r#"
         @content
@@ -324,6 +334,7 @@ fn test_capture_performance() -> Result<()> {
     let duration = start.elapsed();
 
     // Validate formatted output with all captured numbers
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_output = indoc! {r#"
         @nums
@@ -429,6 +440,7 @@ fn test_no_captures_optimization() -> Result<()> {
     let (paths, captures) = pattern.paths_with_captures(&cbor);
 
     // Validate formatted output with no captures
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_output = indoc! {r#"
         42
@@ -479,6 +491,7 @@ fn test_complex_nested_captures() -> Result<()> {
     let (paths, captures) = pattern.paths_with_captures(&cbor);
 
     // Validate formatted output with all captures
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_output = indoc! {r#"
         @first_map

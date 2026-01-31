@@ -21,6 +21,7 @@ fn test_array_capture_basic() {
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
     // Validate formatted output with captures
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_output = indoc! {r#"
         @item
@@ -39,6 +40,7 @@ fn test_array_capture_basic() {
 
     // Also test normal paths for comparison
     let normal_paths = pattern.paths(&cbor_data);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_paths = indoc! {r#"
         [42]
@@ -54,6 +56,7 @@ fn test_array_capture_multiple_items() {
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
     // Validate formatted output with captures
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_output = indoc! {r#"
         @first
@@ -82,6 +85,7 @@ fn test_array_capture_with_any_pattern() {
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
     // Validate formatted output with captures
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_output = indoc! {r#"
         @any_item
@@ -130,6 +134,7 @@ fn test_array_vm_compilation_and_execution() {
     let (vm_paths, vm_captures) = dcbor_pattern::run(&program, &cbor_data);
 
     // Validate VM execution with formatted output
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_vm_output = indoc! {r#"
         @item
@@ -155,6 +160,7 @@ fn test_array_nested_capture() {
     let (paths, captures) = pattern.paths_with_captures(&cbor_data);
 
     // Validate formatted output with nested captures
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_output = indoc! {r#"
         @arr

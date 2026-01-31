@@ -556,6 +556,7 @@ fn test_search_pattern_basic() {
     // Test with nested structure containing the number
     let array_cbor = cbor("[1, 42, 3]");
     let paths = pattern.paths(&array_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         [1, 42, 3]
@@ -565,6 +566,7 @@ fn test_search_pattern_basic() {
 
     let map_cbor = cbor("{1: 42}");
     let paths = pattern.paths(&map_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         {1: 42}
@@ -595,6 +597,7 @@ fn test_search_pattern_text() {
     // Test with nested structures
     let array_cbor = cbor(r#"["hello", "world"]"#);
     let paths = pattern.paths(&array_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         ["hello", "world"]
@@ -604,6 +607,7 @@ fn test_search_pattern_text() {
 
     let map_cbor = cbor(r#"{"greeting": "hello"}"#);
     let paths = pattern.paths(&map_cbor);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         {"greeting": "hello"}
@@ -645,6 +649,7 @@ fn test_search_pattern_any() {
     let array_cbor = cbor("[1, 2, 3]");
     let paths = pattern.paths(&array_cbor);
     // * matches everything, so this should match all nodes in the tree
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         [1, 2, 3]
@@ -714,6 +719,7 @@ fn test_search_pattern_with_captures() {
     // Test with a nested structure
     let data = cbor(r#"[1, {"key": 42}, 3]"#);
     let paths = pattern.paths(&data);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         [1, {"key": 42}, 3]
@@ -781,6 +787,7 @@ fn test_search_pattern_with_structure_pattern() {
 
     let paths = pattern.paths(&data);
     // Should find the outer arrays structure and the inner arrays
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         {"arrays": [[1, 2], [3, 4]], "not_array": 42}
@@ -803,6 +810,7 @@ fn test_search_array_order() {
     let pattern = Pattern::parse("search(array)").unwrap();
 
     let paths = pattern.paths(&data);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         [[1, 2, 3], [4, 5, 6]]
@@ -815,6 +823,7 @@ fn test_search_array_order() {
 
     let pattern = Pattern::parse("search(number)").unwrap();
     let paths = pattern.paths(&data);
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected = indoc! {r#"
         [[1, 2, 3], [4, 5, 6]]

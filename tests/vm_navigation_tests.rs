@@ -33,6 +33,7 @@ fn test_vm_array_navigation() {
 
     let (vm_paths, vm_captures) = run(&program, &cbor_data);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_paths = indoc! {r#"
         [42]
@@ -71,6 +72,7 @@ fn test_vm_map_navigation() {
 
     let (vm_paths, vm_captures) = run(&program, &cbor_data);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_paths = indoc! {r#"
         {"key": "value"}
@@ -113,6 +115,7 @@ fn test_vm_nested_navigation() {
 
     let (vm_paths, vm_captures) = run(&program, &cbor_data);
 
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_paths = indoc! {r#"
         [{"inner": 42}]
@@ -160,6 +163,7 @@ fn test_vm_multiple_captures() {
     let (vm_paths, vm_captures) = run(&program, &cbor_data);
 
     // Should capture both elements
+    // expected-text-output-rubric:
     #[rustfmt::skip]
     let expected_paths = indoc! {r#"
         [42, 100]
