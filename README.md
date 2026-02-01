@@ -12,10 +12,14 @@ _forthcoming_
 
 ```toml
 [dependencies]
-dcbor-pattern = "0.11.0"
+dcbor-pattern = "0.11.1"
 ```
 
 ## Version History
+
+### **0.11.1** — 1/31/2026
+- Add expected-text-output-rubric comments to tests.
+- Remove tracked target/ lockfiles.
 
 ### **0.11.0** — 1/11/2026
 - Align to dependencies
